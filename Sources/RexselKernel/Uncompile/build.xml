@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<!-- -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* -->
+<!-- -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* -->
+<!--
+   
+   Ant build for reverse Rexsel production from XSLT
+   =================================================
+   
+   Author : Hugh Field-Richards.
+   Email  : hsfr@hsfr.org.uk
+   
+-->
+
+<project name="getRexsel" default="build" basedir=".">
+
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+        <classpath>
+            <pathelement location="/Library/Java/Extensions/ant-contrib-0.6.jar"/>
+        </classpath>
+    </taskdef>
+
+    <!-- -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* -->
+    <!-- -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* -->
+
+    <target name="build">
+        <exec executable="/usr/local/bin/rexsel" output="rexsel.txt" append="no">
+            <arg value="*.rxsl"/>
+            <arg value="-errors"/>
+            <arg value="-verbose"/>
+        </exec>  
+    </target>
+    
+    <target name="unbuild">
+        <xslt in="original/xsl2xhtml.xsl" out= "original/xsl2rexsel.rxsl" style="transform/xsl2rexsel.xsl"/>
+        <xslt in="original/xsl2xhtml+buildHeader.xsl" out= "original/xsl2rexsel+buildHeader.rxsl" style="transform/xsl2rexsel.xsl"/>
+        <xslt in="original/xsl2xhtml+parametersVariables.xsl" out= "original/xsl2rexsel+parametersVariables.rxsl" style="transform/xsl2rexsel.xsl"/>
+        <xslt in="original/xsl2xhtml+utilities.xsl" out= "original/xsl2rexsel+utilities.rxsl" style="transform/xsl2rexsel.xsl"/>
+    </target>
+    
+</project>

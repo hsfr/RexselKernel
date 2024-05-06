@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<?oxygen RNGSchema="hestia.rng" type="xml"?>
+<?oxygen SCHSchema="hestia.rng"?>
+
+<configuration xmlns="http://www.hsfr.org.uk/Schema/Hestia">
+
+    <appenders>
+
+        <appender name="console" class="StdOutAppender">
+            <layout class="PatternLayout">
+                <param name="ConversionPattern" value="[%p] %F:%M:%L: %m"/>
+            </layout>
+        </appender>
+
+        <appender name="logWindow" class="WindowAppender">
+            <layout class="PatternLayout">
+                <param name="ConversionPattern" value="[%p] %F:%M:%L: %m"/>
+            </layout>
+        </appender>
+
+        <appender name="file" class="RollingFileAppender">
+            <param name="append" value="false"/>
+            <param name="maxFileSize" value="10000"/>
+            <param name="maxBackupIndex" value="10"/>
+            <param name="file" value="hestia.log"/>
+            <layout class="PatternLayout">
+                <param name="ConversionPattern" value="%d{MM/dd/yyyy hh:mm}: [%p] %F:%L %M: %m"/>
+            </layout>
+        </appender>
+
+    </appenders>
+
+    <loggers>
+
+        <root>
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </root>
+
+        <logger name="Rexsel.Document">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.SourceViewController">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.Source">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.Compiler">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.StylesheetNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.VersionNode">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.KeyNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.MessageNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.NamespaceAliasNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.NumberNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+        
+        <logger name="Rexsel.ValueNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+        
+        <logger name="Rexsel.LevelNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+        
+        <logger name="Rexsel.LetterValueNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+        
+        <logger name="Rexsel.XmlnsNode">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.DecimalFormatNode">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.DecimalSeparatorNode">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.MatchNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.FunctionNode">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.AttributeNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.AttributeSetNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.ParameterNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.VariableNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.ElementNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.ApplyTemplatesNode">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.ProcessingInstructionNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.ForeachNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.CallNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.WithNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.IfNode">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.TextNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.ValueOfNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.SortNode">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.OutputNode">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.MethodNode">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.ImportNode">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.ChooseNode">
+            <level value="info"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.WhenNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.OtherwiseNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.CopyNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.CopyOfNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.CommentNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.DecimalFormatNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+        <logger name="Rexsel.DecimalSeparatorNode">
+            <level value="debug"/>
+            <appender-ref ref="console"/>
+        </logger>
+
+
+
+</loggers>
+
+</configuration>
