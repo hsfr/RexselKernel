@@ -14,8 +14,10 @@ let package = Package(
     targets: [
         .target(
             name: "RexselKernel",
-            dependencies: []
-        ),
+            dependencies: [],
+            swiftSettings: [
+                .define("HESTIA_LOGGING"),
+            ] ),
 
         .testTarget(
             name: "RexselKernelTests",

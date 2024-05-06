@@ -93,7 +93,7 @@ extension RexselKernel {
             sourceString += newlineCharacter
             if eof {
 #if HESTIA_LOGGING
-                rLogger.log( self, .debug,"Finished reading source")
+                rLogger.log( structName, .debug, "Finished reading source")
 #endif
                 break
             }
@@ -106,7 +106,7 @@ extension RexselKernel {
         }
 
 #if HESTIA_LOGGING
-        self.rLogger.log( self, .debug, sourceString )
+        self.rLogger.log( structName, .debug, sourceString )
 #endif
 
         var idx = 0
@@ -132,9 +132,9 @@ extension RexselKernel {
             }
 
 #if HESTIA_LOGGING
-            self.rLogger.log( self, .debug, "[\(tokeniseState)] [\(currentCharacter == newlineCharacter ? "newline"  : currentCharacter )] [\(nextCharacter == newlineCharacter ? "newline"  : nextCharacter )]" )
-            // self.rLogger.log( self, .debug, "[\(thisToken)]" )
-            // self.rLogger.log( self, .debug, "[\(tokenizedSource.description)]" )
+            self.rLogger.log( structName,
+                              .debug,
+                              "[\(tokeniseState)] [\(currentCharacter == newlineCharacter ? "newline"  : currentCharacter )] [\(nextCharacter == newlineCharacter ? "newline"  : nextCharacter )]" )
 #endif
 
             switch ( tokeniseState, currentCharacter, nextCharacter ) {
