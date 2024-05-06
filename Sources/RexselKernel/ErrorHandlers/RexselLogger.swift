@@ -14,12 +14,10 @@ class RexselLogger: NSObject {
     }
 
 #if HESTIA_LOGGING
-    fileprivate var loggerList = [String:Logger]()
-#else
     fileprivate var loggerList = [String:NSObject]()
 #endif
 
-    static var loggingRequired: RexselLoggerLevelEnum = .off
+    var loggingRequired: RexselLoggerLevelEnum = .off
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -33,22 +31,34 @@ class RexselLogger: NSObject {
         loggerList = [:]
     }
 
-    public  func log( _ inClass: NSObject, _ level: RexselLoggerLevelEnum, _ msg: String = "",
-                      file: StaticString = #file, line: Int = #line, function: StaticString = #function ) {
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-        guard RexselLogger.loggingRequired != .off && level == .debug else {
+    public func log( _ name: String,
+                     _ level: RexselLoggerLevelEnum,
+                     _ msg: String = "",
+                     file: StaticString = #file,
+                     line: Int = #line,
+                     function: StaticString = #function ) {
+        guard loggingRequired != .off && level == .debug else {
             return
         }
+        print( "[\(file):\(line)] [\(level)] : \(msg)" )
+    }
 
-        let className = inClass.className
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-        if loggerList[ className ] == nil {
-            loggerList[ className ] = inClass
+    public func log( _ inClass: NSObject,
+                     _ level: RexselLoggerLevelEnum,
+                     _ msg: String = "",
+                     file: StaticString = #file,
+                     line: Int = #line,
+                     function: StaticString = #function ) {
+        guard loggingRequired != .off && level == .debug else {
+            return
         }
-
-        if let _ = loggerList[className] {
-            print( "[\(file):\(line)] [\(level)] : \(msg)" )
-        }
+        print( "[\(file):\(line)] [\(level)] : \(msg)" )
     }
 
 }

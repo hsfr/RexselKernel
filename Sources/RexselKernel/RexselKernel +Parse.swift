@@ -20,11 +20,13 @@ extension RexselKernel {
         nestedLevel = 0
 
 #if HESTIA_LOGGING
-        rLogger.log( self, .debug, "tokenizedSourceIndex: \(tokenizedSourceIndex) [\(tokenizedSource.count)]" )
+        rLogger.log( structName,
+                     .debug,
+                     "tokenizedSourceIndex: \(tokenizedSourceIndex) [\(tokenizedSource.count)]" )
 #endif
         let currentToken = tokenizedSource[ tokenizedSourceIndex ]
 #if HESTIA_LOGGING
-        rLogger.log( self, .debug, currentTokenLog )
+        rLogger.log( structName, .debug, currentTokenLog )
 #endif
         // Check that the first token is the root (stylesheet). We mark this as a fatal error
         // as something is clearly wrong. Comment lines are removed by this point in
@@ -43,7 +45,7 @@ extension RexselKernel {
         }
 
 #if HESTIA_LOGGING
-        rLogger.log( self, .debug, currentTokenLog )
+        rLogger.log( structName, .debug, currentTokenLog )
 #endif
         // All well so set this as the root of the parse tree.
         rootNode = StylesheetNode()
@@ -54,7 +56,7 @@ extension RexselKernel {
         // Check within functions etc will be done locally.
         if nestedLevel != 0 {
 #if HESTIA_LOGGING
-            rLogger.log( self, .debug, "**** Unmatched brackets in line \(sourceLine)" )
+            rLogger.log( structName, .debug, "**** Unmatched brackets in line \(sourceLine)" )
 #endif
             rexselErrorList.add( RexselErrorData.init( kind: RexselErrorKind.unmatchedBrackets( lineNumber: sourceLine + 1, level: nestedLevel ),
                                                        line: sourceLine + 1,
@@ -62,7 +64,7 @@ extension RexselKernel {
         }
 
 #if HESTIA_LOGGING
-        rLogger.log( self, .debug, "nestedLevel: \(nestedLevel)" )
+        rLogger.log( structName, .debug, "nestedLevel: \(nestedLevel)" )
 #endif
 
     }

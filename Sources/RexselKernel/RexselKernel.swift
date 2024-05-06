@@ -38,7 +38,7 @@ public struct RexselKernel {
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    public var version = "1.0.10b"
+    public var version = "1.0.10c"
 
     /// A list of the current errors
     public var rexselErrorList = RexselErrorList()
@@ -46,13 +46,17 @@ public struct RexselKernel {
     /// The source string from the source window
     public var source = Source()
 
-    public var other = RexselErrorList()
+    /// Turn on debug logger.
+    public var debugOn = false
 
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Instance Properties
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+    /// Convenience for logging system
+    let structName = "RexselKernel"
 
     /// Convenience for logging current token
     var currentTokenLog: String {
@@ -246,8 +250,14 @@ public struct RexselKernel {
     ///
     /// - Returns: Tuple ( codeListing, errorListing, symbolTable ) all `String`
 
-    public mutating func run() -> ( codeListing: String, errorListing: String, symbolTable: String )
+    public mutating func run( debugOn: Bool = false ) -> ( codeListing: String,
+                                                           errorListing: String,
+                                                           symbolTable: String )
     {
+        if debugOn {
+            rLogger.loggingRequired = .debug
+        }
+
         // Set up a root node that everything falls under
         rootNode = ExprNode()
         rootNode.isRootNode = true
@@ -263,7 +273,9 @@ public struct RexselKernel {
 
 #if HESTIA_LOGGING
         for ( type, what, numberValue, line, position ) in tokenizedSource {
-            rLogger.log( self, .debug, "[\(line):\(position)][\(type)][\(what)][\(numberValue)]" )
+            rLogger.log( structName,
+                         .debug,
+                         "[\(line):\(position)][\(type)][\(what)][\(numberValue)]" )
         }
 #endif
 
