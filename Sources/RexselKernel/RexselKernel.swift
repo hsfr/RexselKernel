@@ -13,7 +13,7 @@ import Cocoa
 // -*-*-*-*-*-*-*-*-*-*-* PUBLIC STRUCT *-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-public struct RexselKernel {
+public class RexselKernel {
 
     public static var sharedInstance = RexselKernel()
 
@@ -38,7 +38,7 @@ public struct RexselKernel {
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    public var version = "1.0.10d"
+    public var version = "1.0.10e"
 
     /// A list of the current errors
     public var rexselErrorList = RexselErrorList()
@@ -250,7 +250,7 @@ public struct RexselKernel {
     ///
     /// - Returns: Tuple ( codeListing, errorListing, symbolTable ) all `String`
 
-    public mutating func run( debugOn: Bool = false ) -> ( codeListing: String,
+    public func run( debugOn: Bool = false ) -> ( codeListing: String,
                                                            errorListing: String,
                                                            symbolTable: String )
     {

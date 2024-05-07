@@ -9,7 +9,7 @@ import Foundation
 
 extension RexselKernel {
 
-    mutating func parse() throws {
+    func parse() throws {
 
         // Get the first line
         tokenizedSourceIndex = 0
@@ -52,7 +52,7 @@ extension RexselKernel {
         // Important to set the current compiler into the parse tree.
         try? rootNode.parseSyntaxUsingCompiler( self )
 
-        // DO a final check for correctly nested brackets at global level.
+        // Do a final check for correctly nested brackets at global level.
         // Check within functions etc will be done locally.
         if nestedLevel != 0 {
 #if HESTIA_LOGGING

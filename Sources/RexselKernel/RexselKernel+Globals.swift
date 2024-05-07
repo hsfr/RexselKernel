@@ -1,5 +1,5 @@
 //
-//  RexselKernel +Globals.swift
+//  RexselKernel+Globals.swift
 //
 //
 //  Created by Hugh Field-Richards on 03/05/2024.
