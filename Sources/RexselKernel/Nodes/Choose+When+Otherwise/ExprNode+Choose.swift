@@ -62,7 +62,7 @@ class ChooseNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var rLogger: RexselLogger!
 #endif
 
@@ -82,7 +82,7 @@ class ChooseNode: ExprNode  {
 
         setSyntax()
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
     }
@@ -95,7 +95,7 @@ class ChooseNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -105,7 +105,7 @@ class ChooseNode: ExprNode  {
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, thisCompiler.currentTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -116,7 +116,7 @@ class ChooseNode: ExprNode  {
 
         while !thisCompiler.isEndOfFile {
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -133,7 +133,7 @@ class ChooseNode: ExprNode  {
                     continue
 
                 case ( .terminal, _, _ ) where isInChooseTokens( thisCompiler.currentToken.what ) && isInBlock :
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass

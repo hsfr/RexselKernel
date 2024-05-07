@@ -15,7 +15,7 @@ class CommentNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var rLogger: RexselLogger!
 #endif
 
@@ -40,7 +40,7 @@ class CommentNode: ExprNode  {
         super.init()
         self.exprNodeType = .comment
         textString = ""
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
     }
@@ -53,7 +53,7 @@ class CommentNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -67,7 +67,7 @@ class CommentNode: ExprNode  {
         // which contains the text string.
         thisCompiler.tokenizedSourceIndex += 1
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, thisCompiler.currentTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )

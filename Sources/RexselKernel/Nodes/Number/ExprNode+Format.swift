@@ -15,7 +15,7 @@ class FormatNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var rLogger: RexselLogger!
 #endif
 
@@ -40,7 +40,7 @@ class FormatNode: ExprNode  {
         exprNodeType = .format
         value = "1"
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
    }
@@ -54,7 +54,7 @@ class FormatNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -66,7 +66,7 @@ class FormatNode: ExprNode  {
 
         // When we arrive here the element terminal symbol is current
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, thisCompiler.currentTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -75,7 +75,7 @@ class FormatNode: ExprNode  {
         // Slide past keyword token
         thisCompiler.tokenizedSourceIndex += 1
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, thisCompiler.currentTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )

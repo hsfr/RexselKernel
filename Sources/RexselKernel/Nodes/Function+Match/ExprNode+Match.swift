@@ -66,7 +66,7 @@ class MatchNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var rLogger: RexselLogger!
 #endif
 
@@ -101,7 +101,7 @@ class MatchNode: ExprNode  {
 
         setSyntax()
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
     }
@@ -115,7 +115,7 @@ class MatchNode: ExprNode  {
 
         defer {
             name = "\(usingString)::\(scopeString)"
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -125,7 +125,7 @@ class MatchNode: ExprNode  {
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -137,7 +137,7 @@ class MatchNode: ExprNode  {
 
       while !thisCompiler.isEndOfFile {
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -172,7 +172,7 @@ class MatchNode: ExprNode  {
                 // Process block -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
                 case ( .terminal, _, _ ) where isInMatchTokens( thisCompiler.currentToken.what ) && isInBlock :
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass

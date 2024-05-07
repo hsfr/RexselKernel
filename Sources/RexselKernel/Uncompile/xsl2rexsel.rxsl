@@ -4,9 +4,9 @@
 // XSL to Rexsel Translator
 //
 // This is a simple translator which takes syntactically correct XSLT
-// and outputs a valid Rexsel stylesheet. No error detectioon on the
+// and outputs a valid Rexsel stylesheet. No error detection on the
 // inputted XSLT is carried out. Once the Rexsel is produced the Rexsel
-// compiler should detect any errors in the original XSLT (and transform).
+// compiler should detect any errors in the original XSLT.
 //
 // Author:
 //    Name  : Hugh Field-Richards
@@ -40,11 +40,11 @@ stylesheet {
         method text
     }
 
-    xmlns "rng" "http://relaxng.org/ns/structure/1.0" 
-    xmlns "a" "http://relaxng.org/ns/annotation/1.0"
-    xmlns "dc" "http://purl.org/dc/elements/1.1/" 
+    xmlns "rng"   "http://relaxng.org/ns/structure/1.0"
+    xmlns "a"     "http://relaxng.org/ns/annotation/1.0"
+    xmlns "dc"    "http://purl.org/dc/elements/1.1/"
     xmlns "xhtml" "http://www.w3.org/1999/xhtml"
-    xmlns "sch" "http://www.ascc.net/xml/schematron" 
+    xmlns "sch"   "http://www.ascc.net/xml/schematron"
 
     constant doubleQuote "'&#34;'"
     constant space "' '"

@@ -74,8 +74,8 @@ class StylesheetNode: ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
-    fileprivate var rLogger: RexselLogger!
+#if REXSEL_LOGGING
+ //   fileprivate var rLogger: RexselLogger!
 #endif
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -94,8 +94,8 @@ class StylesheetNode: ExprNode {
         setSyntax()
 
         isRootNode = true
-#if HESTIA_LOGGING
-        rLogger = RexselLogger()
+#if REXSEL_LOGGING
+ //       rLogger = RexselLogger()
 #endif
     }
 
@@ -108,7 +108,7 @@ class StylesheetNode: ExprNode {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -118,7 +118,7 @@ class StylesheetNode: ExprNode {
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, thisCompiler.currentTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -145,7 +145,7 @@ class StylesheetNode: ExprNode {
                 return
             }
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -183,7 +183,7 @@ class StylesheetNode: ExprNode {
                 // Process block material
 
                 case ( .terminal, _, _ ) where isInStyleSheetTokens( thisCompiler.currentToken.what ) && isInBlock :
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
@@ -348,12 +348,12 @@ class StylesheetNode: ExprNode {
     override func doesContextContainVariable( _ normalisedName: String, line whereUsed: Int ) -> Bool {
         if variablesDict.isNameDeclared( normalisedName ) {
             variablesDict.addNameToUsedList( normalisedName, inLine: whereUsed )
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, "Adding \(normalisedName) used in line number \(whereUsed+1) in local table for \(variablesDict.title)" )
 #endif
             return true
         }
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, "Could not find parameter/variable \(normalisedName) used in line number \(whereUsed+1)" )
 #endif
         markCouldNotFindXPathVariableError( normalisedName, at: whereUsed )

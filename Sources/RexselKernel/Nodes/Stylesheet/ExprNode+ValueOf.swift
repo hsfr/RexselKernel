@@ -46,7 +46,7 @@ class ValueOfNode: ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var rLogger: RexselLogger!
 #endif
 
@@ -78,7 +78,7 @@ class ValueOfNode: ExprNode {
         expresssionString = ""
         disableOutputEscaping = false
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
     }
@@ -91,7 +91,7 @@ class ValueOfNode: ExprNode {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -101,7 +101,7 @@ class ValueOfNode: ExprNode {
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, thisCompiler.currentTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -111,7 +111,7 @@ class ValueOfNode: ExprNode {
 
         while !thisCompiler.isEndOfFile {
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )

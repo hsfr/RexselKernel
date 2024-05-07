@@ -15,7 +15,7 @@ class DocTypeSystemNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var rLogger: RexselLogger!
 #endif
 
@@ -38,7 +38,7 @@ class DocTypeSystemNode: ExprNode  {
     override init() {
         super.init()
         self.exprNodeType = .doctypeSystem
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
    }
@@ -54,7 +54,7 @@ class DocTypeSystemNode: ExprNode  {
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         self.rLogger.log( self, .debug, thisCompiler.currentTokenLog )
         self.rLogger.log( self, .debug, thisCompiler.nextTokenLog )
         self.rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -64,7 +64,7 @@ class DocTypeSystemNode: ExprNode  {
 
             case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == self.exprNodeType :
                 value = thisCompiler.nextToken.value
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
                 rLogger.log( self, .debug, "Found output '\(exprNodeType.xml)':'\(value)' in line \(sourceLine)" )
 #endif
                 thisCompiler.tokenizedSourceIndex += 2

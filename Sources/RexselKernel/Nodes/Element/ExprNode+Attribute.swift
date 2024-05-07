@@ -60,7 +60,7 @@ class AttributeNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var rLogger: RexselLogger!
 #endif
 
@@ -95,7 +95,7 @@ class AttributeNode: ExprNode  {
         isInBlock = false
         setSyntax()
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
     }
@@ -115,7 +115,7 @@ class AttributeNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -132,7 +132,7 @@ class AttributeNode: ExprNode  {
 
             var node: ExprNode!
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -188,7 +188,7 @@ class AttributeNode: ExprNode  {
                 // Process Block
 
                 case ( .terminal, _, _ ) where isInAttributeTokens( thisCompiler.currentToken.what ) && isInBlock:
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
                     node = thisCompiler.currentToken.what.ExpreNodeClass

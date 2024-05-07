@@ -15,7 +15,7 @@ class NaNNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var rLogger: RexselLogger!
 #endif
 
@@ -41,7 +41,7 @@ class NaNNode: ExprNode  {
         super.init()
         exprNodeType = .notNumber
         nanValue = ""
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
     }
@@ -55,7 +55,7 @@ class NaNNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -65,7 +65,7 @@ class NaNNode: ExprNode  {
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -73,7 +73,7 @@ class NaNNode: ExprNode  {
 
         thisCompiler.tokenizedSourceIndex += 1
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -83,7 +83,7 @@ class NaNNode: ExprNode  {
 
             case ( .expression, _, _ ) where thisCompiler.currentToken.value.count == 1 :
                 nanValue = thisCompiler.currentToken.value
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
                 rLogger.log( self, .debug, "Found \(TerminalSymbolEnum.decimalSeparator.description) \"\(nanValue)\" in line \(thisCompiler.currentToken.line)" )
 #endif
                 thisCompiler.tokenizedSourceIndex += 1
@@ -107,7 +107,7 @@ class NaNNode: ExprNode  {
                     return
                 }
                 nanValue = String( nanValue.removeFirst() )
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
                 rLogger.log( self, .debug, "Found \(TerminalSymbolEnum.decimalSeparator.description) \"\(nanValue)\" in line \(thisCompiler.currentToken.line)" )
 #endif
                 thisCompiler.tokenizedSourceIndex += 1

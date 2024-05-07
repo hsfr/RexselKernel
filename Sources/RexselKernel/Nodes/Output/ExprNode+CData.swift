@@ -15,7 +15,7 @@ class CDataNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var rLogger: RexselLogger!
 #endif
 
@@ -40,7 +40,7 @@ class CDataNode: ExprNode  {
         self.exprNodeType = .cdataList
         cdataValue = ""
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
     }
@@ -56,7 +56,7 @@ class CDataNode: ExprNode  {
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, thisCompiler.currentTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -66,7 +66,7 @@ class CDataNode: ExprNode  {
 
             case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == self.exprNodeType :
                 cdataValue = thisCompiler.nextToken.value
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
                 rLogger.log( self, .debug, "Found '\(exprNodeType.xml)':'\(cdataValue)' in line \(sourceLine)" )
 #endif
                 thisCompiler.tokenizedSourceIndex += 2

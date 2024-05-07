@@ -26,3 +26,6 @@ var showFullMessages: Bool = false
 /// the "-noXmlnsPrefix".
 var useDefaultXSLNamespace: Bool = false
 
+#if REXSEL_LOGGING
+    var rLogger = RexselLogger()
+#endif

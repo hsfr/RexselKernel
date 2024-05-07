@@ -15,7 +15,7 @@ class DecimalSeparatorNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var rLogger: RexselLogger!
 #endif
     
@@ -42,7 +42,7 @@ class DecimalSeparatorNode: ExprNode  {
         exprNodeType = .decimalSeparator
         separatorValue = ""
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
     }
@@ -56,7 +56,7 @@ class DecimalSeparatorNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
         
         defer {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -66,7 +66,7 @@ class DecimalSeparatorNode: ExprNode  {
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
         
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, thisCompiler.currentTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -74,7 +74,7 @@ class DecimalSeparatorNode: ExprNode  {
         
         thisCompiler.tokenizedSourceIndex += 1
         
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, thisCompiler.currentTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -84,7 +84,7 @@ class DecimalSeparatorNode: ExprNode  {
                 
             case ( .expression, _, _ ) where thisCompiler.currentToken.value.count == 1 :
                 separatorValue = thisCompiler.currentToken.value
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
                 rLogger.log( self, .debug, "Found \(TerminalSymbolEnum.decimalSeparator.description) \"\(separatorValue)\" in line \(thisCompiler.currentToken.line)" )
 #endif
                 thisCompiler.tokenizedSourceIndex += 1
@@ -108,7 +108,7 @@ class DecimalSeparatorNode: ExprNode  {
                     return
                 }
                 separatorValue = String( separatorValue.removeFirst() )
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
                 rLogger.log( self, .debug, "Found \(TerminalSymbolEnum.decimalSeparator.description) \"\(separatorValue)\" in line \(thisCompiler.currentToken.line)" )
 #endif
                 thisCompiler.tokenizedSourceIndex += 1

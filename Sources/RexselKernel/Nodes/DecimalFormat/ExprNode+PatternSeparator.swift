@@ -15,7 +15,7 @@ class PatternSeparatorNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var rLogger: RexselLogger!
 #endif
 
@@ -42,7 +42,7 @@ class PatternSeparatorNode: ExprNode  {
         exprNodeType = .patternSeparator
         separatorValue = ""
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
     }
@@ -56,7 +56,7 @@ class PatternSeparatorNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -66,7 +66,7 @@ class PatternSeparatorNode: ExprNode  {
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -74,7 +74,7 @@ class PatternSeparatorNode: ExprNode  {
 
         thisCompiler.tokenizedSourceIndex += 1
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -84,7 +84,7 @@ class PatternSeparatorNode: ExprNode  {
 
             case ( .expression, _, _ ) where thisCompiler.currentToken.value.count == 1 :
                 separatorValue = thisCompiler.currentToken.value
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
                 rLogger.log( self, .debug, "Found \(TerminalSymbolEnum.decimalSeparator.description) \"\(separatorValue)\" in line \(thisCompiler.currentToken.line)" )
 #endif
                 thisCompiler.tokenizedSourceIndex += 1
@@ -108,7 +108,7 @@ class PatternSeparatorNode: ExprNode  {
                     return
                 }
                 separatorValue = String( separatorValue.removeFirst() )
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
                 rLogger.log( self, .debug, "Found \(TerminalSymbolEnum.decimalSeparator.description) \"\(separatorValue)\" in line \(thisCompiler.currentToken.line)" )
 #endif
                 thisCompiler.tokenizedSourceIndex += 1
@@ -137,7 +137,7 @@ class PatternSeparatorNode: ExprNode  {
 
         _ = super.generate()
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
        rLogger.log( self, .debug, "Generate \(exprNodeType.xml)=\"\(separatorValue)\"" )
 #endif
         return "\(exprNodeType.xml)=\"\(separatorValue)\""

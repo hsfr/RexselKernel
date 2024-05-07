@@ -15,7 +15,7 @@ class DecimalFormatNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
  fileprivate var rLogger: RexselLogger!
     #endif
 
@@ -32,7 +32,7 @@ class DecimalFormatNode: ExprNode  {
         exprNodeType = .decimalFormat
         name = ""
         
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
    }
@@ -45,7 +45,7 @@ class DecimalFormatNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -55,7 +55,7 @@ class DecimalFormatNode: ExprNode  {
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -65,7 +65,7 @@ class DecimalFormatNode: ExprNode  {
 
         while !thisCompiler.isEndOfFile {
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
@@ -90,7 +90,7 @@ class DecimalFormatNode: ExprNode  {
                 // Process block material
 
                 case ( .terminal, _, _ ) where isInDecimalFormatTokens( thisCompiler.currentToken.what ) :
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             self.rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
                   let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
