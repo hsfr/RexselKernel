@@ -41,7 +41,7 @@ extension RexselKernel {
     /// [line:position][type][what][value]
     /// ```
 
-    mutating func tokenizeSource( ) {
+    func tokenizeSource( ) {
 
         enum TokenizerState {
             case newToken
