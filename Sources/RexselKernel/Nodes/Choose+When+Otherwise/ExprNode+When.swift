@@ -53,16 +53,6 @@ class WhenNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // MARK: - Logging properties
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-#if REXSEL_LOGGING
-    fileprivate var rLogger: RexselLogger!
-#endif
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Instance properties
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -85,10 +75,6 @@ class WhenNode: ExprNode  {
         isInBlock = false
         testString = ""
         setSyntax()
-
-#if REXSEL_LOGGING
-        rLogger = RexselLogger()
-#endif
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -143,7 +129,7 @@ class WhenNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
-                    self.rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {

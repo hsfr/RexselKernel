@@ -97,10 +97,6 @@ class ApplyTemplatesNode: ExprNode  {
         isInBlock = false
         
         setSyntax()
-
-#if REXSEL_LOGGING
-        rLogger = RexselLogger()
-#endif
     }
     
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

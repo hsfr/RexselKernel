@@ -39,10 +39,6 @@ class MethodNode: ExprNode  {
         super.init()
         exprNodeType = .method
         method = .xmlMethod
-
-#if REXSEL_LOGGING
-        rLogger = RexselLogger()
-#endif
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

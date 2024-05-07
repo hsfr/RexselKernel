@@ -11,16 +11,6 @@ class DocTypeSystemNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // MARK: - Logging properties
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-#if REXSEL_LOGGING
-    fileprivate var rLogger: RexselLogger!
-#endif
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Instance properties
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -37,11 +27,7 @@ class DocTypeSystemNode: ExprNode  {
 
     override init() {
         super.init()
-        self.exprNodeType = .doctypeSystem
-#if REXSEL_LOGGING
-        rLogger = RexselLogger()
-#endif
-   }
+        self.exprNodeType = .doctypeSystem   }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -55,9 +41,9 @@ class DocTypeSystemNode: ExprNode  {
         sourceLine = thisCompiler.currentToken.line
 
 #if REXSEL_LOGGING
-        self.rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        self.rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        self.rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
 #endif
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {

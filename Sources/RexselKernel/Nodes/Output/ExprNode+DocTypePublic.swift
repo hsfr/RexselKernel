@@ -50,9 +50,9 @@ class DocTypePublicNode: ExprNode  {
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-        self.rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        self.rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        self.rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 

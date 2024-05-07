@@ -41,10 +41,6 @@ class DecimalSeparatorNode: ExprNode  {
         super.init()
         exprNodeType = .decimalSeparator
         separatorValue = ""
-
-#if REXSEL_LOGGING
-        rLogger = RexselLogger()
-#endif
     }
     
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

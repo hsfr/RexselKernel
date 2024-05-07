@@ -52,16 +52,6 @@ class ForeachNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // MARK: - Logging properties
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-#if REXSEL_LOGGING
-    fileprivate var rLogger: RexselLogger!
-#endif
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Instance properties
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -84,10 +74,6 @@ class ForeachNode: ExprNode  {
 
         loopExpression = ""
         setSyntax()
-
-#if REXSEL_LOGGING
-        rLogger = RexselLogger()
-#endif
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -144,7 +130,7 @@ class ForeachNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInForeachTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
-                    self.rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {

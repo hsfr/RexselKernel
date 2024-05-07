@@ -71,10 +71,6 @@ class LevelNode: ExprNode  {
         super.init()
         exprNodeType = .level
         numberLevel = .singleLevel
-
-#if REXSEL_LOGGING
-        rLogger = RexselLogger()
-#endif
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
