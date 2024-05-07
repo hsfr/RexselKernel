@@ -106,7 +106,7 @@ extension RexselKernel {
         }
 
 #if REXSEL_LOGGING
-        // self.rLogger.log( structName, .debug, sourceString )
+        // rLogger.log( structName, .debug, sourceString )
         rLogger.log( structName, .debug, sourceString )
 #endif
 

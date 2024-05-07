@@ -65,10 +65,6 @@ class LetterValueNode: ExprNode  {
         super.init()
         exprNodeType = .letterValue
         letterValue = .alphabetic
-
-#if REXSEL_LOGGING
-        rLogger = RexselLogger()
-#endif
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

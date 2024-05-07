@@ -64,11 +64,7 @@ public class RexselErrorList: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     override init() {
-        super.init()
-#if REXSEL_LOGGING
-        rLogger = RexselLogger()
-#endif
-    }
+        super.init()    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
