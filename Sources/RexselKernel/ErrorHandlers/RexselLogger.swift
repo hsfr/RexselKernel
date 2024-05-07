@@ -21,7 +21,7 @@ class RexselLogger: NSObject {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // MARK: - SourceViewController Methods
+    // MARK: - RexselError Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
@@ -43,7 +43,7 @@ class RexselLogger: NSObject {
         guard loggingRequired != .off && level == .debug else {
             return
         }
-        print( "[\(file):\(line)] [\(level)] : \(msg)" )
+        print( "[\(level)] [\(name):\(function):\(line)] : \(msg)" )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -58,7 +58,7 @@ class RexselLogger: NSObject {
         guard loggingRequired != .off && level == .debug else {
             return
         }
-        print( "[\(file):\(line)] [\(level)] : \(msg)" )
+        print( "[\(level)] [\(inClass.className):\(function):\(line)] : \(msg)" )
     }
 
 }

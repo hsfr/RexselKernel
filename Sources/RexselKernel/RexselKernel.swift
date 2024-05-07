@@ -38,7 +38,7 @@ public struct RexselKernel {
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    public var version = "1.0.10c"
+    public var version = "1.0.10d"
 
     /// A list of the current errors
     public var rexselErrorList = RexselErrorList()
