@@ -76,10 +76,6 @@ class CopyNode: ExprNode  {
         isInBlock = false
         useAttributeSetsString = ""
         setSyntax()
-
-#if REXSEL_LOGGING
-     rLogger = RexselLogger()
-#endif
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
