@@ -13,7 +13,7 @@ class RexselLogger: NSObject {
         case trace, debug, info, warn, error, fatal, off
     }
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var loggerList = [String:NSObject]()
 #endif
 

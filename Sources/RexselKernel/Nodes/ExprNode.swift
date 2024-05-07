@@ -15,7 +15,7 @@ class ExprNode: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var rLogger: RexselLogger!
 #endif
 
@@ -104,7 +104,7 @@ class ExprNode: NSObject {
         allowableChildrenDict = AllowableSyntaxDictType()
 
         super.init()
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
     }
@@ -124,7 +124,7 @@ class ExprNode: NSObject {
         sourceLine = thisCompiler.currentToken.line
 
         sourceLine = thisCompiler.tokenizedSource[ thisCompiler.tokenizedSourceIndex ].line
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, "Parsing \(thisCompiler.currentToken.what) statement in line \(sourceLine)")
 #endif
     }
@@ -137,7 +137,7 @@ class ExprNode: NSObject {
     /// Always overriden, but line numbers added here if required.
 
     func generate( ) -> String {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, "Generating \(exprNodeType.description) node" )
 #endif
         // Remember lines start at 0
@@ -327,7 +327,7 @@ extension ExprNode {
     /// Mark error for unknown symbol.
 
     func markUnexpectedExpressionError() {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         let errorMessage = RexselErrorKind.foundUnexpectedExpression(lineNumber: sourceLine, found: thisCompiler.currentToken.value ).description
         rLogger.log( self, .debug, "**** \(errorMessage)." )
 #endif
@@ -346,7 +346,7 @@ extension ExprNode {
     /// Does not skip line as it just truncates.
 
     func markExpectedCharacterError() {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, "**** Expected character in line \(thisCompiler.currentToken.line+1)" )
 #endif
         thisCompiler.rexselErrorList
@@ -364,7 +364,7 @@ extension ExprNode {
     /// - Returns: true if successful, false if end of file.
 
     func markExpectedParameterNameErrorAndSkipLine() -> Bool {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, "**** Unknown symbol '\(thisCompiler.currentToken.value)' in line \(thisCompiler.currentToken.line+1)" )
 #endif
         thisCompiler.rexselErrorList
@@ -387,7 +387,7 @@ extension ExprNode {
     //
 
     func parameterCannotAppearHereError() {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         let errorMessage = RexselErrorKind.parameterCannotAppearHere(lineNumber: thisCompiler.currentToken.line+1).description
         rLogger.log( self, .debug, "**** \(errorMessage)" )
 #endif
@@ -418,7 +418,7 @@ extension ExprNode {
 
     func isTokenSupportedKeyword( incrementIndexBy: Int ) -> Bool {
         if notSupported.contains( thisCompiler.currentToken.what ) {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( self, .debug, "**** '\(thisCompiler.currentToken.value)' not supported in line \(thisCompiler.currentToken.line+1)" )
 #endif
             thisCompiler.rexselErrorList

@@ -22,7 +22,7 @@ public class RexselErrorList: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     var rLogger: RexselLogger!
 #endif
 
@@ -65,7 +65,7 @@ public class RexselErrorList: NSObject {
 
     override init() {
         super.init()
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
     }
@@ -87,7 +87,7 @@ public class RexselErrorList: NSObject {
         guard !isMessageInList( inError.kind.description ) else {
             return
         }
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, inError.kind.description )
 #endif
         errorList.append( inError )

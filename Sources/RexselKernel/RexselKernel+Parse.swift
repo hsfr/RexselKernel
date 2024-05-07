@@ -19,13 +19,13 @@ extension RexselKernel {
 
         nestedLevel = 0
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( structName,
                      .debug,
                      "tokenizedSourceIndex: \(tokenizedSourceIndex) [\(tokenizedSource.count)]" )
 #endif
         let currentToken = tokenizedSource[ tokenizedSourceIndex ]
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( structName, .debug, currentTokenLog )
 #endif
         // Check that the first token is the root (stylesheet). We mark this as a fatal error
@@ -44,7 +44,7 @@ extension RexselKernel {
                                                          inElement: "" ) ) )
         }
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( structName, .debug, currentTokenLog )
 #endif
         // All well so set this as the root of the parse tree.
@@ -55,7 +55,7 @@ extension RexselKernel {
         // Do a final check for correctly nested brackets at global level.
         // Check within functions etc will be done locally.
         if nestedLevel != 0 {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
             rLogger.log( structName, .debug, "**** Unmatched brackets in line \(sourceLine)" )
 #endif
             rexselErrorList.add( RexselErrorData.init( kind: RexselErrorKind.unmatchedBrackets( lineNumber: sourceLine + 1, level: nestedLevel ),
@@ -63,7 +63,7 @@ extension RexselKernel {
                                                        position: sourcePosition ) )
         }
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger.log( structName, .debug, "nestedLevel: \(nestedLevel)" )
 #endif
 

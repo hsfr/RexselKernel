@@ -17,7 +17,7 @@ public class Source: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
     fileprivate var rLogger: RexselLogger!
 #endif
 
@@ -75,7 +75,7 @@ public class Source: NSObject {
 
     public override init() {
         super.init()
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         rLogger = RexselLogger()
 #endif
     }
@@ -111,7 +111,7 @@ public class Source: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
    func getLine() -> ( sourceLine: SourceLineType, endOfFile: Bool ) {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
        rLogger.log( self, .debug,"Getting line \(lineIndex) ")
 #endif
         guard !isEndOfFile else {
@@ -119,14 +119,14 @@ public class Source: NSObject {
             return ( ( 0, "" ), true )
         }
         var sourceLine = sourceLines[ lineIndex ]
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
       rLogger.log( self, .debug,"  fetched line at \(lineIndex): \(sourceLine.line)")
 #endif
 
         if lineIsNotEmpty( sourceLine.line ) && lineIndex <= sourceLines.count {
             sourceLine = sourceLines[ lineIndex ]
         } else {
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
           rLogger.log( self, .debug,"  Empty line at \(lineIndex)")
 #endif
           sourceLine = ( lineIndex, "" )

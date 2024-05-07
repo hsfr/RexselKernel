@@ -38,7 +38,7 @@ public class RexselKernel {
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    public var version = "1.0.10e"
+    public var version = "1.0.10f"
 
     /// A list of the current errors
     public var rexselErrorList = RexselErrorList()
@@ -222,8 +222,8 @@ public class RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-#if HESTIA_LOGGING
-    var rLogger: RexselLogger!
+#if REXSEL_LOGGING
+   // var rLogger: RexselLogger!
 #endif
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -233,8 +233,8 @@ public class RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     public init() {
-#if HESTIA_LOGGING
-        rLogger = RexselLogger()
+#if REXSEL_LOGGING
+      //  rLogger = RexselLogger()
 #endif
     }
 
@@ -271,7 +271,7 @@ public class RexselKernel {
             print( "Tokenizer finished" )
         }
 
-#if HESTIA_LOGGING
+#if REXSEL_LOGGING
         for ( type, what, numberValue, line, position ) in tokenizedSource {
             rLogger.log( structName,
                          .debug,
