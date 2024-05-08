@@ -49,6 +49,8 @@ struct AllowableSyntaxEntryStruct {
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+//
+// Used in several places so declared globally.
 
 func isInBlockTemplateTokens( _ token: TerminalSymbolEnum ) -> Bool {
     return TerminalSymbolEnum.blockTokens.contains(token)
@@ -105,7 +107,5 @@ extension TerminalSymbolEnum {
     static let YesNoTokens: Set <TerminalSymbolEnum> = [
         .yes, .no
     ]
-
-
 
 }
