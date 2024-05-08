@@ -7,9 +7,42 @@
 
 import Foundation
 
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// MARK: - Syntax properties
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+extension TerminalSymbolEnum {
+
+    static let decimalFormatTokens: Set <TerminalSymbolEnum> = [
+        .decimalSeparator, .groupingSeparator,
+        .infinity,.indent,.minusSign,.notNumber,
+        .percent,.perMille,.zeroDigit,.digit,
+        .patternSeparator
+    ]
+}
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+extension DecimalFormatNode {
+
+    func isInDecimalFormatTokens( _ token: TerminalSymbolEnum ) -> Bool {
+        return TerminalSymbolEnum.decimalFormatTokens.contains(token)
+    }
+
+}
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// MARK: -
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
 class DecimalFormatNode: ExprNode  {
 
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Initialisation Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -77,9 +110,9 @@ class DecimalFormatNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInDecimalFormatTokens( thisCompiler.currentToken.what ) :
 #if REXSEL_LOGGING
-            rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
-                  let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
+                    let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
                         self.nodeChildren = [ExprNode]()
                     }
@@ -105,7 +138,7 @@ class DecimalFormatNode: ExprNode  {
                     thisCompiler.nestedLevel += 1
                     continue
 
-    default :
+                default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    inElement: exprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
