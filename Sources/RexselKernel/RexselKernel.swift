@@ -38,7 +38,7 @@ public class RexselKernel {
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    public var version = "1.0.10h"
+    public var version = "1.0.10i"
 
     /// A list of the current errors
     public var rexselErrorList = RexselErrorList()

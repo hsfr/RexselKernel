@@ -7,22 +7,6 @@
 
 import Foundation
 
-func isInBlockTemplateTokens( _ token: TerminalSymbolEnum ) -> Bool {
-    return TerminalSymbolEnum.blockTokens.contains(token)
-}
-
-func isInDecimalFormatTokens( _ token: TerminalSymbolEnum ) -> Bool {
-    return TerminalSymbolEnum.decimalFormatTokens.contains(token)
-}
-
-func isInMethodTokens( _ token: TerminalSymbolEnum ) -> Bool {
-    return TerminalSymbolEnum.methodTokens.contains(token)
-}
-
-func isInBoolTokens( _ token: TerminalSymbolEnum ) -> Bool {
-    return TerminalSymbolEnum.YesNoTokens.contains(token)
-}
-
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
@@ -61,6 +45,17 @@ struct AllowableSyntaxEntryStruct {
         }
     }
 
+}
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+func isInBlockTemplateTokens( _ token: TerminalSymbolEnum ) -> Bool {
+    return TerminalSymbolEnum.blockTokens.contains(token)
+}
+
+func isInBoolTokens( _ token: TerminalSymbolEnum ) -> Bool {
+    return TerminalSymbolEnum.YesNoTokens.contains(token)
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -106,15 +101,6 @@ extension TerminalSymbolEnum {
     static let sortToken: Set <TerminalSymbolEnum> = [ .sort ]
 
     static let parameterToken: Set <TerminalSymbolEnum> = [ .parameter ]
-
-    static let methodTokens: Set <TerminalSymbolEnum> = [.xmlMethod, .htmlMethod, .text ]
-
-    static let decimalFormatTokens: Set <TerminalSymbolEnum> = [
-        .decimalSeparator, .groupingSeparator,
-        .infinity,.indent,.minusSign,.notNumber,
-        .percent,.perMille,.zeroDigit,.digit,
-        .patternSeparator
-    ]
 
     static let YesNoTokens: Set <TerminalSymbolEnum> = [
         .yes, .no
