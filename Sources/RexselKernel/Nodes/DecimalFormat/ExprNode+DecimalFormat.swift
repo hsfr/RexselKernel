@@ -42,7 +42,7 @@ extension DecimalFormatNode {
 
 class DecimalFormatNode: ExprNode  {
 
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Initialisation Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -138,7 +138,7 @@ class DecimalFormatNode: ExprNode  {
                     thisCompiler.nestedLevel += 1
                     continue
 
-    default :
+                default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    inElement: exprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
