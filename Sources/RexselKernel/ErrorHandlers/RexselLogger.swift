@@ -49,7 +49,7 @@ class RexselLogger: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    public func log( _ inClass: NSObject,
+    public func log( _ inClass: NSObject = NSObject(),
                      _ level: RexselLoggerLevelEnum,
                      _ msg: String = "",
                      file: StaticString = #file,
@@ -58,7 +58,12 @@ class RexselLogger: NSObject {
         guard loggingRequired != .off && level == .debug else {
             return
         }
-        print( "[\(level)] [\(inClass.className):\(function):\(line)] : \(msg)" )
-    }
+#if os(macOS)
+        print( "[\(level)] [\(inClass.theClassName):\(function):\(line)] : \(msg)" )
+#elseif os(Linux)
+        let fileName = NSURL( fileURLWithPath: path ).lastPathComponent
+        print( "[\(level)] [\(fileName):\(function):\(line)] : \(msg)" )
+#endif
+   }
 
 }
