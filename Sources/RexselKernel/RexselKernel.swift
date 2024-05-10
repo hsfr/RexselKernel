@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Cocoa
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-* PUBLIC STRUCT *-*-*-*-*-*-*-*-*-*
@@ -38,7 +37,7 @@ public class RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    public var version = "1.0.10j"
+    public var version = "1.0.10k"
 
     /// A list of the current errors
     public var rexselErrorList = RexselErrorList()

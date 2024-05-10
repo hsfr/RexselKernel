@@ -8,7 +8,6 @@
 //
 
 import Foundation
-import Cocoa
 import RegexBuilder
 
 extension String {
