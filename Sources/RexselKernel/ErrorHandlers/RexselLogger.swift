@@ -61,7 +61,7 @@ class RexselLogger: NSObject {
 #if os(macOS)
         print( "[\(level)] [\(inClass.theClassName):\(function):\(line)] : \(msg)" )
 #elseif os(Linux)
-        let fileName = NSURL( fileURLWithPath: file ).lastPathComponent
+        let fileName = NSURL( fileURLWithPath: String( file ) ).lastPathComponent
         print( "[\(level)] [\(fileName):\(function):\(line)] : \(msg)" )
 #endif
    }
