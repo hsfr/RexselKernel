@@ -38,7 +38,7 @@ public class RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     // Make sure  that this uses the Package scheme for tagged repository.
-    public var version = "1.0.11"
+    public var version = "1.0.12"
 
     /// A list of the current errors
     public var rexselErrorList = RexselErrorList()

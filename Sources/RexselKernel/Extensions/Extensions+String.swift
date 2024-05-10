@@ -27,6 +27,7 @@ extension String {
 
 extension String {
 
+#if os(macOS)
     var isValidURL: Bool {
         get {
             let regEx = "((?:http|https)://)?(?:www\\.)?[\\w\\d\\-_]+\\.\\w{2,3}(\\.\\w{2})?(/(?<=/)(?:[\\w\\d\\-./_]+)?)?"
@@ -34,6 +35,7 @@ extension String {
             return predicate.evaluate(with: self)
         }
     }
+#endif
 
     // Return URL if file name/path
     var fileURL: URL {
