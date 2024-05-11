@@ -38,7 +38,7 @@ public class RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     // Make sure  that this uses the Package scheme for tagged repository.
-    public var version = "1.0.14"
+    public var version = "1.0.15"
 
     /// A list of the current errors
     public var rexselErrorList = RexselErrorList()
@@ -227,6 +227,62 @@ public class RexselKernel {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+    public func uncompileXSL( _ inputFileName: String ) -> String
+    {
+        if debugOn {
+            rLogger.loggingRequired = .debug
+        }
+
+#if os(macOS)
+        guard let uncompileScript = Bundle.main.path( forResource: "xsl2rexsel", ofType: "xsl" ) else {
+            print( "Cannot find uncompile stylesheet (xsl2rexsel.xsl) in RexselKernel package")
+            return ""
+        }
+#elseif os(Linux)
+        guard let uncompileScript = Bundle.module.path( forResource: "xsl2rexsel", ofType: "xsl" ) else {
+            print( "Cannot find uncompile stylesheet (xsl2rexsel.xsl) in RexselKernel package")
+            return
+        }
+#endif
+
+        guard FileManager.default.fileExists( atPath: inputFileName ) else {
+            print( "File '\(inputFileName)' does not exist, skipping")
+            return ""
+        }
+
+        let uncompileScriptURL = URL( fileURLWithPath: uncompileScript )
+        let inputFileURL = URL( string: inputFileName )!
+
+        let ext = inputFileURL.pathExtension
+        guard ext == "xsl" || ext == "xslt" else {
+            print( "Unknown or missing extension: '\(ext)', skipping")
+            return ""
+        }
+
+
+        let task = Process()
+#if os(macOS)
+        task.launchPath = "/usr/bin/xsltproc"
+#elseif os(Linux)
+        task.executableURL = URL( string: "/usr/bin/xsltproc" )
+#endif
+        task.arguments = [ uncompileScriptURL.absoluteString, inputFileURL.absoluteString ]
+        let pipe = Pipe()
+        task.standardOutput = pipe
+#if os(macOS)
+        task.launch()
+#elseif os(Linux)
+        try? task.run()
+#endif
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let xsltResult = String(data: data, encoding: .utf8)!
+        return xsltResult
+    }
+
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Public Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -238,8 +294,8 @@ public class RexselKernel {
     /// - Returns: Tuple ( codeListing, errorListing, symbolTable ) all `String`
 
     public func run( debugOn: Bool = false ) -> ( codeListing: String,
-                                                           errorListing: String,
-                                                           symbolTable: String )
+                                                  errorListing: String,
+                                                  symbolTable: String )
     {
         if debugOn {
             rLogger.loggingRequired = .debug
