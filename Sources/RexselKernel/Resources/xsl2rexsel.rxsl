@@ -8,6 +8,9 @@
 // inputted XSLT is carried out. Once the Rexsel is produced the Rexsel
 // compiler should detect any errors in the original XSLT.
 //
+// This is the original Rexsel file to produce the uncompiler and should
+// be used if any modifications are to be done.
+//
 // Author:
 //    Name  : Hugh Field-Richards
 //    Email : hsfr@hsfr.org.uk
