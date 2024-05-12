@@ -16,7 +16,7 @@ let package = Package(
             name: "RexselKernel",
             dependencies: [],
             resources: [
-                .copy( "xsl2rexsel.xsl" )
+                .copy( "Resources/xsl2rexsel.xsl" )
             ],
             swiftSettings: [
                 .define("REXSEL_LOGGING"),
