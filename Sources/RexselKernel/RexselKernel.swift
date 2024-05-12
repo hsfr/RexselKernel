@@ -38,7 +38,7 @@ public class RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     // Make sure  that this uses the Package scheme for tagged repository.
-    public var version = "1.0.16"
+    public var version = "1.0.17"
 
     /// A list of the current errors
     public var rexselErrorList = RexselErrorList()
@@ -240,7 +240,7 @@ public class RexselKernel {
             return ""
         }
 #elseif os(Linux)
-        guard let uncompileScript = Bundle.main.path( forResource: "xsl2rexsel", ofType: "xsl" ) else {
+        guard let uncompileScript = Bundle.module.path( forResource: "xsl2rexsel", ofType: "xsl" ) else {
             print( "Cannot find uncompile stylesheet (xsl2rexsel.xsl) in RexselKernel package")
             return ""
         }
