@@ -15,9 +15,6 @@ let package = Package(
         .target(
             name: "RexselKernel",
             dependencies: [],
-            resources: [
-                .process( "Resources" )
-            ],
             swiftSettings: [
                 .define("REXSEL_LOGGING"),
             ] ),
