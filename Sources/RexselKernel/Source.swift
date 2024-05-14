@@ -74,7 +74,7 @@ public class Source: NSObject {
     //
     /// Prime compiler from string
 
-    func readIntoCompilerString( _ source: String ) {
+    public func readIntoCompilerString( _ source: String ) {
         let lines = source.components( separatedBy: "\n" )
         clearSource()
         for i in 0..<lines.count {
