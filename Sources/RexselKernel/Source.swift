@@ -72,7 +72,21 @@ public class Source: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Read an internal string from TextView string
+    /// Prime compiler from string
+
+    func readIntoCompilerString( _ source: String ) {
+        let lines = source.components( separatedBy: "\n" )
+        clearSource()
+        for i in 0..<lines.count {
+            sourceLines.append( ( i, lines[i] ) )
+        }
+        lineIndex = 0
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Read an internal string from file
 
     public func readIntoCompilerStringFromFile( _ fileName: String, inFolder inDir: String = "" ) {
         do {
