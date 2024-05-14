@@ -1,6 +1,6 @@
 //
 //  RexselLogger.swift
-//  Rexsel
+//  RexselKernel
 //
 //  Created by Hugh Field-Richards on 12/02/2024.
 //
