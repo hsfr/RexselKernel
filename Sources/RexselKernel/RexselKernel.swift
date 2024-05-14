@@ -38,7 +38,7 @@ public class RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     // Make sure  that this uses the Package scheme for tagged repository.
-    public var version = "1.0.21"
+    public var version = "1.0.22"
 
     /// A list of the current errors
     public var rexselErrorList = RexselErrorList()
@@ -237,13 +237,22 @@ public class RexselKernel {
     ///
     /// - Returns: Tuple ( codeListing, errorListing, symbolTable ) all `String`
 
-    public func run( debugOn: Bool = false ) -> ( codeListing: String,
+    public func run( showUndefined: Bool = false,
+                     lineNumbers: Bool = false,
+                     defaultNameSpace: Bool = false,
+                     verbose: Bool = false,
+                     debugOn: Bool = false ) -> ( codeListing: String,
                                                   errorListing: String,
                                                   symbolTable: String )
     {
         if debugOn {
             rLogger.loggingRequired = .debug
         }
+
+        showUndefinedErrors = showUndefined
+        showLineNumbers = lineNumbers
+        useDefaultXSLNamespace = defaultNameSpace
+        showFullMessages = verbose
 
         // Set up a root node that everything falls under
         rootNode = ExprNode()
