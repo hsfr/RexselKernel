@@ -1,10 +1,8 @@
 //
 //  RexelError+Kind.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 26/12/2020.
-//  Copyright © 2020 Hugh Field-Richards. All rights reserved.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 

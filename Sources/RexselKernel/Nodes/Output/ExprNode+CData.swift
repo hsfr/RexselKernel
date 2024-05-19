@@ -1,9 +1,8 @@
 //
 //  ExprNode+CData.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 09/01/2024.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 

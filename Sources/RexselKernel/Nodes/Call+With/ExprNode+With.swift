@@ -57,13 +57,13 @@ class WithNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    /// Default for this parameter.
-    ///
-    /// To be used when nothing passed to parameter
-    fileprivate var select: String = ""
+    ///  Value (when not derived from block)
+    fileprivate var value: String = ""
 
     // Convenience variable
-    fileprivate var isDefaultDefined = false
+    fileprivate var isValueDefined: Bool {
+        return value.isNotEmpty
+    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -78,8 +78,7 @@ class WithNode: ExprNode  {
         exprNodeType = .with
 
         name = ""
-        select = ""
-        isDefaultDefined = false
+        value = ""
         isInBlock = false
 
         setSyntax()
@@ -104,8 +103,6 @@ class WithNode: ExprNode  {
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-        isDefaultDefined = false
-
         // Slide past keyword
         thisCompiler.tokenizedSourceIndex += 1
 
@@ -120,31 +117,59 @@ class WithNode: ExprNode  {
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Valid constructions
+                // Process valid material
 
-                case ( .qname, _, _ ) where name.isEmpty && select.isEmpty :
+                case ( .qname, .expression, _ ) where name.isEmpty :
                     name = thisCompiler.currentToken.value
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .expression, _, _ ) where name.isNotEmpty && select.isEmpty :
-                    select = thisCompiler.currentToken.value
+                case ( .qname, .terminal, _ ) where name.isEmpty && thisCompiler.nextToken.what != .openCurlyBracket :
+                    name = thisCompiler.currentToken.value
                     thisCompiler.tokenizedSourceIndex += 1
-                    continue
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .with
-                                            && name.isNotEmpty
-                                            && select.isNotEmpty :
                     return
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
-                                            && name.isNotEmpty
-                                            && select.isEmpty  :
-                    isInBlock = true
+                case ( .qname, .terminal, _ ) where name.isEmpty && thisCompiler.nextToken.what == .openCurlyBracket :
+                    name = thisCompiler.currentToken.value
                     thisCompiler.nestedLevel += 1
-                    thisCompiler.tokenizedSourceIndex += 1
+                    isInBlock = true
+                    thisCompiler.tokenizedSourceIndex += 2
                     continue
 
+                case ( .expression, .terminal, _ ) where name.isNotEmpty && thisCompiler.nextToken.what != .openCurlyBracket :
+                    value = thisCompiler.currentToken.value
+                    thisCompiler.tokenizedSourceIndex += 1
+                    return
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
+                    isInBlock = false
+                    thisCompiler.nestedLevel -= 1
+                    thisCompiler.tokenizedSourceIndex += 1
+                    return
+
+//                case ( .qname, _, _ ) where name.isEmpty && select.isEmpty :
+//                    name = thisCompiler.currentToken.value
+//                    thisCompiler.tokenizedSourceIndex += 1
+//                    continue
+//
+//                case ( .expression, _, _ ) where name.isNotEmpty && select.isEmpty :
+//                    select = thisCompiler.currentToken.value
+//                    thisCompiler.tokenizedSourceIndex += 1
+//                    continue
+//
+//                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .with
+//                                            && name.isNotEmpty
+//                                            && select.isNotEmpty :
+//                    return
+//
+//                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
+//                                            && name.isNotEmpty
+//                                            && select.isEmpty  :
+//                    isInBlock = true
+//                    thisCompiler.nestedLevel += 1
+//                    thisCompiler.tokenizedSourceIndex += 1
+//                    continue
+//
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Process Block
 
@@ -172,29 +197,29 @@ class WithNode: ExprNode  {
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
 
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // End Conditions
-
-                // End of simple pair with following statement.
-                case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what )
-                                            && name.isNotEmpty 
-                                            && select.isNotEmpty
-                                            && nodeChildren == nil :
-                    return
-
-                // End of simple pair with following "}".
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket
-                                            && name.isNotEmpty 
-                                            && select.isNotEmpty
-                                            && nodeChildren == nil :
-                    return
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket
-                                            && isInBlock :
-                    thisCompiler.nestedLevel -= 1
-                    thisCompiler.tokenizedSourceIndex += 1
-                    return
-
+//                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+//                // End Conditions
+//
+//                // End of simple pair with following statement.
+//                case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what )
+//                                            && name.isNotEmpty 
+//                                            && value.isNotEmpty
+//                                            && nodeChildren == nil :
+//                    return
+//
+//                // End of simple pair with following "}".
+//                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket
+//                                            && name.isNotEmpty 
+//                                            && select.isNotEmpty
+//                                            && nodeChildren == nil :
+//                    return
+//
+//                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket
+//                                            && isInBlock :
+//                    thisCompiler.nestedLevel -= 1
+//                    thisCompiler.tokenizedSourceIndex += 1
+//                    return
+//
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Early end of file
 
@@ -217,7 +242,7 @@ class WithNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
                                             && name.isNotEmpty
-                                            && select.isNotEmpty :
+                                            && value.isNotEmpty :
                     try markCannotHaveBothDefaultAndBlockError( where: sourceLine )
                     thisCompiler.nestedLevel += 1
                     thisCompiler.tokenizedSourceIndex += 1
@@ -325,7 +350,7 @@ class WithNode: ExprNode  {
 
         super.checkVariableScope()
 
-        scanVariablesInNodeValue( select, inLine: sourceLine )
+        scanVariablesInNodeValue( value, inLine: sourceLine )
 
         if let nodes = nodeChildren {
             scanForVariablesInBlock( nodes )
@@ -351,7 +376,7 @@ class WithNode: ExprNode  {
         _ = super.generate()
 
         var attributes = " \(TerminalSymbolEnum.name.xml)=\"\(name)\""
-        if select.isNotEmpty {
+        if value.isNotEmpty {
             attributes += " \(TerminalSymbolEnum.select.xml)=\"\(select)\""
         }
         var contents = ""

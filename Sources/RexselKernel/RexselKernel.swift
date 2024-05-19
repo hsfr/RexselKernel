@@ -1,9 +1,10 @@
 //
 //  RexselKernel.swift
-//  Compiler Package
 //
-//  Created by Hugh Field-Richards on 19/08/2014.
-//  Copyright (c) 2014 Hugh Field-Richards. All rights reserved.
+//  RexselKernel Package
+//
+//  Created by Hugh Field-Richards on 10/01/2024.
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 //
 
 import Foundation
@@ -18,27 +19,12 @@ public class RexselKernel {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // MARK: - Class Properties
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-    /// Flag to mark that end of file has been reached
-    static var endOfFile = false
-
-    /// The actual line number in the view indexed by the source number
-    static var listingLineNumbers = [Int: Int]()
-
-    /// The actual line number in the view indexed by the source number
-    static var currentListingLineNumber: Int = 0
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Public Properties
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     // Make sure  that this uses the Package scheme for tagged repository.
-    public var version = "1.0.24"
+    public var version = "1.0.26"
 
     /// A list of the current errors
     public var rexselErrorList = RexselErrorList()

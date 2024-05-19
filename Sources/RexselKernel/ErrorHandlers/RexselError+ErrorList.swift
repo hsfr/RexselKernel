@@ -1,10 +1,8 @@
 //
 //  RexselError+ErrorList.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 22/08/2014.
-//  Copyright (c) 2014 Hugh Field-Richards. All rights reserved.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 

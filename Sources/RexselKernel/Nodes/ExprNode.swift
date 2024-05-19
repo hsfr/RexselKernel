@@ -1,9 +1,8 @@
 //
-//  Nodes.swift
+//  ExprNode.swift
 //
-//
-//  Created by Hugh Field-Richards on 28/12/2023.
-//
+//  Created by Hugh Field-Richards on 10/01/2024.
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -93,7 +92,8 @@ class ExprNode: NSObject {
         functionsDict = SymbolTable( thisCompiler )
         allowableChildrenDict = AllowableSyntaxDictType()
 
-        super.init()    }
+        super.init()
+    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -104,6 +104,10 @@ class ExprNode: NSObject {
     /// Parse source (with tokens).
     ///
     /// Always overriden, but we set up various common variables.
+    ///
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
         thisCompiler = compiler
@@ -118,9 +122,11 @@ class ExprNode: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Generate Output tag.
+    /// Generate XSLT tag.
     ///
     /// Always overriden, but line numbers added here if required.
+    ///
+    /// - Returns: Line number XML comment.
 
     func generate( ) -> String {
 #if REXSEL_LOGGING
@@ -136,10 +142,13 @@ class ExprNode: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Check Duplicates Throughout Node tree.
+    /// Check Duplicates Throughout Node Iree.
     ///
     /// Always overriden. All we do here is take in the variables
-    /// list for scoping internal blocks
+    /// list for scoping internal blocks.
+    ///
+    /// - Parameters:
+    ///   - allowedTokens: A set of tokens (_TerminalSymbolEnum_)
 
     func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> = [] ) {
         if !isRootNode {
@@ -153,7 +162,6 @@ class ExprNode: NSObject {
         // allowed children.
         if let nodes = nodeChildren {
             for child in nodes {
-
                 let childName = child.exprNodeType.description
                 if let entry = allowableChildrenDict[ childName ] {
                     if !entry.duplicatesAllowed && entry.count > 1 && child.sourceLine != entry.defined {
@@ -197,7 +205,7 @@ class ExprNode: NSObject {
     ///
     /// - Parameters:
     ///   - value: the string to scan.
-    ///   - usingPrefix: using the "$" prefix in scan.
+    ///   - usingPrefix: using the "$" prefix in scan (defaults to *true*).
     ///   - inLine: the line number being scanned.
 
     func scanVariablesInNodeValue( _ value: String, usingPrefix: Bool = true, inLine: Int ) {
@@ -399,8 +407,8 @@ extension ExprNode {
     /// appropriate node.
     ///
     /// - Parameters:
-    ///   - bumpIndex: The amount the index has to be increased.
-    /// - Returns: true if supported otherwise generates an error and return false.
+    ///   - incrementIndexBy: The amount the index has to be increased.
+    /// - Returns: _true_ if supported, otherwise generates an error and return _false_.
 
     func isTokenSupportedKeyword( incrementIndexBy: Int ) -> Bool {
         if notSupported.contains( thisCompiler.currentToken.what ) {

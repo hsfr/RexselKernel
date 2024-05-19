@@ -1,9 +1,8 @@
 //
 //  ExprNode+xmlns.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 29/01/2024.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -29,12 +28,21 @@ class XmlnsNode: ExprNode {
         super.init()
         exprNodeType = .xmlns
 
-        name = ""
-        url = ""
+        self.name = ""
+        self.url = ""
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Instance Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Parse xmlns statement.
+    ///
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
@@ -126,10 +134,6 @@ class XmlnsNode: ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Generate xmlns output.
-    ///
-    /// Output is of the form
-    /// ```xml
-    /// ```
 
     override func generate() -> String {
 

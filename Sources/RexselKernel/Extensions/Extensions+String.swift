@@ -1,11 +1,8 @@
 //
 //  Extensions+String.swift
-//  Rexsel
-
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 25/10/2016.
-//  Copyright © 2016 Hugh Field-Richards. All rights reserved.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 import RegexBuilder

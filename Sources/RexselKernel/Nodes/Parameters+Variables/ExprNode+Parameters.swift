@@ -1,9 +1,8 @@
 //
 //  ExprNode+Parameters.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 15/01/2024.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -166,7 +165,15 @@ class ParameterNode: ExprNode {
                     continue
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Error conditions
+                // Early end of file
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
+                    // Don't bother to check. End of file here is an error anyway which
+                    // will be picked up above this node. Almost certainly a brackets problem.
+                    return
+
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Invalid constructions
 
                 case ( .terminal, _, _ ) where name.isEmpty && thisCompiler.currentToken.what == .openCurlyBracket :
                     isInBlock = false
@@ -221,9 +228,6 @@ class ParameterNode: ExprNode {
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
                     thisCompiler.nestedLevel -= 1
                     thisCompiler.tokenizedSourceIndex += 1
-                    return
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                     return
 
                 default :

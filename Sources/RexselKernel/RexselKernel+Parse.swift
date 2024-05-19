@@ -1,9 +1,8 @@
 //
 //  RexselKernel+Parse.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 10/01/2024.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -53,7 +52,7 @@ extension RexselKernel {
         try? rootNode.parseSyntaxUsingCompiler( self )
 
         // Do a final check for correctly nested brackets at global level.
-        // Check within functions etc will be done locally.
+        // Check within contexts will be done locally (to be added later).
         if nestedLevel != 0 {
 #if REXSEL_LOGGING
             rLogger.log( structName, .debug, "**** Unmatched brackets in line \(sourceLine)" )

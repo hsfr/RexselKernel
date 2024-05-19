@@ -1,9 +1,8 @@
 //
 //  ExprNode+Variables.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 15/01/2024.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -78,7 +77,6 @@ class VariableNode: ExprNode {
     {
         super.init()
         exprNodeType = .variable
-        
         value = ""
         isInBlock = false
         isBlockEmpty = true
