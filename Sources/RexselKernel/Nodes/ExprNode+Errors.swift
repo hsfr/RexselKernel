@@ -1,9 +1,8 @@
 //
 //  ExprNode+Errors.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 14/03/2024.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -23,6 +22,23 @@ enum SkipEnum {
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 extension ExprNode {
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Skip to Next Keyword.
+    ///
+    /// Moves past any expressions etc.
+    ///
+    /// - Parameters:
+    ///   - what: what type os token is missing (_.openCurlyBracket_, _.name_ etc..
+    ///   - inLine: the line in which the element was declared first.
+    ///   - andPosition: the position in the line in which the element was declared first, defaults to 0)
+    ///   - after: the element after which the error occured.
+    ///   - insteadOf: what element should have been instead of the error.
+    ///   - found: what element was found (as a string).
+    ///   - skip: Skip to next keyword/line (defaults to _.ignore_)
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markMissingItemError( what: TerminalSymbolEnum,
                                inLine: Int, andPosition: Int = 0,
@@ -140,7 +156,11 @@ extension ExprNode {
     //
     /// Mark error for no variable/constant value.
     ///
-    /// - Returns: true is successful, false is end of file.
+    /// - Parameters:
+    ///   - where: the line in which the element was declared first.
+    ///   - symbol: what element was found (as a string).
+    ///   - skip: Skip to next keyword/line (defaults to _.ignore_)
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markExpectedVariableValueError( where inLine: Int,
                                          symbol inWhat: String,
@@ -166,6 +186,11 @@ extension ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Parameters and variables must not have default value and block.
+    ///
+    /// - Parameters:
+    ///   - where: the line in which the element was declared first.
+    ///   - skip: Skip to next keyword/line (defaults to _.ignore_)
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markCannotHaveBothDefaultAndBlockError( where inLine: Int,
                                                  skip: SkipEnum = .ignore ) throws {
@@ -189,6 +214,11 @@ extension ExprNode {
     //
     /// Parameters, variables and attributes must have either default
     /// value or block.
+    ///
+    /// - Parameters:
+    ///   - where: the line in which the element was declared first.
+    ///   - skip: Skip to next keyword/line (defaults to _.ignore_)
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markDefaultAndBlockMissingError( where inLine: Int,
                                           skip: SkipEnum = .ignore ) throws {

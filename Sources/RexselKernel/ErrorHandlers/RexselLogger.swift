@@ -2,8 +2,9 @@
 //  RexselLogger.swift
 //  RexselKernel
 //
-//  Created by Hugh Field-Richards on 12/02/2024.
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 //
+//  A very simplistic logger that would need expanding.
 
 import Foundation
 

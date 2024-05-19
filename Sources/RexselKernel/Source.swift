@@ -1,9 +1,8 @@
 //
 //  Source.swift
-//  Rexsel
+//  RexselKernel
 //
 //  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
-//
 
 import Foundation
 
@@ -64,7 +63,8 @@ public class Source: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     public override init() {
-        super.init()    }
+        super.init()
+    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -73,6 +73,9 @@ public class Source: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Prime compiler from string
+    ///
+    /// - Parameters:
+    ///   - source: A string of the entire stylesheet to be translated.
 
     public func readIntoCompilerString( _ source: String ) {
         let lines = source.components( separatedBy: "\n" )
@@ -86,7 +89,11 @@ public class Source: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Read an internal string from file
+    /// Prime compiler from file
+    ///
+    /// - Parameters:
+    ///   - fileName: Name of the file containing stylesheet to be translated.
+    ///   - inFolder: Folder with the file.
 
     public func readIntoCompilerStringFromFile( _ fileName: String, inFolder inDir: String = "" ) {
         do {
@@ -109,6 +116,10 @@ public class Source: NSObject {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Get nextline from the stylesheet
+    ///
+    /// - Returns: ( ( index of line, source line ), _true_ if end of file )
 
    func getLine() -> ( sourceLine: SourceLineType, endOfFile: Bool ) {
 #if REXSEL_LOGGING
@@ -118,6 +129,7 @@ public class Source: NSObject {
             lineIndex = 0
             return ( ( 0, "" ), true )
         }
+
         var sourceLine = sourceLines[ lineIndex ]
 #if REXSEL_LOGGING
       rLogger.log( self, .debug,"  fetched line at \(lineIndex): \(sourceLine.line)")
@@ -131,6 +143,7 @@ public class Source: NSObject {
 #endif
           sourceLine = ( lineIndex, "" )
         }
+       
         lineIndex += 1
         return ( sourceLine, isEndOfFile )
     }

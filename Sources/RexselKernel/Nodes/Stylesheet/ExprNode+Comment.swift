@@ -1,9 +1,8 @@
 //
 //  ExprNode+Comment.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 11/03/2024.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -15,6 +14,7 @@ class CommentNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
+    /// The comment string.
     fileprivate var textString: String = ""
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -29,12 +29,20 @@ class CommentNode: ExprNode  {
     {
         super.init()
         self.exprNodeType = .comment
-        textString = ""    }
+        textString = ""  
+    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Instance Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse value statement.
+    /// Parse comment statement.
+    ///
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
@@ -85,15 +93,14 @@ class CommentNode: ExprNode  {
         }
     }
 
-
-
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Generate stylesheet tag.
+    /// Generate tag.
     ///
     /// Output is of the form, but note that having a default value
     /// and a contents is ambiguous but not forbidden.
+    /// 
     /// ```xml
     ///    <xsl:comment><![CDATA[text]]></xsl:comment>
     /// ```

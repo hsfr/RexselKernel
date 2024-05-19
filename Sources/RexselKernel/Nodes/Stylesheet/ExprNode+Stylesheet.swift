@@ -1,9 +1,8 @@
 //
 //  ExprNode+Stylesheet.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 09/01/2024.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -87,9 +86,15 @@ class StylesheetNode: ExprNode {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Instance Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse output statement.
+    /// Parse stylesheet statement.
     ///
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
@@ -371,16 +376,18 @@ class StylesheetNode: ExprNode {
     /// Generate stylesheet tag.
     ///
     /// Output depends whether there is content or not (the former
-    /// is unlikely. Without content the output typically
+    /// is unlikely. Without content the output is
     /// ```xml
     ///     <xsl:stylesheet version="1.0" .../>
     /// ```
-    /// With contents the output is typically
+    /// With contents the output is
     /// ```xml
     ///     <xsl:stylesheet version="1.0" ...>
     ///        contents
     ///     </xsl:stylesheet>
     /// ```
+    ///
+    /// - Returns: Line number XML comment.
 
     override func generate() -> String {
 

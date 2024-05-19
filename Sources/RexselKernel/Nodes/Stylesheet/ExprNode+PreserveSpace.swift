@@ -1,9 +1,8 @@
 //
 //  ExprNode+PreserveSpace.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 08/03/2024.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -36,6 +35,12 @@ class PreserveSpaceNode: ExprNode  {
     // MARK: - Instance Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Parse preserve space statement.
+    ///
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 

@@ -1,9 +1,8 @@
 //
 //  Extensions+NSObject.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 24/12/2023.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 

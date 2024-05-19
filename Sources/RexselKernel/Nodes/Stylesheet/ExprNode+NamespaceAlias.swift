@@ -1,9 +1,8 @@
 //
 //  ExprNode+NamespaceAlias.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 22/04/2024.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -76,9 +75,16 @@ class NamespaceAliasNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Instance Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse match statement.
-
+    /// Parse namespace alias statement.
+    ///
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
+   
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {

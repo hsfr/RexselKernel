@@ -1,9 +1,8 @@
 //
 //  Compiler+SymbolTableEntry.swift
-//  Rexsel
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 27/02/2024.
-//
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
