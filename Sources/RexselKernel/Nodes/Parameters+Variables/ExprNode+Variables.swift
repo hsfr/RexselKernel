@@ -235,7 +235,6 @@ class VariableNode: ExprNode {
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-
                 default :
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what, inElement: exprNodeType, inLine: sourceLine )
                     return
