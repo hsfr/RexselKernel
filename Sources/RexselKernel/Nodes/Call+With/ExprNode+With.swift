@@ -122,56 +122,42 @@ class WithNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Process valid material
 
-                case ( .qname, .expression, _ ) where name.isEmpty :
+                case ( .qname, _, _ ) where name.isEmpty && value.isEmpty :
                     name = thisCompiler.currentToken.value
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .qname, .terminal, _ ) where name.isEmpty && thisCompiler.nextToken.what == .openCurlyBracket :
-                    name = thisCompiler.currentToken.value
-                    thisCompiler.nestedLevel += 1
-                    isInBlock = true
-                    thisCompiler.tokenizedSourceIndex += 2
-                    continue
-
-                case ( .expression, .terminal, _ ) where name.isNotEmpty && thisCompiler.nextToken.what != .openCurlyBracket :
+                case ( .expression, _, _ ) where name.isNotEmpty && value.isEmpty :
                     value = thisCompiler.currentToken.value
                     thisCompiler.tokenizedSourceIndex += 1
+                    continue
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .with
+                                            && name.isNotEmpty
+                                            && value.isNotEmpty :
+                    // Expecting another paramedter
                     return
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
+                                            && name.isNotEmpty
+                                            && value.isEmpty :
+                    // Block encountered (no expression)
+                    isInBlock = true
+                    thisCompiler.nestedLevel += 1
+                    thisCompiler.tokenizedSourceIndex += 1
+                    continue
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket
+                                            && isInBlock :
+                    // End of block encountered but check for empty block.
                     isInBlock = false
                     thisCompiler.nestedLevel -= 1
                     thisCompiler.tokenizedSourceIndex += 1
                     if isBlockEmpty {
                         try markExpectedVariableValueError( where: sourceLine, symbol: name )
                     }
-                    isBlockEmpty = true
                     return
 
-//                case ( .qname, _, _ ) where name.isEmpty && select.isEmpty :
-//                    name = thisCompiler.currentToken.value
-//                    thisCompiler.tokenizedSourceIndex += 1
-//                    continue
-//
-//                case ( .expression, _, _ ) where name.isNotEmpty && select.isEmpty :
-//                    select = thisCompiler.currentToken.value
-//                    thisCompiler.tokenizedSourceIndex += 1
-//                    continue
-//
-//                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .with
-//                                            && name.isNotEmpty
-//                                            && select.isNotEmpty :
-//                    return
-//
-//                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
-//                                            && name.isNotEmpty
-//                                            && select.isEmpty  :
-//                    isInBlock = true
-//                    thisCompiler.nestedLevel += 1
-//                    thisCompiler.tokenizedSourceIndex += 1
-//                    continue
-//
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Process Block
 
@@ -199,29 +185,6 @@ class WithNode: ExprNode  {
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
 
-//                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-//                // End Conditions
-//
-//                // End of simple pair with following statement.
-//                case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what )
-//                                            && name.isNotEmpty 
-//                                            && value.isNotEmpty
-//                                            && nodeChildren == nil :
-//                    return
-//
-//                // End of simple pair with following "}".
-//                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket
-//                                            && name.isNotEmpty 
-//                                            && select.isNotEmpty
-//                                            && nodeChildren == nil :
-//                    return
-//
-//                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket
-//                                            && isInBlock :
-//                    thisCompiler.nestedLevel -= 1
-//                    thisCompiler.tokenizedSourceIndex += 1
-//                    return
-//
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Early end of file
 
@@ -245,13 +208,6 @@ class WithNode: ExprNode  {
                     try markMissingItemError( what: .name, inLine: thisCompiler.currentToken.line, after: exprNodeType.description )
                     return
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
-                    // Empty block (quasi valid)
-                    try markExpectedVariableValueError( where: sourceLine, symbol: name )
-                    thisCompiler.tokenizedSourceIndex += 2
-                    return
-
                 case ( .expression, .terminal, _ ) where thisCompiler.nextToken.what == .openCurlyBracket :
                     value = thisCompiler.currentToken.value
                     isInBlock = true
@@ -260,34 +216,11 @@ class WithNode: ExprNode  {
                     thisCompiler.tokenizedSourceIndex += 2
                    continue
 
-                case ( .expression, _, _ ) :
+                case ( .expression, _, _ ) where name.isEmpty :
                     try markExpectedNameError( after: exprNodeType.description,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword)
                     return
-
-
-
-                case ( .qname, .terminal, _ ) where thisCompiler.nextToken.what == .openCurlyBracket :
-                    // Valid so process block
-                    name = thisCompiler.currentToken.value
-                    isInBlock = true
-                    thisCompiler.nestedLevel += 1
-                    thisCompiler.tokenizedSourceIndex += 2
-                    continue
-
-                case ( .qname, _, _ ) :
-                    // variable name ( no expression or open bracket)
-                    name = thisCompiler.currentToken.value
-                    try markExpectedVariableValueError( where: sourceLine, symbol: name )
-                    thisCompiler.tokenizedSourceIndex += 1
-                    return
-
-                case ( .terminal, _, _ ) :
-                    // terminal other than above
-                    try markExpectedVariableValueError( where: sourceLine, symbol: name )
-                    thisCompiler.tokenizedSourceIndex += 1
-                    continue
 
                 default :
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what, inElement: exprNodeType, inLine: sourceLine )
