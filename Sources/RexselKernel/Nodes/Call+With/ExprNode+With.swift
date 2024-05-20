@@ -158,6 +158,10 @@ class WithNode: ExprNode  {
                     }
                     return
 
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
+                    // Found end of call with block.
+                    return
+
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Process Block
 
@@ -321,7 +325,7 @@ class WithNode: ExprNode  {
 
         var attributes = " \(TerminalSymbolEnum.name.xml)=\"\(name)\""
         if value.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.select.xml)=\"\(select)\""
+            attributes += " \(TerminalSymbolEnum.select.xml)=\"\(value)\""
         }
         var contents = ""
 

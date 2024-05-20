@@ -29,7 +29,9 @@ class RexselLogger: NSObject {
     override init() {
         super.init()
 
-        loggerList = [:]
+#if REXSEL_LOGGING
+       loggerList = [:]
+#endif
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
