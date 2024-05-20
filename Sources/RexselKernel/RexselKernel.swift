@@ -24,7 +24,7 @@ public class RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     // Make sure  that this uses the Package scheme for tagged repository.
-    public var version = "1.0.27"
+    public var version = "1.0.28"
 
     /// A list of the current errors
     public var rexselErrorList = RexselErrorList()
@@ -231,9 +231,11 @@ public class RexselKernel {
                                                   errorListing: String,
                                                   symbolTable: String )
     {
+#if REXSEL_LOGGING
         if debugOn {
             rLogger.loggingRequired = .debug
         }
+#endif
 
         showUndefinedErrors = showUndefined
         showLineNumbers = lineNumbers

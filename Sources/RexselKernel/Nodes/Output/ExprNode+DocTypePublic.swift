@@ -40,15 +40,19 @@ class DocTypePublicNode: ExprNode  {
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
+#if REXSEL_LOGGING
         rLogger.log( self, .debug, thisCompiler.currentTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextTokenLog )
         rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+#endif
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
             case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == self.exprNodeType :
                 value = thisCompiler.nextToken.value
+#if REXSEL_LOGGING
                 rLogger.log( self, .debug, "Found output '\(exprNodeType.xml)':'\(value)' in line \(sourceLine)" )
+#endif
                 thisCompiler.tokenizedSourceIndex += 2
 
             case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
@@ -77,7 +81,6 @@ class DocTypePublicNode: ExprNode  {
 
         _ = super.generate()
 
-        rLogger.log( self, .debug, "Generate method \(exprNodeType.xml)=\"\(value)\"" )
         return "\(exprNodeType.xml)=\"\(value)\""
     }
 
