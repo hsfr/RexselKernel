@@ -2,7 +2,7 @@
 //  Source.swift
 //  RexselKernel
 //
-/Users/hsfr/Documents/SoftwareDevelopment/Public_Packages/RexselKernel/Sources/RexselKernel//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
