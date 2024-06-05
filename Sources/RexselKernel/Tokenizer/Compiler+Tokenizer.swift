@@ -18,7 +18,7 @@ extension RexselKernel {
     /// of tokens. For example if the source is
     ///
     /// ```
-    /// xslt {
+    /// stylesheet {
     ///     match using "/" {
     ///         element html {
     /// etc.
@@ -249,7 +249,7 @@ extension RexselKernel {
 
                 case ( .withinQuote, doubleQuoteCharacter, _ ) where currentCharacter == currentQuoteCharacter,
                     ( .withinQuote, singleQuoteCharacter, _ ) where currentCharacter == currentQuoteCharacter :
-                    // End of quoteation (expression etc) so store it away
+                    // End of quotation (expression etc) so store it away
                     //if thisToken.isNotEmpty {
                         // Existing token
                         tokenType = TokenEnum.expression

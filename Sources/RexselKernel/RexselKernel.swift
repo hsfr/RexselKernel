@@ -167,7 +167,7 @@ public class RexselKernel {
     var _xmlnsPrefix = "xsl"
 
     /// xmlns prefix used throughout generation phase.
-    var xmlnsPrefix: String {
+    public var xmlnsPrefix: String {
         get {
             if !useDefaultXSLNamespace {
                 return "\(_xmlnsPrefix):"
@@ -186,7 +186,7 @@ public class RexselKernel {
     var _xsltNamespace = "http://www.w3.org/1999/XSL/Transform"
 
     /// Convenience namespace constant for inserting in output.
-    var xsltNamespace: String {
+    public var xsltNamespace: String {
         if !useDefaultXSLNamespace {
             return "xmlns:\(_xmlnsPrefix)=\"\(_xsltNamespace)\""
         } else {
@@ -195,12 +195,12 @@ public class RexselKernel {
     }
 
     /// Number of errors
-    var totalErrors: Int {
+    public var totalErrors: Int {
         return rexselErrorList.count
     }
 
     /// Where the compiled XSLT will be placed
-    var compiledXSL: String = ""
+    public var compiledXSL: String = ""
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

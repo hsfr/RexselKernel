@@ -29,8 +29,8 @@ could also be directly ported to a Linux system.
 
 ### Caveats ###
 
-The current version has a Tokenizer that is a little less than optimum and so
-could be faster on large files (>800 lines). This will be investugated and
+The current version has a Tokenizer that is a little less than optimal and so
+could be slower on large files (>800 lines). This will be investugated and
 an updated version will be produced when I have the time.
 
 ### What is this repository for? ###
@@ -40,7 +40,7 @@ wants a more concise approach to designing stylesheets.
 
 ### How do I get set up? ###
 
-* There is an associated command line application that ca be compiled on eiether MacOS or Linus.
+* There is an associated command line application that can be compiled on either MacOS or Linux.
 It is supplied in the form of a Swift package.
 
 * Dependencies
