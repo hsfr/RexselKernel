@@ -151,8 +151,10 @@ extension String {
    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
    /// count the number of lines at the character index (1-based).
+   ///
+   /// Must be accessible from calling App.
 
-   func lineNumber( at location: Int ) -> Int
+   public func lineNumber( at location: Int ) -> Int
    {
       guard !self.isEmpty, location > 0 else { return 1 }
       // Count number of lines from beginning of the text
