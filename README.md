@@ -43,8 +43,7 @@ wants a more concise approach to designing stylesheets.
 * There is an associated command line application that can be compiled on either MacOS or Linux.
 It is supplied in the form of a Swift package.
 
-* Dependencies
-It uses both the Rexsel kernel and the ArgumentParser
+* It uses both the Rexsel kernel and the ArgumentParser
 package.
 
         import PackageDescription

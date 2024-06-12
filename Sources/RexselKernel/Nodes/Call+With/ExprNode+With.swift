@@ -156,6 +156,7 @@ class WithNode: ExprNode  {
                     if isBlockEmpty {
                         try markExpectedVariableValueError( where: sourceLine, symbol: name )
                     }
+                    isBlockEmpty = true
                     return
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
@@ -187,6 +188,7 @@ class WithNode: ExprNode  {
                     allowableChildrenDict[ nodeName ]!.count += 1
 
                     try node.parseSyntaxUsingCompiler( thisCompiler )
+                    isBlockEmpty = false
                     continue
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
