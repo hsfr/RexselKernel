@@ -14,7 +14,7 @@ import Foundation
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 ///
 /// ```xml
-///   <call> ::= "call" <function name> ( "{" <with>* "}" )?
+///   <call> ::= "call" <proc name> ( "{" <with>* "}" )?
 /// ```
 ///
 
@@ -111,7 +111,7 @@ class CallNode: ExprNode  {
                 // Valid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
                 case ( .qname, .terminal, _ ) where thisCompiler.nextToken.what == .openCurlyBracket :
-                    // Valid function name + {
+                    // Valid proc name + {
                     name = thisCompiler.currentToken.value
                     foundName = true
                     thisCompiler.tokenizedSourceIndex += 1
@@ -166,7 +166,7 @@ class CallNode: ExprNode  {
                 // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && !foundName :
-                    // Missing function name
+                    // Missing proc name
                     try markMissingItemError( what: .name,
                                               inLine: thisCompiler.currentToken.line,
                                               after: exprNodeType.description,
@@ -176,7 +176,7 @@ class CallNode: ExprNode  {
                     continue
 
                 case ( .terminal, _, _ ) where !isInCallTokens( thisCompiler.currentToken.what ) :
-                    // Illegal keyword (function, match, etc.)
+                    // Illegal keyword (proc, match, etc.)
                     // Reset nesting counter if leaving from within a block.
                     if isInBlock {
                         thisCompiler.nestedLevel += 1
@@ -252,7 +252,7 @@ class CallNode: ExprNode  {
 
         super.checkVariableScope()
 
-        // Remember function names do not have a prefix "$".
+        // Remember proc names do not have a prefix "$".
         _ = doesContextContainVariable( name, line: sourceLine )
 
         if let nodes = nodeChildren {
@@ -268,7 +268,7 @@ class CallNode: ExprNode  {
     /// Output is of the form, but note that having a default value
     /// and a contents is ambiguous but not forbidden.
     /// ```xml
-    ///     <xsl:call-template name="function name">
+    ///     <xsl:call-template name="proc name">
     ///        contents
     ///     </xsl:call-template>
     /// ```

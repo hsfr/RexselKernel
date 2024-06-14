@@ -43,7 +43,7 @@ extension StylesheetNode {
         allowableChildrenDict[ TerminalSymbolEnum.xmlns.description ]?.max = Int.max
         allowableChildrenDict[ TerminalSymbolEnum.parameter.description ]?.max = Int.max
         allowableChildrenDict[ TerminalSymbolEnum.variable.description ]?.max = Int.max
-        allowableChildrenDict[ TerminalSymbolEnum.function.description ]?.max = Int.max
+        allowableChildrenDict[ TerminalSymbolEnum.proc.description ]?.max = Int.max
         allowableChildrenDict[ TerminalSymbolEnum.match.description ]?.max = Int.max
         allowableChildrenDict[ TerminalSymbolEnum.key.description ]?.max = Int.max
         allowableChildrenDict[ TerminalSymbolEnum.includeSheet.description ]?.max = Int.max
@@ -200,7 +200,7 @@ class StylesheetNode: ExprNode {
                 // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
                 case ( .terminal, _, _ ) where !isInStyleSheetTokens( thisCompiler.currentToken.what ) :
-                    // Illegal keyword (function, match, etc.)
+                    // Illegal keyword (proc, match, etc.)
                     // Reset nesting counter since we are already in a stylesheet block.
                     if isInBlock {
                         thisCompiler.nestedLevel -= 1
@@ -264,7 +264,7 @@ class StylesheetNode: ExprNode {
 
                 switch child.exprNodeType {
 
-                    case .parameter, .variable, .function, .match, .attributeSet, .key :
+                    case .parameter, .variable, .proc, .match, .attributeSet, .key :
                         do {
                             try variablesDict.addSymbol( name: child.name,
                                                          type: child.exprNodeType,

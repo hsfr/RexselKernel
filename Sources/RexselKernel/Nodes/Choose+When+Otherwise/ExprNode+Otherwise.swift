@@ -29,7 +29,7 @@ extension TerminalSymbolEnum {
 
     // Slightly brutish way to do this
     static let illegalOtherwiseTokens: Set<TerminalSymbolEnum> = [
-        .match, .function
+        .match, .proc
     ]
 
 }
@@ -165,7 +165,7 @@ class OtherwiseNode: ExprNode  {
                 // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
                 case ( .terminal, _, _ ) where !isInOtherwiseTokens( thisCompiler.currentToken.what ) && isInBlock :
-                    // Illegal keyword (function, match, etc.)
+                    // Illegal keyword (proc, match, etc.)
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
                                                    inElement: exprNodeType,
                                                    inLine: thisCompiler.currentToken.line,

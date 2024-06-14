@@ -1,5 +1,5 @@
 //
-//  ExprNode+Function.swift
+//  ExprNode+Proc.swift
 //  Rexsel
 //
 //  Created by Hugh Field-Richards on 19/01/2024.
@@ -14,31 +14,32 @@ import Foundation
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 //
 /// ```xml
-///   <function> ::= "function" <function name>
-///                      ( "{" <block templates> "}" )?
+///   <proc> ::= "proc" <proc name> "{
+///                      ( <block templates> )?
+///                  "}"
 /// ```
 
 extension TerminalSymbolEnum {
 
-    static let functionTokens: Set<TerminalSymbolEnum> = blockTokens.union( parameterToken )
+    static let procTokens: Set<TerminalSymbolEnum> = blockTokens.union( parameterToken )
 
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-extension FunctionNode {
+extension ProcNode {
 
     func setSyntax() {
         // Set up the allowed syntax. We only need to specify the min and max.
-        for keyword in TerminalSymbolEnum.functionTokens {
+        for keyword in TerminalSymbolEnum.procTokens {
             let entry = AllowableSyntaxEntryStruct( child: keyword, min: 0, max: Int.max )
             allowableChildrenDict[ keyword.description ] = entry
         }
     }
 
-    func isInFunctionTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return TerminalSymbolEnum.functionTokens.contains(token)
+    func isInProcTokens( _ token: TerminalSymbolEnum ) -> Bool {
+        return TerminalSymbolEnum.procTokens.contains(token)
     }
 
 }
@@ -49,7 +50,7 @@ extension FunctionNode {
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-class FunctionNode: ExprNode  {
+class ProcNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -62,7 +63,7 @@ class FunctionNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .function
+        exprNodeType = .proc
         name = ""
         isInBlock = false
 
@@ -94,7 +95,7 @@ class FunctionNode: ExprNode  {
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
 #endif
 
-        thisCompiler.functionNameTable = [:]
+        thisCompiler.procNameTable = [:]
         thisCompiler.tokenizedSourceIndex += 1
 
          while !thisCompiler.isEndOfFile {
@@ -117,11 +118,11 @@ class FunctionNode: ExprNode  {
 
                 case ( .qname, .terminal, _ ) where thisCompiler.nextToken.what == .openCurlyBracket :
                     name = thisCompiler.currentToken.value
-                    thisCompiler.functionNameTable[name] = thisCompiler.currentSourceLineNumber
+                    thisCompiler.procNameTable[name] = thisCompiler.currentSourceLineNumber
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .terminal, _, _ ) where isInFunctionTokens( thisCompiler.currentToken.what ) && isInBlock:
+                case ( .terminal, _, _ ) where isInProcTokens( thisCompiler.currentToken.what ) && isInBlock:
 #if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value) in line \(thisCompiler.currentToken.line+1)" )
 #endif
@@ -157,7 +158,7 @@ class FunctionNode: ExprNode  {
                 // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && name.isEmpty :
-                    // Missing function name
+                    // Missing proc name
                     try markMissingItemError( what: .name,
                                               inLine: thisCompiler.currentToken.line,
                                               after: exprNodeType.description )
@@ -167,8 +168,8 @@ class FunctionNode: ExprNode  {
                     isInBlock = true
                     continue
 
-                case ( .terminal, _, _ ) where !isInFunctionTokens( thisCompiler.currentToken.what ) :
-                    // Illegal keyword (function, match, etc.)
+                case ( .terminal, _, _ ) where !isInProcTokens( thisCompiler.currentToken.what ) :
+                    // Illegal keyword (proc, match, etc.)
                     // Reset nesting counter if leaving from within a block.
                     if isInBlock {
                         thisCompiler.nestedLevel += 1
@@ -215,10 +216,10 @@ class FunctionNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "function:\(name)"
+        variablesDict.title = "proc:\(name)"
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.functionTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.procTokens )
 
         // Check for parameter having to be first
         if let nodes = nodeChildren {

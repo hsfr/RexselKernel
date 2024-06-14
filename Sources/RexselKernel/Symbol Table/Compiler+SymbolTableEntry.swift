@@ -37,7 +37,7 @@ struct SymbolTableEntry {
         var padding = ""
 
         // Small bodge to even columns!
-        if entryType == .function {
+        if entryType == .proc {
             padding = " "
         }
 

@@ -157,9 +157,9 @@ public class RexselKernel {
     /// at top (global) level.
     var globalNameTable = [String: Int]()
 
-    /// Table of function names [name: line number]
+    /// Table of proc names [name: line number]
     /// within scope of template.
-    var functionNameTable = [String: Int]()
+    var procNameTable = [String: Int]()
 
     /// Conveniece variable for _xmlnsPrefix_
     ///

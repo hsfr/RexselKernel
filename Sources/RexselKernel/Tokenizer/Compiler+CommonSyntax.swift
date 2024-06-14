@@ -70,7 +70,7 @@ extension TerminalSymbolEnum {
     static let stylesheetTokens: Set<TerminalSymbolEnum> = [
         .importSheet, .includeSheet, .stripSpace,
         .preserveSpace, .output, .key, .decimalFormat,
-        .parameter, .variable, .function, .match,
+        .parameter, .variable, .proc, .match,
         .version, .id, .xmlns, .namespaceAlias,
         .attributeSet, .number
     ]

@@ -260,7 +260,7 @@ class VariableNode: ExprNode {
 
                 switch child.exprNodeType {
 
-                    case .parameter, .variable, .function, .match:
+                    case .parameter, .variable, .proc, .match:
                         do {
                             try variablesDict.addSymbol( name: child.name,
                                                          type: child.exprNodeType,
