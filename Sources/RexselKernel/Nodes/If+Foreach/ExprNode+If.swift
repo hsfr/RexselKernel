@@ -173,7 +173,7 @@ class IfNode: ExprNode  {
                     continue
 
                 case ( .terminal, _, _ ) where !isInBlockTemplateTokens( thisCompiler.currentToken.what ) :
-                    // Illegal keyword (function, match, etc.)
+                    // Illegal keyword (proc, match, etc.)
                     // Reset nesting counter if leaving from within a block.
                     if isInBlock {
                         thisCompiler.nestedLevel += 1

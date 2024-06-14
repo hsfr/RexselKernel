@@ -58,9 +58,9 @@ struct SymbolTable {
     ///
     /// - Parameters:
     ///   - name: the name of the symbol
-    ///   - type: the type of the symbol (variable, parameter or function)
+    ///   - type: the type of the symbol (variable, parameter or proc)
     ///   - declaredInLine: the line number where declared
-    ///   - scope: the name of block where declared (variable, parameter or function)
+    ///   - scope: the name of block where declared (variable, parameter or proc)
     /// - Throws: _duplicateSymbol_ if existing symbol
 
     mutating func addSymbol( name symbolName: String, type inType: TerminalSymbolEnum, declaredInLine: Int, scope scopeName: String ) throws {

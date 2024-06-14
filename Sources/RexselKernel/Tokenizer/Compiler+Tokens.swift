@@ -61,7 +61,7 @@ enum TerminalSymbolEnum: Int {
 
     case select
     case parameter, variable
-    case function, match
+    case proc, match
     case using, scope, priority
 
     case call, with
@@ -229,7 +229,7 @@ enum TerminalSymbolEnum: Int {
             case .otherwise : return OtherwiseNode()
             case .foreach : return ForeachNode()
 
-            case .function : return FunctionNode()
+            case .proc : return ProcNode()
             case .match : return MatchNode()
 
             case .includeSheet : return IncludeNode()
@@ -331,7 +331,7 @@ enum TerminalSymbolEnum: Int {
             case .attrib : return "attribute"
             case .attributeSet : return "attribute-set"
 
-            case .function : return "function"
+            case .proc : return "proc"
             case .match : return "match"
             case .using : return "using"
             case .scope : return "scope"
@@ -404,7 +404,7 @@ enum TerminalSymbolEnum: Int {
             case .parameter : return "P"
             case .attributeSet : return "A"
             case .variable : return "V"
-            case .function : return "F"
+            case .proc : return "F"  // This may be changed later
             case .match : return "M"
             default : return "?"
         }
@@ -486,7 +486,7 @@ enum TerminalSymbolEnum: Int {
             case .alphabetic : return "alphabetic"
             case .traditional : return "traditional"
 
-            case .function : return "template"
+            case .proc : return "template"
             case .using : return "match"
             case .match : return "template"
             case .scope : return "mode"
@@ -635,7 +635,7 @@ enum TerminalSymbolEnum: Int {
             case "with" : return .with
             case "sort" : return .sort
 
-            case "function" : return .function
+            case "proc" : return .proc
             case "match" : return .match
             case "using" : return .using
             case "scope" : return .scope

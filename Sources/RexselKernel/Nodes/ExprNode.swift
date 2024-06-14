@@ -26,7 +26,7 @@ class ExprNode: NSObject {
 
     var sourceLine = 0
 
-    /// Name of this node (function name etc)
+    /// Name of this node (proc name etc)
     ///
     /// Mostly overriden
     var name = ""
@@ -64,8 +64,8 @@ class ExprNode: NSObject {
     /// but only for outputting the symbol table.
     var variablesDict: SymbolTable
 
-    /// A dictionary of declared functions with this node's scope
-    var functionsDict: SymbolTable
+    /// A dictionary of declared procs with this node's scope
+    var procDict: SymbolTable
 
     /// This is a list of symbol tables that is added to as internal
     /// contexts are traversed (down).
@@ -89,7 +89,7 @@ class ExprNode: NSObject {
 
         xmlnsDict = XmlnsSymbolTableType()
         variablesDict = SymbolTable( thisCompiler )
-        functionsDict = SymbolTable( thisCompiler )
+        procDict = SymbolTable( thisCompiler )
         allowableChildrenDict = AllowableSyntaxDictType()
 
         super.init()
