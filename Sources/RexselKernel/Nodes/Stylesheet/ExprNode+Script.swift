@@ -175,10 +175,17 @@ class ScriptNode: ExprNode  {
                                                   after: exprNodeType.description,
                                                   skip: .ignore )
                     }
+                    // Need to check for either src or enclosed script, bot both or neither
+                    if srcString.isEmpty && scriptString.isEmpty {
+                        markMissingSrcOrScript( inLine: sourceLine )
+                    }
+                    if srcString.isNotEmpty && scriptString.isNotEmpty {
+                        markBothSrcAndScript( inLine: sourceLine )
+                    }
                     return
 
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Early end of file
+                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // Early end of file
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                     return

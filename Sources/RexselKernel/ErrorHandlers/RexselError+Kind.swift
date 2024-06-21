@@ -52,7 +52,7 @@ enum RexselErrorKind {
     case missingElementName( lineNumber: Int, position: Int, found: String )
     case missingName( lineNumber: Int, position: Int )
     case missingList( lineNumber: Int, symbol: String )
-    
+
     case missingSymbol( name: String )
     case requiredElement( lineNumber: Int, name: String, inElement: String )
     case cannotHaveBothDefaultAndBlock( lineNumber: Int )
@@ -74,6 +74,9 @@ enum RexselErrorKind {
 
     case invalidXSLTVersion( lineNumber: Int, version: String )
     case invalidKeywordForVersion( lineNumber: Int, keyword: String, version: String )
+
+    case missingSrcOrScript( lineNumber: Int )
+    case cannotHaveBothSrcAndScript( lineNumber: Int )
 
     case endOfFile
 
@@ -133,6 +136,8 @@ enum RexselErrorKind {
             case .sortMustBeFirst( _, _ ) : return 141
             case .invalidXSLTVersion(_, _ ) : return 142
             case .invalidKeywordForVersion( _, _, _ ) : return 143
+            case .missingSrcOrScript( _ ) : return 144
+            case .cannotHaveBothSrcAndScript( _ ) : return 145
 
             case .endOfFile : return 1001
 
@@ -287,7 +292,13 @@ enum RexselErrorKind {
                 return "Illegal XSLT version \"\(version)\" in line \(lineNumber)."
 
             case .invalidKeywordForVersion( let lineNumber, let keyword, let version ) :
-                return "Illegal keyword \"\(keyword)\" for version \"\(version)\" in line \(lineNumber)."
+                return "Illegal keyword \"\(keyword)\" for version \"\(version)\" in line \(lineNumber)"
+
+            case .missingSrcOrScript( let lineNumber ) : 
+                return "script statement must have either src or script declared in line \(lineNumber)"
+
+            case .cannotHaveBothSrcAndScript( let lineNumber ) :
+                return "script statement cannot have both src or script declared in line \(lineNumber)"
 
             case .endOfFile : return "Early end of file"
 
@@ -394,6 +405,12 @@ enum RexselErrorKind {
 
             case .invalidKeywordForVersion( _, _, _ ) :
                 return "Update version number or remove keyword."
+
+            case .missingSrcOrScript( let lineNumber ) :
+                return "Enter either required expression"
+
+            case .cannotHaveBothSrcAndScript( _ ) :
+                return "Remove one of the expressions"
 
             case .endOfFile : return "Check mismatched brackets?"
 

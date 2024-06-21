@@ -235,7 +235,7 @@ extension ExprNode {
             case .ignore :
                 ()
         }
- }
+    }
 
 
 
@@ -643,7 +643,7 @@ extension ExprNode {
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func makeCannotHaveEmptyBlockError( inLine: Int = -1,
-                                   skip: SkipEnum = .ignore ) throws {
+                                        skip: SkipEnum = .ignore ) throws {
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
                 .emptyBlock( lineNumber: thisCompiler.currentToken.line+1 ) ) )
@@ -738,10 +738,10 @@ extension ExprNode {
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markInvalidXSLTVersion( _ illegalVersion: String, at inLine: Int ) {
-            thisCompiler.rexselErrorList
-                .add( RexselErrorData
-                    .init( kind: RexselErrorKind.invalidXSLTVersion( lineNumber: inLine+1, version: illegalVersion ) ) )
-        }
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind.invalidXSLTVersion( lineNumber: inLine+1, version: illegalVersion ) ) )
+    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -753,9 +753,39 @@ extension ExprNode {
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markInvalidKeywordForVersion( _ illegalKeyword: String, version: String, at inLine: Int ) {
-            thisCompiler.rexselErrorList
-                .add( RexselErrorData
-                    .init( kind: RexselErrorKind.invalidKeywordForVersion(lineNumber: inLine+1, keyword: illegalKeyword, version: version ) ) )
-        }
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind.invalidKeywordForVersion(lineNumber: inLine+1, keyword: illegalKeyword, version: version ) ) )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Mark missing expresssion in script statement.
+    ///
+    /// No need to move past andy keyword.
+    ///
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
+
+    func markMissingSrcOrScript( inLine: Int ) {
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind.missingSrcOrScript( lineNumber: inLine+1 ) ) )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Mark duplicate expresssion in script statement.
+    ///
+    /// No need to move past andy keyword.
+    ///
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
+
+    func markBothSrcAndScript( inLine: Int ) {
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind.cannotHaveBothSrcAndScript( lineNumber: inLine+1 ) ) )
+    }
 }
 
