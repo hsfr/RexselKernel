@@ -72,6 +72,9 @@ enum RexselErrorKind {
     case invalidExpression( lineNumber: Int, found: String, insteadOf: String, inElement: String )
     case sortMustBeFirst( lineNumber: Int, within: String )
 
+    case invalidXSLTVersion( lineNumber: Int, version: String )
+    case invalidKeywordForVersion( lineNumber: Int, keyword: String, version: String )
+
     case endOfFile
 
     case unknownError( lineNumber: Int, message: String )
@@ -126,7 +129,10 @@ enum RexselErrorKind {
             case .emptyBlock( _ ) : return 138
             case .foundReservedWord( _, _, _ ) : return 139
             case .invalidExpression( _, _, _, _ ) : return 140
+
             case .sortMustBeFirst( _, _ ) : return 141
+            case .invalidXSLTVersion(_, _ ) : return 142
+            case .invalidKeywordForVersion( _, _, _ ) : return 143
 
             case .endOfFile : return 1001
 
@@ -277,6 +283,11 @@ enum RexselErrorKind {
             case .sortMustBeFirst( let lineNumber, let within ) :
                 return "Sort in \"\(within)\" in line \(lineNumber) must follow declaration."
 
+            case .invalidXSLTVersion( let lineNumber, let version ) :
+                return "Illegal XSLT version \"\(version)\" in line \(lineNumber)."
+
+            case .invalidKeywordForVersion( let lineNumber, let keyword, let version ) :
+                return "Illegal keyword \"\(keyword)\" for version \"\(version)\" in line \(lineNumber)."
 
             case .endOfFile : return "Early end of file"
 
@@ -377,6 +388,12 @@ enum RexselErrorKind {
             case .invalidExpression( _, _, _, _ ) : return "Check string expression."
 
             case .sortMustBeFirst( _, _ ) : return "Check order."
+
+            case .invalidXSLTVersion( _, _ ) :
+                return "Check version number for tis stylesheet."
+
+            case .invalidKeywordForVersion( _, _, _ ) :
+                return "Update version number or remove keyword."
 
             case .endOfFile : return "Check mismatched brackets?"
 

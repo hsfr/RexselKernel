@@ -17,7 +17,7 @@ class SortNode: ExprNode  {
 
     fileprivate var usingString: String = ""
 
-    fileprivate var languageString: String = ""
+    fileprivate var langString: String = ""
 
     /// Ascending or descending sort order
     ///
@@ -61,7 +61,7 @@ class SortNode: ExprNode  {
     ///
     /// ```xml
     ///   <sort> ::= "sort" ( "using" <expression> )?
-    ///                     ( "language" <expression> )?
+    ///                     ( "lang" <expression> )?
     ///                     ( ( "ascending" | "descending" ) )?
     ///                     ( ( "upper-first" | "lower-first" ) )?
     ///                     ( ( "text" | "number" ) )?
@@ -101,8 +101,8 @@ class SortNode: ExprNode  {
                     usingString = thisCompiler.nextToken.value
                     thisCompiler.tokenizedSourceIndex += 2
 
-                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .language :
-                    languageString = thisCompiler.nextToken.value
+                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .lang :
+                    langString = thisCompiler.nextToken.value
                     thisCompiler.tokenizedSourceIndex += 2
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .ascending :
@@ -167,8 +167,8 @@ class SortNode: ExprNode  {
         if usingString.isNotEmpty {
             attributes += " \(TerminalSymbolEnum.select.xml)=\"\(usingString)\""
         }
-        if languageString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.language.xml)=\"\(languageString)\""
+        if langString.isNotEmpty {
+            attributes += " \(TerminalSymbolEnum.lang.xml)=\"\(langString)\""
         }
         if !ascending {
             attributes += " \(TerminalSymbolEnum.order.xml)=\"\(TerminalSymbolEnum.descending.xml)\""

@@ -16,7 +16,7 @@ extension TerminalSymbolEnum {
 
     // valueOf is used as value is overloaded.
     static let numberTokens: Set <TerminalSymbolEnum> = [
-        .count, .level, .from, .numberValue, .format, .language,
+        .count, .level, .from, .numberValue, .format, .lang,
         .letterValue, .groupingSeparator, .groupingSize, .valueOf
     ]
 
@@ -70,8 +70,6 @@ class NumberNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Initialise.
-    ///
-
 
     override init() {
         super.init()

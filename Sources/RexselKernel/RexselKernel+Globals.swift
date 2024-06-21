@@ -7,7 +7,8 @@
 import Foundation
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-/// Show the line number on the output.
+/// Show the line number on the output. These must be
+/// visible to external packages/apps.
 var showLineNumbers: Bool = false
 
 var showUndefinedErrors: Bool = false

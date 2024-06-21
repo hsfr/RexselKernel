@@ -1,12 +1,12 @@
 //
-//  ExprNode+Language.swift
+//  ExprNode+Lang.swift
 //  RexselKernel
 //
 //  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
-class LanguageNode: ExprNode  {
+class LangNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -26,7 +26,7 @@ class LanguageNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .language
+        exprNodeType = .lang
         languageValue = ""
    }
 

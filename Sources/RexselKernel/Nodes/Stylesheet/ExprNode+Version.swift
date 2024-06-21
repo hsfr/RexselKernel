@@ -77,6 +77,15 @@ class VersionNode: ExprNode  {
 #if REXSEL_LOGGING
                 rLogger.log( self, .debug, "Found version '\(exprNodeType.xml)':'\(versionValue)' in line \(sourceLine)" )
 #endif
+                // Set the xslt version for this compiler instance
+                thisCompiler.xsltVersion = versionValue
+                // Check value is within range
+                if !rexsel_versionRange.keys.contains( thisCompiler.xsltVersion ) {
+                    // Mark as error
+                    markInvalidXSLTVersion( thisCompiler.xsltVersion, at: thisCompiler.currentToken.line )
+                    // Set min valid value
+                    thisCompiler.xsltVersion = rexsel_xsltversion10
+                }
                 thisCompiler.tokenizedSourceIndex += 1
 
             default :
@@ -91,7 +100,7 @@ class VersionNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Generate method attribute.
+    /// Generate version attribute.
     ///
     /// Output is of the form
     /// ```xml

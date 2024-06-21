@@ -24,7 +24,6 @@ extension TerminalSymbolEnum {
         _ = returnString.removeLast()
         return returnString
     }
-
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -48,13 +47,23 @@ extension StylesheetNode {
         allowableChildrenDict[ TerminalSymbolEnum.key.description ]?.max = Int.max
         allowableChildrenDict[ TerminalSymbolEnum.includeSheet.description ]?.max = Int.max
         allowableChildrenDict[ TerminalSymbolEnum.attributeSet.description ]?.max = Int.max
+        allowableChildrenDict[ TerminalSymbolEnum.script.description ]?.max = Int.max
 
         // Required entry
         allowableChildrenDict[ TerminalSymbolEnum.version.description ]?.min = 1
     }
 
-    func isInStyleSheetTokens( _ token: TerminalSymbolEnum ) -> Bool {
+    func isInStylesheetTokens( _ token: TerminalSymbolEnum ) -> Bool {
         return TerminalSymbolEnum.stylesheetTokens.contains(token)
+    }
+
+    func isTokenValidForThisVersion( _ token: TerminalSymbolEnum ) -> Bool {
+        let tokenValue = token.rawValue
+        let version = thisCompiler.xsltVersion
+        let versionRangeMin = rexsel_versionRange[ version ]!.min
+        let versionRangeMax = rexsel_versionRange[ version ]!.max
+        let vRange = versionRangeMin..<versionRangeMax
+        return vRange.contains( tokenValue )
     }
 
 }
@@ -66,6 +75,14 @@ extension StylesheetNode {
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 class StylesheetNode: ExprNode {
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Instance properties
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+    public var xsltVersion: String = ""
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -82,6 +99,7 @@ class StylesheetNode: ExprNode {
         isInBlock = false
         setSyntax()
         isRootNode = true
+        xsltVersion = "1.0"
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -173,10 +191,19 @@ class StylesheetNode: ExprNode {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Process block material
 
-                case ( .terminal, _, _ ) where isInStyleSheetTokens( thisCompiler.currentToken.what ) && isInBlock :
+                case ( .terminal, _, _ ) where isInStylesheetTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
+
+                    if !isTokenValidForThisVersion( thisCompiler.currentToken.what ) {
+                        markInvalidKeywordForVersion( thisCompiler.currentToken.value,
+                                                      version: thisCompiler.xsltVersion,
+                                                      at: thisCompiler.currentToken.line)
+                        // Do not exit here since we need to process this invalid
+                        // keyword to ensure error recovery.
+                    }
+
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
                         self.nodeChildren = [ExprNode]()
@@ -199,7 +226,7 @@ class StylesheetNode: ExprNode {
 
                 // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-                case ( .terminal, _, _ ) where !isInStyleSheetTokens( thisCompiler.currentToken.what ) :
+                case ( .terminal, _, _ ) where !isInStylesheetTokens( thisCompiler.currentToken.what ) :
                     // Illegal keyword (proc, match, etc.)
                     // Reset nesting counter since we are already in a stylesheet block.
                     if isInBlock {
@@ -207,10 +234,9 @@ class StylesheetNode: ExprNode {
                     }
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
                                                    inElement: exprNodeType,
-                                                   inLine: sourceLine )
+                                                   inLine: thisCompiler.currentToken.line )
                     // Exit to continue processing at a higher level
                     return
-
 
                 case ( .expression, _, _ ) where isInBlock :
                     fallthrough

@@ -728,6 +728,34 @@ extension ExprNode {
         }
     }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Mark unknown/illegal XSLT version.
+    ///
+    /// No need to move past andy keyword.
+    ///
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
+    func markInvalidXSLTVersion( _ illegalVersion: String, at inLine: Int ) {
+            thisCompiler.rexselErrorList
+                .add( RexselErrorData
+                    .init( kind: RexselErrorKind.invalidXSLTVersion( lineNumber: inLine+1, version: illegalVersion ) ) )
+        }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Mark unknown/illegal keyword for this XSLT version.
+    ///
+    /// No need to move past andy keyword.
+    ///
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
+
+    func markInvalidKeywordForVersion( _ illegalKeyword: String, version: String, at inLine: Int ) {
+            thisCompiler.rexselErrorList
+                .add( RexselErrorData
+                    .init( kind: RexselErrorKind.invalidKeywordForVersion(lineNumber: inLine+1, keyword: illegalKeyword, version: version ) ) )
+        }
 }
 
