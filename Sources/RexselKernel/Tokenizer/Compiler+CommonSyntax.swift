@@ -64,21 +64,26 @@ func isInBoolTokens( _ token: TerminalSymbolEnum ) -> Bool {
 
 extension TerminalSymbolEnum {
 
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    /// At the top level a restricted set of keywords are allowed
+    typealias StylesheetTokensType = Set<TerminalSymbolEnum>
 
-    static let stylesheetTokens: Set<TerminalSymbolEnum> = [
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    /// At the top level a restricted set of keywords are allowed.
+    /// The list includes all versions. Detection and restrictions
+    /// between versions is done in appropriate node.
+    static let stylesheetTokens: StylesheetTokensType = [
         .importSheet, .includeSheet, .stripSpace,
         .preserveSpace, .output, .key, .decimalFormat,
         .parameter, .variable, .proc, .match,
         .version, .id, .xmlns, .namespaceAlias,
-        .attributeSet, .number
+        .attributeSet, .number, .script
     ]
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     /// These are the set of keywords that can occur in
     /// template blocks (element, variable etc.)
-    static let blockTokens: Set<TerminalSymbolEnum> = [
+    /// The list includes all versions. Detection and restrictions
+    /// between versions is done in appropriate node.
+    static let blockTokens: StylesheetTokensType = [
         .variable, .applyImports,
         .applyTemplates, .attrib, .call,
         .choose,.copy, .copyOf, .element,
@@ -91,7 +96,9 @@ extension TerminalSymbolEnum {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     /// These are the set of keywords that can occur in
     /// attribute blocks.
-    static let attributeBlockTokens: Set<TerminalSymbolEnum> = [
+    /// The list includes all versions. Detection and restrictions
+    /// between versions is done in appropriate node.
+    static let attributeBlockTokens: StylesheetTokensType = [
         .variable,
         .applyTemplates, .call,
         .choose,.copy, .copyOf,
@@ -99,11 +106,11 @@ extension TerminalSymbolEnum {
         .valueOf, .text
     ]
 
-    static let sortToken: Set <TerminalSymbolEnum> = [ .sort ]
+    static let sortToken: StylesheetTokensType = [ .sort ]
 
-    static let parameterToken: Set <TerminalSymbolEnum> = [ .parameter ]
+    static let parameterToken: StylesheetTokensType = [ .parameter ]
 
-    static let YesNoTokens: Set <TerminalSymbolEnum> = [
+    static let YesNoTokens: StylesheetTokensType = [
         .yes, .no
     ]
 

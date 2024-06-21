@@ -28,17 +28,47 @@ import Foundation
 
 /// This defines the type of the token
 ///
-/// - *terminal*: a keyword such as "stylesheet", "element",
-/// "function", etc.
+/// - *terminal*: a keyword such as "stylesheet", "element", "function", etc.
 /// - *qname* : a qualified name used within elements etc.
 /// - *expression* : for all quoted tokens.
 /// - *unknown* : none of the above!
+
 enum TokenEnum {
     case terminal
     case qname
     case expression
     case unknown
 }
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// MARK: - Version Ranges
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+//
+/// Defines the token ran for a particular version.
+///
+/// The _min_ value is not really needed as it should
+/// always be "1".
+
+// Global properties start with "rexsel_".
+typealias rexsel_minMaxVersionType = ( min: Int, max: Int )
+
+let rexsel_xsltversion10 = "1.0"
+let rexsel_xsltversion11 = "1.1"
+let rexsel_xsltversion20 = "2.0"
+let rexsel_xsltversion30 = "3.0"
+let rexsel_xsltversion40 = "4.0"
+
+// These are somewhat arbitrary values for the
+// enumeration TerminalSymbolEnum
+let rexsel_versionRange: [String: rexsel_minMaxVersionType ] = [
+    rexsel_xsltversion10: ( 1, 199 ),
+    rexsel_xsltversion11: ( 1, 399 ),
+    rexsel_xsltversion20: ( 1, 599 ),
+    rexsel_xsltversion30: ( 1, 799 ),
+    rexsel_xsltversion40: ( 1, 999 )
+]
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -53,6 +83,9 @@ enum TokenEnum {
 /// than the XSLT elements.
 
 enum TerminalSymbolEnum: Int {
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // Version 1.0 keywords/tokens
     case stylesheet = 1
     case version, id, excludeResultPrefixes, extensionElementPrefixes
     case key, keyNodes
@@ -131,10 +164,9 @@ enum TerminalSymbolEnum: Int {
     case openCurlyBracket
     case closeCurlyBracket
 
-    case rcomment // Comments in the Rexsel, not the comment keyword
     case processingInstruction
 
-    case language
+    case lang
     case order
     case ascending, descending
     case caseOrder
@@ -142,7 +174,21 @@ enum TerminalSymbolEnum: Int {
     case dataType
     case textSort, numberSort
 
-    case expression
+    case rcomment // Comments in the Rexsel, not the comment keyword
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // Version 1.1 keywords/tokens
+    case script = 200
+    case src
+    case prefix
+    case archive
+    // Not the same as "lang". The latter refers to a linguistic language.
+    // This one refers to a programming language.
+    case language
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // Not source tokens but general types
+    case expression = 10000
     case string
     case qname
     case unknownToken
@@ -209,7 +255,7 @@ enum TerminalSymbolEnum: Int {
             case .zeroDigit : return ZeroDigitNode()
             case .digit : return DigitNode()
             case .patternSeparator : return PatternSeparatorNode()
-            case .language : return LanguageNode()
+            case .lang : return LangNode()
 
             case .applyImports : return ApplyImportsNode()
             case .applyTemplates : return ApplyTemplatesNode()
@@ -239,6 +285,8 @@ enum TerminalSymbolEnum: Int {
             case .copyOf : return CopyOfNode()
             case .message : return MessageNode()
             case .namespaceAlias : return NamespaceAliasNode()
+
+            case .script : return ScriptNode()
 
             default:
                 // Anything else returns nil
@@ -368,7 +416,7 @@ enum TerminalSymbolEnum: Int {
 
             case .processingInstruction : return "processing-instruction"
 
-            case .language : return "lang"
+            case .lang : return "lang"
             case .order : return "order"
             case .ascending : return "ascending"
             case .descending : return "descending"
@@ -378,6 +426,12 @@ enum TerminalSymbolEnum: Int {
             case .dataType : return "data-type"
             case .textSort : return "text-sort"
             case .numberSort : return "number-sort"
+
+            case .script : return "script"
+            case .src : return "src"
+            case .prefix : return "prefix"
+            case .language : return "language"
+            case .archive : return "archive"
 
             case .expression : return "expression"
             case .string : return "string"
@@ -517,7 +571,7 @@ enum TerminalSymbolEnum: Int {
             case .copy : return "copy"
             case .copyOf : return "copy-of"
 
-            case .language : return "lang"
+            case .lang : return "lang"
             case .order : return "order"
             case .ascending : return "ascending"
             case .descending : return "descending"
@@ -539,6 +593,12 @@ enum TerminalSymbolEnum: Int {
 
             case .processingInstruction : return "processing-instruction"
             case .number : return "number"
+
+            case .script : return "script"
+            case .src : return "src"
+            case .prefix : return "implements-prefix"
+            case .language : return "language"
+            case .archive : return "archive"
 
             case .qname : return "name"
 
@@ -588,7 +648,6 @@ enum TerminalSymbolEnum: Int {
             // This is an overloaded case which is sorted out as either
             // .text or .textMethod in the method parser. Crude but effective.
             case "text" : return .text
-            // case "flat" : return .textMethod
             case "encoding" : return .encoding
             case "cdata" : return .cdataList
             case "omit-xml-declaration" : return .omitXmlDecl
@@ -661,7 +720,7 @@ enum TerminalSymbolEnum: Int {
             case "copy" : return .copy
             case "copy-of" : return .copyOf
 
-            case "lang" : return .language
+            case "lang" : return .lang
             case "order" : return .order
             case "ascending" : return .ascending
             case "descending" : return .descending
@@ -688,6 +747,12 @@ enum TerminalSymbolEnum: Int {
 
             case "processing-instruction" : return .processingInstruction
             case "number" : return .number
+
+            case "script" : return .script
+            case "src" : return .src
+            case "prefix" : return .prefix
+            case "language" : return .language
+            case "archive" : return .archive
 
             default : return .unknownToken
         }
