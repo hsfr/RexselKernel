@@ -24,7 +24,7 @@ public class RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     // Make sure that this uses the Package scheme for tagged repository.
-    public var version = "1.0.34"
+    public var version = "1.0.35"
 
     /// The XSLT version being used (set to initial minimum)
     public var xsltVersion = "1.0"
