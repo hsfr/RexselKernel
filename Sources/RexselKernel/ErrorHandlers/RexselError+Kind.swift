@@ -77,6 +77,7 @@ enum RexselErrorKind {
 
     case missingSrcOrScript( lineNumber: Int )
     case cannotHaveBothSrcAndScript( lineNumber: Int )
+    case missingScriptOption( lineNumber: Int, symbol: String )
 
     case endOfFile
 
@@ -138,6 +139,8 @@ enum RexselErrorKind {
             case .invalidKeywordForVersion( _, _, _ ) : return 143
             case .missingSrcOrScript( _ ) : return 144
             case .cannotHaveBothSrcAndScript( _ ) : return 145
+
+            case .missingScriptOption( _, _ ) : return 146
 
             case .endOfFile : return 1001
 
@@ -295,10 +298,13 @@ enum RexselErrorKind {
                 return "Illegal keyword \"\(keyword)\" for version \"\(version)\" in line \(lineNumber)"
 
             case .missingSrcOrScript( let lineNumber ) : 
-                return "script statement must have either src or script declared in line \(lineNumber)"
+                return "Script statement must have either src or script declared in line \(lineNumber)"
 
             case .cannotHaveBothSrcAndScript( let lineNumber ) :
-                return "script statement cannot have both src or script declared in line \(lineNumber)"
+                return "Script statement cannot have both src or script declared in line \(lineNumber)"
+
+            case .missingScriptOption( let lineNumber, let symbol ) :
+                return "Script statement needs \(symbol) declared in line \(lineNumber)"
 
             case .endOfFile : return "Early end of file"
 
@@ -406,11 +412,14 @@ enum RexselErrorKind {
             case .invalidKeywordForVersion( _, _, _ ) :
                 return "Update version number or remove keyword."
 
-            case .missingSrcOrScript( let lineNumber ) :
+            case .missingSrcOrScript( _ ) :
                 return "Enter either required expression"
 
             case .cannotHaveBothSrcAndScript( _ ) :
                 return "Remove one of the expressions"
+
+            case .missingScriptOption( _, let symbol ) :
+                return "Insert \(symbol) \"expression\" pair"
 
             case .endOfFile : return "Check mismatched brackets?"
 

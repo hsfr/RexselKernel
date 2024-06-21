@@ -13,12 +13,14 @@ import Foundation
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 //
 /// ```xml
-///   <script> ::= "script"
-///                   "prefix" <ncname>
-///                   "language" <qname> )
-///                    ( "archive" <uri list> )?
-///                    ( "src" <uri> )?
-///                    ( "{" <contents> "}" )?
+///  <script> ::= “script”
+///                  “prefix” <quote> <namespace prefix> <quote>
+///                  "language" <quote> <script language definition> <quote>
+///                  ( "archive" <quote> <uri list> >quote> )?
+///                  (
+///                    ( "src" <quote> <script uri> >quote> ) |
+///                    ( <quote> <script text> >quote> )
+///                  )
 /// ```
 
 extension TerminalSymbolEnum {
@@ -164,18 +166,12 @@ class ScriptNode: ExprNode  {
                     // Found next statement or block end
                     // Check for required items
                     if prefixString.isEmpty {
-                        try markMissingItemError( what: .prefix,
-                                                  inLine: thisCompiler.currentToken.line,
-                                                  after: exprNodeType.description,
-                                                  skip: .ignore )
+                        markMissingScriptOption(inLine: sourceLine, what: .prefix )
                     }
                     if languageString.isEmpty {
-                        try markMissingItemError( what: .prefix,
-                                                  inLine: thisCompiler.currentToken.line,
-                                                  after: exprNodeType.description,
-                                                  skip: .ignore )
+                        markMissingScriptOption(inLine: sourceLine, what: .language )
                     }
-                    // Need to check for either src or enclosed script, bot both or neither
+                    // Need to check for either src or enclosed script, but not both or neither
                     if srcString.isEmpty && scriptString.isEmpty {
                         markMissingSrcOrScript( inLine: sourceLine )
                     }

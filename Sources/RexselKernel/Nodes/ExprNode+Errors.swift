@@ -763,8 +763,10 @@ extension ExprNode {
     //
     /// Mark missing expresssion in script statement.
     ///
-    /// No need to move past andy keyword.
+    /// No need to move past keyword.
     ///
+    /// - Parameters:
+    ///   - inLine:    The line in which the element is used.
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markMissingSrcOrScript( inLine: Int ) {
@@ -778,14 +780,34 @@ extension ExprNode {
     //
     /// Mark duplicate expresssion in script statement.
     ///
-    /// No need to move past andy keyword.
+    /// No need to move past keyword.
     ///
+    /// - Parameters:
+    ///   - inLine:    The line in which the element is used.
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markBothSrcAndScript( inLine: Int ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
                 .init( kind: RexselErrorKind.cannotHaveBothSrcAndScript( lineNumber: inLine+1 ) ) )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Mark missing option (prefix or language).
+    ///
+    /// No need to move past keyword.
+    ///
+    /// - Parameters:
+    ///   - inLine:    The line in which the element is used.
+    ///   - what:      The missing symbol.
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
+
+    func markMissingScriptOption( inLine: Int, what: TerminalSymbolEnum ) {
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind.missingScriptOption( lineNumber: inLine+1, symbol: what.description ) ) )
     }
 }
 
