@@ -186,13 +186,10 @@ class ChooseNode: ExprNode  {
     //
     /// Check variable scoping in value.
     
-    override func checkVariableScope() {
-
-        super.checkVariableScope()
-
+    override func checkVariableScope( _ compiler: RexselKernel ) {
         // Should have a .when and .otherwise
         if let nodes = nodeChildren {
-            scanForVariablesInBlock( nodes )
+            scanForVariablesInBlock( compiler, nodes )
         }
     }
 

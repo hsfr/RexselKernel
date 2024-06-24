@@ -78,9 +78,14 @@ class XmlnsNode: ExprNode {
             // Process expression
 
             case ( .expression, .expression, .terminal ) :
-                self.name = thisCompiler.currentToken.value
-                self.url = thisCompiler.nextToken.value
-                // Correct so slide past the two expressions
+                name = thisCompiler.currentToken.value
+                url = thisCompiler.nextToken.value
+                
+                // Put in the namespace list for this stylesheet.
+                // Duplication checking is done elsewhere.
+                thisCompiler.namespaceList[ name ] = url
+
+                // Correct so slide past the two expressions.
                 thisCompiler.tokenizedSourceIndex += 2
                 return
 
@@ -125,7 +130,7 @@ class XmlnsNode: ExprNode {
     //
     /// Check variable scoping.
 
-    override func checkVariableScope() {}
+    override func checkVariableScope( _ compiler: RexselKernel ) {}
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

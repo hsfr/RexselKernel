@@ -24,7 +24,7 @@ public class RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     // Make sure that this uses the Package scheme for tagged repository.
-    public var version = "1.0.35"
+    public var version = "1.0.36"
 
     /// The XSLT version being used (set to initial minimum)
     public var xsltVersion = "1.0"
@@ -160,6 +160,10 @@ public class RexselKernel {
     /// at top (global) level.
     var globalNameTable = [String: Int]()
 
+    /// List of declared namespaces from 'xmlns "prefix" "uri"'
+    /// statements.
+    public var namespaceList: [ String: String ] = [:]
+
     /// Table of proc names [name: line number]
     /// within scope of template.
     var procNameTable = [String: Int]()
@@ -249,8 +253,9 @@ public class RexselKernel {
         rootNode = ExprNode()
         rootNode.isRootNode = true
 
-        // Clear symbol table
+        // Clear symbol table and list of namespaces used.
         globalNameTable = [:]
+        namespaceList = [:]
 
         rexselErrorList = RexselErrorList()
         tokenizeSource()
@@ -285,7 +290,7 @@ public class RexselKernel {
         if showFullMessages {
             print( "Semantic checks finished" )
         }
-        rootNode.checkVariableScope()
+        rootNode.checkVariableScope( self )
         if showFullMessages {
             print( "Variable scope checks finished" )
         }

@@ -57,9 +57,11 @@ extension RexselKernel {
 #if REXSEL_LOGGING
             rLogger.log( structName, .debug, "**** Unmatched brackets in line \(sourceLine)" )
 #endif
-            rexselErrorList.add( RexselErrorData.init( kind: RexselErrorKind.unmatchedBrackets( lineNumber: sourceLine + 1, level: nestedLevel ),
-                                                       line: sourceLine + 1,
-                                                       position: sourcePosition ) )
+            rexselErrorList.add( RexselErrorData
+                .init( kind: RexselErrorKind
+                    .unmatchedBrackets( lineNumber: sourceLine + 1, level: nestedLevel ),
+                       line: sourceLine + 1,
+                       position: sourcePosition ) )
         }
 
 #if REXSEL_LOGGING

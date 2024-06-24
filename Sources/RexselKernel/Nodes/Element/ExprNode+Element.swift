@@ -269,17 +269,14 @@ class ElementNode: ExprNode  {
     //
     /// Check variable scoping in enclosed withNodes.
 
-    override func checkVariableScope() {
-   
-        super.checkVariableScope()
-
+    override func checkVariableScope( _ compiler: RexselKernel ) {
         // We must scan for variables in use-attribute-sets
         super.scanVariablesInNodeValue( useAttributeSetsString,
                                         usingPrefix: false,
                                         inLine: sourceLine )
 
         if let nodes = nodeChildren {
-            scanForVariablesInBlock( nodes )
+            scanForVariablesInBlock( compiler, nodes )
         }
     }
 

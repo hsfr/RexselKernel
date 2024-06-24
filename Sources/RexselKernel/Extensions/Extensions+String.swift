@@ -193,6 +193,9 @@ extension String {
     ///   // "e"
     /// ```
     subscript( i: Int ) -> String {
+        guard self.count > i else {
+            return ""
+        }
         return String(self[index(startIndex, offsetBy: i)])
     }
 

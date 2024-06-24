@@ -335,14 +335,10 @@ class MessageNode: ExprNode  {
     /// This table (the root node) will be used throughout the
     /// stylesheet for checking within each local scope.
 
-    override func checkVariableScope() {
-
-        super.checkVariableScope()
-
+    override func checkVariableScope( _ compiler: RexselKernel ) {
         scanVariablesInNodeValue( yesNoValue.description, inLine: sourceLine )
-
         if let nodes = nodeChildren {
-            scanForVariablesInBlock( nodes )
+            scanForVariablesInBlock( compiler, nodes )
         }
     }
 

@@ -58,26 +58,27 @@ enum RexselErrorKind {
     case cannotHaveBothDefaultAndBlock( lineNumber: Int )
     case defaultAndBlockMissing( lineNumber: Int )
     case parameterMustBeFirst( lineNumber: Int, name: String, within: String )
-    case parameterCannotAppearHere( lineNumber: Int )
 
+    case parameterCannotAppearHere( lineNumber: Int )
     case globalVariableAlreadyDeclared( lineNumber: Int, name: String )
     case unmatchedQuotes( lineNumber: Int, position: Int )
     case invalidPattern( pattern: String, lineNumber: Int )
     case missingOpenCurlyBracket( lineNumber: Int )
-    case unmatchedBrackets( lineNumber: Int, level: Int )
 
+    case unmatchedBrackets( lineNumber: Int, level: Int )
     case expectedCharacterNotString( lineNumber: Int, position: Int, found: String )
     case emptyBlock( lineNumber: Int )
     case foundReservedWord( lineNumber: Int, name: String, inElement: String )
     case invalidExpression( lineNumber: Int, found: String, insteadOf: String, inElement: String )
-    case sortMustBeFirst( lineNumber: Int, within: String )
 
+    case sortMustBeFirst( lineNumber: Int, within: String )
     case invalidXSLTVersion( lineNumber: Int, version: String )
     case invalidKeywordForVersion( lineNumber: Int, keyword: String, version: String )
-
     case missingSrcOrScript( lineNumber: Int )
     case cannotHaveBothSrcAndScript( lineNumber: Int )
+
     case missingScriptOption( lineNumber: Int, symbol: String )
+    case prefixNotDeclared( lineNumber: Int, prefix: String )
 
     case endOfFile
 
@@ -141,6 +142,7 @@ enum RexselErrorKind {
             case .cannotHaveBothSrcAndScript( _ ) : return 145
 
             case .missingScriptOption( _, _ ) : return 146
+            case .prefixNotDeclared( _, _ ) : return 147
 
             case .endOfFile : return 1001
 
@@ -306,6 +308,9 @@ enum RexselErrorKind {
             case .missingScriptOption( let lineNumber, let symbol ) :
                 return "Script statement needs \(symbol) declared in line \(lineNumber)"
 
+            case .prefixNotDeclared( let lineNumber, let prefix ) :
+                return "Namespace prefix \"\(prefix)\" not declared in script declaration in line \(lineNumber)"
+
             case .endOfFile : return "Early end of file"
 
             case .unknownError( let lineNumber, _ ) : return "Unknown error in line \(lineNumber)"
@@ -420,6 +425,9 @@ enum RexselErrorKind {
 
             case .missingScriptOption( _, let symbol ) :
                 return "Insert \(symbol) \"expression\" pair"
+
+            case .prefixNotDeclared( _, let prefix ) :
+                return "Insert namespace pair declaration for \"\(prefix)\""
 
             case .endOfFile : return "Check mismatched brackets?"
 
