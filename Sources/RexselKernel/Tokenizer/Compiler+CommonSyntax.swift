@@ -106,6 +106,8 @@ extension TerminalSymbolEnum {
         .valueOf, .text
     ]
 
+    static let fallbackToken: StylesheetTokensType = [ .fallback ]
+
     static let sortToken: StylesheetTokensType = [ .sort ]
 
     static let parameterToken: StylesheetTokensType = [ .parameter ]
