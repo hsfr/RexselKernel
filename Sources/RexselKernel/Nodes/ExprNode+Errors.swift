@@ -733,9 +733,6 @@ extension ExprNode {
     //
     /// Mark unknown/illegal XSLT version.
     ///
-    /// No need to move past andy keyword.
-    ///
-    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markInvalidXSLTVersion( _ illegalVersion: String, at inLine: Int ) {
         thisCompiler.rexselErrorList
@@ -748,9 +745,6 @@ extension ExprNode {
     //
     /// Mark unknown/illegal keyword for this XSLT version.
     ///
-    /// No need to move past andy keyword.
-    ///
-    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markInvalidKeywordForVersion( _ illegalKeyword: String, version: String, at inLine: Int ) {
         thisCompiler.rexselErrorList
@@ -763,11 +757,8 @@ extension ExprNode {
     //
     /// Mark missing expresssion in script statement.
     ///
-    /// No need to move past keyword.
-    ///
     /// - Parameters:
     ///   - inLine:    The line in which the element is used.
-    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markMissingSrcOrScript( inLine: Int ) {
         thisCompiler.rexselErrorList
@@ -780,11 +771,8 @@ extension ExprNode {
     //
     /// Mark duplicate expresssion in script statement.
     ///
-    /// No need to move past keyword.
-    ///
     /// - Parameters:
     ///   - inLine:    The line in which the element is used.
-    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markBothSrcAndScript( inLine: Int ) {
         thisCompiler.rexselErrorList
@@ -797,17 +785,31 @@ extension ExprNode {
     //
     /// Mark missing option (prefix or language).
     ///
-    /// No need to move past keyword.
-    ///
     /// - Parameters:
     ///   - inLine:    The line in which the element is used.
     ///   - what:      The missing symbol.
-    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markMissingScriptOption( inLine: Int, what: TerminalSymbolEnum ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
                 .init( kind: RexselErrorKind.missingScriptOption( lineNumber: inLine+1, symbol: what.description ) ) )
+    }
+    
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Mark namespace declaration.
+    ///
+    /// Generally this is for script statements.
+    ///
+    /// - Parameters:
+    ///   - inLine:    The line in which the element is used.
+    ///   - prefix:    The missing namespace prefix.
+
+    func missingPrefixDeclaration( inLine: Int, prefix missingPrefix: String ) {
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind.prefixNotDeclared( lineNumber: inLine+1, prefix: missingPrefix ) ) )
     }
 }
 

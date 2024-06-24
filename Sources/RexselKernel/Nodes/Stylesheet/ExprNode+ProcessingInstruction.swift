@@ -261,12 +261,9 @@ class ProcessingInstructionNode: ExprNode  {
     /// At this stage the check for duplicates will have been run
     /// so the tables, _variableDict_ should be populated for this node.
 
-    override func checkVariableScope() {
-
-        super.checkVariableScope()
-
+    override func checkVariableScope( _ compiler: RexselKernel ) {
         if let nodes = nodeChildren {
-            scanForVariablesInBlock( nodes )
+            scanForVariablesInBlock( compiler, nodes )
         }
     }
 

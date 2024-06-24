@@ -258,12 +258,9 @@ class ApplyTemplatesNode: ExprNode  {
     //
     /// Check variable scoping in enclosed withNodes.
     
-    override func checkVariableScope() {
-        
-        super.checkVariableScope()
-        
+    override func checkVariableScope( _ compiler: RexselKernel ) {
         if let nodes = nodeChildren {
-            scanForVariablesInBlock( nodes )
+            scanForVariablesInBlock( compiler, nodes )
         }
     }
     

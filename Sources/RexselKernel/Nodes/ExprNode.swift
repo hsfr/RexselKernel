@@ -194,9 +194,10 @@ class ExprNode: NSObject {
     //
     /// Check scope of variables.
     ///
-    /// Always overriden.
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
 
-    func checkVariableScope() { }
+    func checkVariableScope( _ compiler: RexselKernel ) { }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -236,9 +237,9 @@ class ExprNode: NSObject {
     /// - Parameters:
     ///   - nodes: the enclosed block as a set of nodes.
 
-    func scanForVariablesInBlock( _ nodes: [ExprNode] ) {
+    func scanForVariablesInBlock( _ compiler: RexselKernel, _ nodes: [ExprNode] ) {
         for child in nodes {
-            child.checkVariableScope()
+            child.checkVariableScope( compiler )
         }
     }
 

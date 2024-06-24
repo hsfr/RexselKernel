@@ -158,10 +158,7 @@ class ValueOfNode: ExprNode {
     /// At this stage the check for duplicates will have been run
     /// so the tables, _variableDict_ should be populated for this node.
 
-    override func checkVariableScope() {
-
-        super.checkVariableScope()
-
+    override func checkVariableScope( _ compiler: RexselKernel ) {
         // There are no blocks associated with this node
         scanVariablesInNodeValue( expresssionString, inLine: sourceLine )
     }

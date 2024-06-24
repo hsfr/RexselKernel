@@ -255,14 +255,10 @@ class NamespaceAliasNode: ExprNode  {
     /// This table (the root node) will be used throughout the
     /// stylesheet for checking within each local scope.
 
-    override func checkVariableScope() {
-
-        super.checkVariableScope()
-
+    override func checkVariableScope( _ compiler: RexselKernel ) {
         scanVariablesInNodeValue( mapFromString, inLine: sourceLine )
-
-        if let nodes = nodeChildren {
-            scanForVariablesInBlock( nodes )
+         if let nodes = nodeChildren {
+            scanForVariablesInBlock( compiler, nodes )
         }
     }
 

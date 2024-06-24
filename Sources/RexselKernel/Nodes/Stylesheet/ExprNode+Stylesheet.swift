@@ -334,13 +334,10 @@ class StylesheetNode: ExprNode {
     //
     /// Check variable scoping.
 
-    override func checkVariableScope() {
-
-        super.checkVariableScope()
-
+    override func checkVariableScope( _ compiler: RexselKernel ) {
         if let nodes = nodeChildren {
             for child in nodes {
-                child.checkVariableScope()
+                child.checkVariableScope( compiler )
             }
         }
     }

@@ -203,6 +203,21 @@ class ScriptNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
+    /// Check scope of variables.
+    ///
+    /// Check the namespace prefix has been declared for
+    /// this stylesheet.
+
+    override func checkVariableScope( _ compiler: RexselKernel ) {
+        guard compiler.namespaceList.keys.contains( prefixString ) else {
+            missingPrefixDeclaration( inLine: sourceLine, prefix: prefixString )
+            return
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
     /// Generate stylesheet tag.
 
     override func generate() -> String {
