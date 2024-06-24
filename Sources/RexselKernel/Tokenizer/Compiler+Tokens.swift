@@ -265,6 +265,7 @@ enum TerminalSymbolEnum: Int {
             case .with : return WithNode()
 
             case .element : return ElementNode()
+            case .fallback : return FallbackNode()
             case .processingInstruction : return ProcessingInstructionNode()
             case .attrib : return AttributeNode()
             case .attributeSet : return AttributeSetNode()
