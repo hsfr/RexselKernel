@@ -763,5 +763,6 @@ enum TerminalSymbolEnum: Int {
     static func isTerminalSymbol( _ token: String ) -> Bool {
         return TerminalSymbolEnum.translate( token ) != .unknownToken
     }
+
 }
 

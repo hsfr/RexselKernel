@@ -41,8 +41,10 @@ extension ExprNode {
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markMissingItemError( what: TerminalSymbolEnum,
-                               inLine: Int, andPosition: Int = 0,
-                               after afterName: String = "", insteadOf: String = "",
+                               inLine: Int,
+                               andPosition: Int = 0,
+                               after afterName: String = "",
+                               insteadOf: String = "",
                                found: String = "",
                                skip: SkipEnum = .ignore ) throws {
 
@@ -236,8 +238,6 @@ extension ExprNode {
                 ()
         }
     }
-
-
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

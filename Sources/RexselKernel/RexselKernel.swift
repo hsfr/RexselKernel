@@ -24,7 +24,7 @@ public class RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     // Make sure that this uses the Package scheme for tagged repository.
-    public var version = "1.0.37"
+    public var version = "1.0.38"
 
     /// The XSLT version being used (set to initial minimum)
     public var xsltVersion = "1.0"
@@ -290,16 +290,18 @@ public class RexselKernel {
         if showFullMessages {
             print( "Semantic checks finished" )
         }
+
         rootNode.checkVariableScope( self )
         if showFullMessages {
             print( "Variable scope checks finished" )
         }
+
         let symbolTable = rootNode.symbolListing()
 
         // Finally generate the actual code
         compiledXSL = rootNode.generate()
 
-        // The code is returned so that command line and app can deal with
+        // The code is returned so that the command line and app can deal with
         // the errors and symbol table differently.
         return( compiledXSL, rexselErrorList.description, symbolTable )
     }

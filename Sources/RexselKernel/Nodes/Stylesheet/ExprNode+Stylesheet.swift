@@ -57,15 +57,6 @@ extension StylesheetNode {
         return TerminalSymbolEnum.stylesheetTokens.contains(token)
     }
 
-    func isTokenValidForThisVersion( _ token: TerminalSymbolEnum ) -> Bool {
-        let tokenValue = token.rawValue
-        let version = thisCompiler.xsltVersion
-        let versionRangeMin = rexsel_versionRange[ version ]!.min
-        let versionRangeMax = rexsel_versionRange[ version ]!.max
-        let vRange = versionRangeMin..<versionRangeMax
-        return vRange.contains( tokenValue )
-    }
-
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -224,7 +215,8 @@ class StylesheetNode: ExprNode {
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
 
-                // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Invalid constructions
 
                 case ( .terminal, _, _ ) where !isInStylesheetTokens( thisCompiler.currentToken.what ) :
                     // Illegal keyword (proc, match, etc.)

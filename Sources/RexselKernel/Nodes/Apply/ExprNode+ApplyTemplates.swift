@@ -141,6 +141,9 @@ class ApplyTemplatesNode: ExprNode  {
                     thisCompiler.nestedLevel += 1
                     continue
                     
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Invalid constructions
+
                 case ( .expression, _, _ ) :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    insteadOf: "'using' or 'scope'",
@@ -156,6 +159,9 @@ class ApplyTemplatesNode: ExprNode  {
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     continue
+
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Process block material
 
                 case ( .terminal, _, _ ) where isInApplyTemplatesTokens( thisCompiler.currentToken.what ) && isInBlock:
 #if REXSEL_LOGGING
@@ -192,8 +198,14 @@ class ApplyTemplatesNode: ExprNode  {
                     }
                     return
 
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Early end of file
+
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                     return
+
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Invalid constructions
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,

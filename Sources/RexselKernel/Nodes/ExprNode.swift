@@ -429,5 +429,25 @@ extension ExprNode {
         return true
     }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Is this token/keyword supported in the current version.
+    ///
+    /// - Parameters:
+    ///   - token: The token to be checked (_TerminalSymbolEnum_).
+    /// - Returns: _true_ if supported, otherwise generates an error and return _false_.
+
+   func isTokenValidForThisVersion( _ token: TerminalSymbolEnum ) -> Bool {
+        let tokenValue = token.rawValue
+        let version = thisCompiler.xsltVersion
+        let versionRangeMin = rexsel_versionRange[ version ]!.min
+        let versionRangeMax = rexsel_versionRange[ version ]!.max
+        let vRange = versionRangeMin..<versionRangeMax
+        return vRange.contains( tokenValue )
+    }
+
+
+
 }
 
