@@ -187,6 +187,46 @@ enum TerminalSymbolEnum: Int {
     case language
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // Version 2.0 keywords/tokens
+    case analyzeString = 400
+    case regex
+    case flags
+    case matchingSubstring
+    case nonMatchingSubstring
+    case nextMatch
+    case performSort
+
+    case characterMap
+    case useCharacterMaps
+    case outputCharacter
+    case character
+    case characterString
+
+    case function
+    case fAs
+    case fOverride
+    
+    case importSchema
+    case location
+
+    case document
+    case resultDocument
+    case strict
+    case lax
+    case preserve
+    case strip
+
+    case forEachGroup
+    case groupBy
+    case groupAdjacent
+    case groupStartingWith
+    case groupEndingWith
+    case collation
+
+    case omit
+    case sequence
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // Not source tokens but general types
     case expression = 10000
     case string
