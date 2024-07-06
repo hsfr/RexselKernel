@@ -468,11 +468,23 @@ enum TerminalSymbolEnum: Int {
             case .textSort : return "text-sort"
             case .numberSort : return "number-sort"
 
+            // Version 1.1
+
             case .script : return "script"
             case .src : return "src"
             case .prefix : return "prefix"
             case .language : return "language"
             case .archive : return "archive"
+
+            // Version 2.0
+
+            case .analyzeString : return "analyze-string"
+            case .regex : return "regex"
+            case .flags : return "flags"
+            case .matchingSubstring : return "matching-substring"
+            case .nonMatchingSubstring : return "non-matching-substring"
+
+            // Non XSLT version
 
             case .expression : return "expression"
             case .string : return "string"
@@ -635,11 +647,21 @@ enum TerminalSymbolEnum: Int {
             case .processingInstruction : return "processing-instruction"
             case .number : return "number"
 
+            // Version 1.1
+
             case .script : return "script"
             case .src : return "src"
             case .prefix : return "implements-prefix"
             case .language : return "language"
             case .archive : return "archive"
+
+            // Version 2.0
+
+            case .analyzeString : return "analyze-string"
+            case .regex : return "regex"
+            case .flags : return "flags"
+            case .matchingSubstring : return "matching-substring"
+            case .nonMatchingSubstring : return "non-matching-substring"
 
             case .qname : return "name"
 
@@ -789,11 +811,21 @@ enum TerminalSymbolEnum: Int {
             case "processing-instruction" : return .processingInstruction
             case "number" : return .number
 
+            // Version 1.1
+
             case "script" : return .script
             case "src" : return .src
             case "prefix" : return .prefix
             case "language" : return .language
             case "archive" : return .archive
+
+            // Version 2.0
+
+            case "analyze-string" : return .analyzeString
+            case "regex" : return .regex
+            case "flags" : return .flags
+            case "matching-substring" : return .matchingSubstring
+            case "non-matching-substring" : return .nonMatchingSubstring
 
             default : return .unknownToken
         }

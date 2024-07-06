@@ -71,6 +71,12 @@ class ExprNode: NSObject {
     /// contexts are traversed (down).
     var currentVariableContextList = [SymbolTable]()
 
+    /// A list of children that are present in the BNF syntax
+    var childrenDict = [ TerminalSymbolEnum: AllowableSyntaxEntryStruct ]()
+
+    /// A list of options (attributes) that are present in the BNF syntax
+    var optionsDict = [ TerminalSymbolEnum: AllowableSyntaxEntryStruct ]()
+
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Initialisation Methods
@@ -302,6 +308,47 @@ class ExprNode: NSObject {
 
         let separator = thisSymbolListing.isNotEmpty ? "\n" : ""
         return "\(separator)\(thisSymbolListing)\(childrenSymbols)"
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check actual occurance against syntax.
+    ///
+    /// No return because only job is to report errors.
+
+    func checkOccurances( _ actual: Int,
+                          min minimum: Int, max maximum: Int,
+                          name inName: String,
+                          inKeyword: String )
+    {
+        switch ( minimum, maximum ) {
+
+            // <x> x is required
+            case ( 1, 1 ) where actual == 0 :
+                markSyntaxRequiresElement( inLine: thisCompiler.currentToken.line,
+                                           name: inName,
+                                           inElement: inKeyword )
+
+            // (x)? zero or one instance of x
+            case ( 0, 1 ) where actual >= 2 :
+                markSyntaxRequiresZeroOrOneElement( inLine: thisCompiler.currentToken.line,
+                                                    name: inName,
+                                                    inElement: inKeyword )
+
+            // (x)* zero or more instances of x
+            case ( 0, Int.max ) :
+                ()
+
+            // (x)+ one or more instances of x
+            case ( 1, Int.max ) where actual == 0 :
+                markSyntaxRequiresOneOrMoreElement( inLine: thisCompiler.currentToken.line,
+                                                    name: inName,
+                                                    inElement: inKeyword )
+
+            default :
+                ()
+        }
     }
 
 }

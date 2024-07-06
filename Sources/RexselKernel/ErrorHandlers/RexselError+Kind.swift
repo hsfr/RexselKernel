@@ -79,6 +79,13 @@ enum RexselErrorKind {
 
     case missingScriptOption( lineNumber: Int, symbol: String )
     case prefixNotDeclared( lineNumber: Int, prefix: String )
+    case syntaxRequiresElement( lineNumber: Int, name: String, inElement: String )
+    case syntaxRequiresZeroOrOneElement( lineNumber: Int, name: String, inElement: String )
+    case syntaxRequiresZeroOrMoreElement( lineNumber: Int, name: String, inElement: String )
+
+    case syntaxRequiresOneOrMoreElement( lineNumber: Int, name: String, inElement: String )
+    case syntaxCannotHaveBothElements( lineNumber: Int, names: [String], inElement: String )
+    case syntaxMustHaveAtLeastOneOfElements( lineNumber: Int, names: [String], inElement: String )
 
     case endOfFile
 
@@ -143,6 +150,13 @@ enum RexselErrorKind {
 
             case .missingScriptOption( _, _ ) : return 146
             case .prefixNotDeclared( _, _ ) : return 147
+            case .syntaxRequiresElement( _, _, _ ) : return 148
+            case .syntaxRequiresZeroOrOneElement( _, _, _ ) : return 149
+            case .syntaxRequiresZeroOrMoreElement( _, _, _ ) : return 150
+
+            case .syntaxRequiresOneOrMoreElement( _, _, _ ) : return 151
+            case .syntaxCannotHaveBothElements( _, _, _ ) : return 152
+            case .syntaxMustHaveAtLeastOneOfElements( _, _, _ ) : return 153
 
             case .endOfFile : return 1001
 
@@ -311,6 +325,32 @@ enum RexselErrorKind {
             case .prefixNotDeclared( let lineNumber, let prefix ) :
                 return "Namespace prefix \"\(prefix)\" not declared in script declaration in line \(lineNumber)"
 
+            case .syntaxRequiresElement( let lineNumber, let name, let inElement ) : 
+                return "\"\(inElement)\" requires \"\(name)\" in line \(lineNumber)"
+
+            case .syntaxRequiresZeroOrOneElement( let lineNumber, let name, let inElement ) :
+                return "\"\(inElement)\" requires at least one \"\(name)\" in line \(lineNumber)"
+
+            case .syntaxRequiresZeroOrMoreElement( let lineNumber, let name, let inElement ) :
+                return "\"\(inElement)\" requires zero or more \"\(name)\" in line \(lineNumber)"
+
+            case .syntaxRequiresOneOrMoreElement( let lineNumber, let name, let inElement ) :
+                return "\"\(inElement)\" requires one or more \"\(name)\" in line \(lineNumber)"
+
+            case .syntaxCannotHaveBothElements( let lineNumber, let names, let inElement ) :
+                var namesString = ""
+                for entry in names {
+                    namesString = "\"\(entry)\" "
+                }
+                return "Cannot have \(namesString)together in \"\(inElement)\" in line \(lineNumber)"
+
+            case .syntaxMustHaveAtLeastOneOfElements( let lineNumber, let names, let inElement ) :
+                var namesString = ""
+                for entry in names {
+                    namesString = "\"\(entry)\" "
+                }
+                return "Must have at least one of \(namesString)present in \"\(inElement)\" in line \(lineNumber)"
+
             case .endOfFile : return "Early end of file"
 
             case .unknownError( let lineNumber, _ ) : return "Unknown error in line \(lineNumber)"
@@ -428,6 +468,24 @@ enum RexselErrorKind {
 
             case .prefixNotDeclared( _, let prefix ) :
                 return "Insert namespace pair declaration for \"\(prefix)\""
+
+            case .syntaxRequiresElement( _, _, let inElement ) :
+                return "Check syntax requirements for \"\(inElement)\""
+
+            case .syntaxRequiresZeroOrOneElement( _, _, let inElement ) :
+                return "Check syntax requirements for \"\(inElement)\""
+
+            case .syntaxRequiresZeroOrMoreElement( _, _, let inElement ) :
+                return "Check syntax requirements for \"\(inElement)\""
+
+            case .syntaxRequiresOneOrMoreElement( _, _, let inElement ) :
+                return "Check syntax requirements for \"\(inElement)\""
+
+            case .syntaxCannotHaveBothElements( _, _, _ ) :
+                return "Remove one of the keywords"
+
+            case .syntaxMustHaveAtLeastOneOfElements( _, _, _ ) :
+                return "Insert one of the keywords"
 
             case .endOfFile : return "Check mismatched brackets?"
 

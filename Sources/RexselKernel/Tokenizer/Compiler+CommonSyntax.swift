@@ -11,6 +11,9 @@ import Foundation
 
 struct AllowableSyntaxEntryStruct {
 
+    /// The basic string value for this entry
+    var value: String = ""
+
     /// The child for this structure
     var child: TerminalSymbolEnum = .unknownToken
 
@@ -59,12 +62,12 @@ func isInBoolTokens( _ token: TerminalSymbolEnum ) -> Bool {
     return TerminalSymbolEnum.YesNoTokens.contains(token)
 }
 
+typealias StylesheetTokensType = Set<TerminalSymbolEnum>
+
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 extension TerminalSymbolEnum {
-
-    typealias StylesheetTokensType = Set<TerminalSymbolEnum>
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     /// At the top level a restricted set of keywords are allowed.

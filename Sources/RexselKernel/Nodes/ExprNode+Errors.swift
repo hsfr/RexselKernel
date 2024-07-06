@@ -811,5 +811,102 @@ extension ExprNode {
             .add( RexselErrorData
                 .init( kind: RexselErrorKind.prefixNotDeclared( lineNumber: inLine+1, prefix: missingPrefix ) ) )
     }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Mark element is required.
+    ///
+    /// - Parameters:
+    ///   - inLine:    The line in which the element is used.
+    ///   - name:      The name of the missing element.
+    ///   - inElement: The element it should be in.
+
+    func markSyntaxRequiresElement( inLine: Int, name: String, inElement: String ) {
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind.syntaxRequiresElement( lineNumber: inLine+1, name: name, inElement: inElement ) ) )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Mark element is required.
+    ///
+    /// - Parameters:
+    ///   - inLine:    The line in which the element is used.
+    ///   - name:      The name of the missing element.
+    ///   - inElement: The element it should be in.
+
+    func markSyntaxRequiresZeroOrOneElement( inLine: Int, name: String, inElement: String ) {
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind.syntaxRequiresZeroOrOneElement( lineNumber: inLine+1, name: name, inElement: inElement ) ) )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Mark element is required.
+    ///
+    /// - Parameters:
+    ///   - inLine:    The line in which the element is used.
+    ///   - name:      The name of the missing element.
+    ///   - inElement: The element it should be in.
+
+    func markSyntaxRequiresZeroOrMoreElement( inLine: Int, name: String, inElement: String ) {
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind.syntaxRequiresZeroOrMoreElement( lineNumber: inLine+1, name: name, inElement: inElement ) ) )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Mark element is required.
+    ///
+    /// - Parameters:
+    ///   - inLine:    The line in which the element is used.
+    ///   - name:      The name of the missing element.
+    ///   - inElement: The element it should be in.
+
+    func markSyntaxRequiresOneOrMoreElement( inLine: Int, name: String, inElement: String ) {
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind.syntaxRequiresOneOrMoreElement( lineNumber: inLine+1, name: name, inElement: inElement ) ) )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Cannot have elements within element.
+    ///
+    /// - Parameters:
+    ///   - inLine:    The line in which the element is used.
+    ///   - names:     Array of names.
+    ///   - inElement: The element they are in.
+
+    func markCannotHaveBothElements( inLine: Int, names: [String], inElement: String ) {
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind.syntaxCannotHaveBothElements( lineNumber: inLine, names: names, inElement: inElement) ) )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Must have at least one of the named elements present.
+    ///
+    /// - Parameters:
+    ///   - inLine:    The line in which the element is used.
+    ///   - names:     Array of names.
+    ///   - inElement: The element they are in.
+
+    func markMustHaveAtLeastOneOfElements( inLine: Int, names: [String], inElement: String ) {
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind.syntaxMustHaveAtLeastOneOfElements( lineNumber: inLine, names: names, inElement: inElement) ) )
+    }
+
 }
 
