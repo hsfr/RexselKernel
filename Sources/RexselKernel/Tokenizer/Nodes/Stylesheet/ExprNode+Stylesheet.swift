@@ -191,8 +191,6 @@ class StylesheetNode: ExprNode {
                         markInvalidKeywordForVersion( thisCompiler.currentToken.value,
                                                       version: thisCompiler.xsltVersion,
                                                       at: thisCompiler.currentToken.line)
-                        // Do not exit here since we need to process this invalid
-                        // keyword to ensure error recovery.
                     }
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass

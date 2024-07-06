@@ -1,64 +1,100 @@
 //
-//  ExprNode+Match.swift
-//  Rexsel
+//  ExprNode+NonMatchingSubstring.swift
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 22/01/2024.
+//  Created by Hugh Field-Richards on 06/07/2024.
 //
 
 import Foundation
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// MARK: - Syntax properties
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 //
-/// ```xml
-///   <match> ::= "match" ( "using" <XPath extra> )? ( "scope" <QName> )? ( "priority" <int> )?
-///                      ( "{" <contents> "}" )?
-/// ```
+// This is where the formal syntax is declared.
 
-extension TerminalSymbolEnum {
+extension NonMatchingSubstringNode {
 
-    static let matchTokens: Set<TerminalSymbolEnum> = blockTokens.union( parameterToken )
+    static let tokens: StylesheetTokensType = TerminalSymbolEnum.blockTokens
 
-    // Slightly brutish way to do this
-    static let matchAttributeTokens: Set<TerminalSymbolEnum> = [
-        .using, .scope, .priority
-    ]
+    static let optionTokens: StylesheetTokensType = []
 
-}
-
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-extension MatchNode {
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// Slightly crude way to do it but should suffice.
+    ///
+    /// ```xml
+    ///   <non-matching-substring> ::= <bloclTokens>+
+    /// ```
 
     func setSyntax() {
-        // Set up the allowed syntax. We only need to specify the min and max.
-        for keyword in TerminalSymbolEnum.matchTokens {
-            let entry = AllowableSyntaxEntryStruct( child: keyword, min: 0, max: Int.max )
-            allowableChildrenDict[ keyword.description ] = entry
+        for keyword in AnalyzeStringNode.optionTokens {
+            optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+        }
+        // Modify as necessary
+        optionsDict[ .regex ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
+
+        for keyword in AnalyzeStringNode.tokens {
+            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+        }
+        // Modify as necessary
+        childrenDict[ .fallback ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Helper function to detect valid block tokens.
+
+    func isInBlockTokens( _ token: TerminalSymbolEnum ) -> Bool {
+        return childrenDict.keys.contains(token)
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Helper function to detect valid option tokens.
+
+    func isInOptionTokens( _ token: TerminalSymbolEnum ) -> Bool {
+        return optionsDict.keys.contains(token)
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+    func checkSyntax()
+    {
+        for ( keyword, entry ) in optionsDict {
+            checkOccurances( entry.count,
+                             min: entry.min, max: entry.max,
+                             name: keyword.description,
+                             inKeyword: thisCompiler.currentToken.value )
+        }
+        for ( keyword, entry ) in childrenDict {
+            checkOccurances( entry.count,
+                             min: entry.min, max: entry.max,
+                             name: keyword.description,
+                             inKeyword: thisCompiler.currentToken.value )
+        }
+        if childrenDict[ .matchingSubstring ]!.count == 0 && childrenDict[ .nonMatchingSubstring ]!.count == 0 {
+            markMustHaveAtLeastOneOfElements(inLine: thisCompiler.currentToken.line,
+                                             names: [ childrenDict[ .matchingSubstring ]!.value,
+                                                      childrenDict[ .nonMatchingSubstring ]!.value ],
+                                             inElement: thisCompiler.currentToken.value )
         }
     }
-
-    func isInMatchTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return TerminalSymbolEnum.matchTokens.contains(token)
-    }
-
-    func isInMatchAttributeTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return TerminalSymbolEnum.matchAttributeTokens.contains(token)
-    }
-
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // MARK: -
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Version 2.0 and above *-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-class MatchNode: ExprNode  {
+class NonMatchingSubstringNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -66,11 +102,7 @@ class MatchNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    fileprivate var usingString: String = ""
-
-    fileprivate var scopeString: String = ""
-
-    fileprivate var priorityString: String = ""
+    fileprivate var string: String = ""
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -83,15 +115,15 @@ class MatchNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .match
-        usingString = ""
-        scopeString = ""
-        priorityString = ""
-        isInBlock = false
+        exprNodeType = .nonMatchingSubstring
+        string = ""
 
         setSyntax()
     }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Parse Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
@@ -100,7 +132,7 @@ class MatchNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-            name = "\(usingString)::\(scopeString)"
+            name = "\(exprNodeType.description)[\(thisCompiler.currentToken.line)]"
 #if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
@@ -118,10 +150,8 @@ class MatchNode: ExprNode  {
 #endif
 
         thisCompiler.tokenizedSourceIndex += 1
-  
-        var foundUsing = false
 
-      while !thisCompiler.isEndOfFile {
+        while !thisCompiler.isEndOfFile {
 
 #if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
@@ -133,23 +163,23 @@ class MatchNode: ExprNode  {
 
                 // Valid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .using :
-                    usingString = thisCompiler.nextToken.value
-                    thisCompiler.tokenizedSourceIndex += 2
-                    foundUsing = true
+                case ( .expression, .terminal, _ ) where string.isEmpty &&
+                                                         isInOptionTokens( thisCompiler.nextToken.what ) :
+                    string = thisCompiler.currentToken.value
+                    thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .scope :
-                    scopeString = thisCompiler.nextToken.value
+                case ( .terminal, .expression, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) :
+                    optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.nextToken.value
+                    if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
+                        optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line
+                    }
+                    optionsDict[ thisCompiler.currentToken.what ]?.count += 1
                     thisCompiler.tokenizedSourceIndex += 2
                     continue
 
-                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .priority :
-                    priorityString = thisCompiler.nextToken.value
-                    thisCompiler.tokenizedSourceIndex += 2
-                    continue
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket  && foundUsing :
+                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                                                       thisCompiler.nextToken.what != .closeCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     isInBlock = true
@@ -157,10 +187,16 @@ class MatchNode: ExprNode  {
 
                 // Process block -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-                case ( .terminal, _, _ ) where isInMatchTokens( thisCompiler.currentToken.what ) && isInBlock :
+                case ( .terminal, _, _ ) where isInBlockTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
+                    if !isTokenValidForThisVersion( thisCompiler.currentToken.what ) {
+                        markInvalidKeywordForVersion( thisCompiler.currentToken.value,
+                                                      version: thisCompiler.xsltVersion,
+                                                      at: thisCompiler.currentToken.line)
+                    }
+
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
                         self.nodeChildren = [ExprNode]()
@@ -169,14 +205,15 @@ class MatchNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    // let nodeName = node.exprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
-                    // The entry must exist as it was set up in the init
-                    if allowableChildrenDict[ nodeName ]!.count == 0 {
-                        allowableChildrenDict[ nodeName ]!.defined = nodeLine
+                    childrenDict[ thisCompiler.currentToken.what ]!.count += 1
+
+                    if childrenDict[ node.exprNodeType ]!.count == 0 {
+                        childrenDict[ node.exprNodeType ]!.defined = nodeLine
                     }
-                    allowableChildrenDict[ nodeName ]!.count += 1
+                    childrenDict[ node.exprNodeType ]!.count += 1
 
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
@@ -185,6 +222,8 @@ class MatchNode: ExprNode  {
                 // Exit block
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
+                    // Before exiting we must carry out checks
+                    checkSyntax()
                     isInBlock = false
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel -= 1
@@ -196,36 +235,16 @@ class MatchNode: ExprNode  {
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                     return
 
-                    // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && !foundUsing :
-                    try markExpectedKeywordError( expected: .using,
-                                                  inElement: .match,
-                                                  inLine: thisCompiler.currentToken.line,
-                                                  skip: .toNextkeyword )
-                    // Process the block anyway
-                    thisCompiler.nestedLevel += 1
-                    isInBlock = true
-                    continue
-
-                case ( .terminal, .terminal, _ ) where isInMatchAttributeTokens( thisCompiler.currentToken.what )
-                                                    && thisCompiler.nextToken.what == .openCurlyBracket:
-                    try markMissingItemError( what: .expression,
-                                              inLine: thisCompiler.currentToken.line,
-                                              after: thisCompiler.currentToken.value,
-                                              skip: .toNextkeyword )
-                    continue
-
-                case ( .terminal, .terminal, _ ) where isInMatchAttributeTokens( thisCompiler.currentToken.what )
-                                                    && isInMatchAttributeTokens( thisCompiler.nextToken.what ):
-                    try markMissingItemError( what: .expression,
-                                              inLine: thisCompiler.currentToken.line,
-                                              after: thisCompiler.currentToken.value,
-                                              skip: .toNextkeyword )
-                    continue
+                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
+                    try makeCannotHaveEmptyBlockError( inLine: thisCompiler.currentToken.line,
+                                                       skip: .toNextkeyword )
+                    return
 
                 default :
-                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value, 
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    inElement: exprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
@@ -236,8 +255,9 @@ class MatchNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Check duplicates.
+    // MARK: - Semantic Checking and Symbol Table Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     ///
     /// Only variable names are checked here. The variables
     /// list (_VariablesDict_) has already been formed, but no
@@ -245,7 +265,7 @@ class MatchNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "match:\(usingString)::\(scopeString)"
+        variablesDict.title = "\(exprNodeType.description)[\(thisCompiler.currentToken.line)]"
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.matchTokens )
@@ -284,7 +304,8 @@ class MatchNode: ExprNode  {
                         } catch {
                             thisCompiler.rexselErrorList.add(
                                 RexselErrorData.init( kind: RexselErrorKind
-                                    .unknownError(lineNumber: child.sourceLine+1, message: "Unknown error with adding \"\(child.name)\" to symbol table") ) )
+                                    .unknownError( lineNumber: child.sourceLine+1,
+                                                   message: "Unknown error with adding \"\(child.name)\" to symbol table") ) )
                         }
 
                     default :
@@ -306,12 +327,10 @@ class MatchNode: ExprNode  {
     /// At this stage the check for duplicates will have been run
     /// so the tables, _variableDict_ should be populated for this node.
     ///
-    /// This table (the root node) will be used throughout the
-    /// stylesheet for checking within each local scope.
+    /// - Parameters:
+    ///   - compiler: the current compiler for this stylesheet.
 
     override func checkVariableScope( _ compiler: RexselKernel ) {
-        scanVariablesInNodeValue( usingString, inLine: sourceLine )
-
         if let nodes = nodeChildren {
             scanForVariablesInBlock( compiler, nodes )
         }
@@ -321,6 +340,8 @@ class MatchNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Generate a list of symbols for this node.
+    ///
+    /// - Returns: Symbol table for this node as string.
 
     override func symbolListing() -> String {
         var childrenSymbols = ""
@@ -336,27 +357,21 @@ class MatchNode: ExprNode  {
         return "\(separator)\(thisSymbolListing)\(childrenSymbols)"
     }
 
-   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Generation Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Generate stylesheet tag.
+    /// Generate tag.
+    ///
+    /// - Returns: XSLT equivalent of node.
 
     override func generate() -> String {
 
         let lineComment = super.generate()
 
         var contents = ""
-        var attributes = ""
-
-        if usingString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.using.xml)=\"\(usingString)\""
-        }
-        if scopeString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.scope.xml)=\"\(scopeString)\""
-        }
-        if priorityString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.priority.xml)=\"\(priorityString)\""
-        }
 
         if let children = nodeChildren {
             for child in children {
@@ -366,9 +381,9 @@ class MatchNode: ExprNode  {
 
         let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
         if contents.isEmpty {
-            return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
+            return "\(lineComment)<\(thisElementName)/>\n"
         } else {
-            return "\(lineComment)<\(thisElementName) \(attributes)>\n\(contents)\n</\(thisElementName)>"
+            return "\(lineComment)<\(thisElementName)>\n\(contents)\n</\(thisElementName)>"
         }
     }
 }

@@ -93,7 +93,7 @@ extension TerminalSymbolEnum {
         .foreach, .ifCondition, .message,
         .processingInstruction, .number,
         .valueOf, .text, .comment,
-        .attributeSet, .fallback
+        .attributeSet, .fallback, .analyzeString
     ]
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

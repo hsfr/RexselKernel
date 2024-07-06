@@ -91,12 +91,17 @@ class ExprNode: NSObject {
         notSupported = []
         isRootNode = false
         thisCompiler = RexselKernel()
+
+        isInBlock = false
         name = ""
 
         xmlnsDict = XmlnsSymbolTableType()
         variablesDict = SymbolTable( thisCompiler )
         procDict = SymbolTable( thisCompiler )
         allowableChildrenDict = AllowableSyntaxDictType()
+
+        childrenDict = [:]
+        optionsDict = [:]
 
         super.init()
     }

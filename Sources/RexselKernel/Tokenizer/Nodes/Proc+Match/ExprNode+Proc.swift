@@ -126,6 +126,12 @@ class ProcNode: ExprNode  {
 #if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value) in line \(thisCompiler.currentToken.line+1)" )
 #endif
+                    if !isTokenValidForThisVersion( thisCompiler.currentToken.what ) {
+                        markInvalidKeywordForVersion( thisCompiler.currentToken.value,
+                                                      version: thisCompiler.xsltVersion,
+                                                      at: thisCompiler.currentToken.line)
+                    }
+
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
                         self.nodeChildren = [ExprNode]()

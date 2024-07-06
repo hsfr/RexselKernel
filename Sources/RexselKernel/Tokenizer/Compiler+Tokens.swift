@@ -329,6 +329,11 @@ enum TerminalSymbolEnum: Int {
 
             case .script : return ScriptNode()
 
+            case .analyzeString : return AnalyzeStringNode()
+            case .matchingSubstring : return MatchingSubstringNode()
+            case .nonMatchingSubstring : return NonMatchingSubstringNode()
+
+
             default:
                 // Anything else returns nil
                 return nil

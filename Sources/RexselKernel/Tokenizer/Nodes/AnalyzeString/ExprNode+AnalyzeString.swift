@@ -129,14 +129,13 @@ class AnalyzeStringNode: ExprNode  {
     {
         super.init()
         exprNodeType = .analyzeString
-        isInBlock = false
-        childrenDict = [:]
-        optionsDict = [:]
         string = ""
-
         setSyntax()
     }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Parse Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
@@ -204,6 +203,12 @@ class AnalyzeStringNode: ExprNode  {
 #if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
+                    if !isTokenValidForThisVersion( thisCompiler.currentToken.what ) {
+                        markInvalidKeywordForVersion( thisCompiler.currentToken.value,
+                                                      version: thisCompiler.xsltVersion,
+                                                      at: thisCompiler.currentToken.line)
+                    }
+
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
                         self.nodeChildren = [ExprNode]()
@@ -215,12 +220,12 @@ class AnalyzeStringNode: ExprNode  {
                     // let nodeName = node.exprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
-                    childrenDict[ thisCompiler.currentToken.what ]!.count += 1
+                    // childrenDict[ thisCompiler.currentToken.what ]!.count += 1
 
-                    if childrenDict[ node.exprNodeType ]!.count == 0 {
-                        childrenDict[ node.exprNodeType ]!.defined = nodeLine
+                    if childrenDict[ thisCompiler.currentToken.what ]!.count == 0 {
+                        childrenDict[ thisCompiler.currentToken.what ]!.defined = nodeLine
                     }
-                    childrenDict[ node.exprNodeType ]!.count += 1
+                    childrenDict[ thisCompiler.currentToken.what ]!.count += 1
 
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
@@ -262,8 +267,9 @@ class AnalyzeStringNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Check duplicates.
+    // MARK: - Semantic Checking and Symbol Table Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     ///
     /// Only variable names are checked here. The variables
     /// list (_VariablesDict_) has already been formed, but no
@@ -310,7 +316,8 @@ class AnalyzeStringNode: ExprNode  {
                         } catch {
                             thisCompiler.rexselErrorList.add(
                                 RexselErrorData.init( kind: RexselErrorKind
-                                    .unknownError(lineNumber: child.sourceLine+1, message: "Unknown error with adding \"\(child.name)\" to symbol table") ) )
+                                    .unknownError( lineNumber: child.sourceLine+1,
+                                                   message: "Unknown error with adding \"\(child.name)\" to symbol table") ) )
                         }
 
                     default :
@@ -332,8 +339,8 @@ class AnalyzeStringNode: ExprNode  {
     /// At this stage the check for duplicates will have been run
     /// so the tables, _variableDict_ should be populated for this node.
     ///
-    /// This table (the root node) will be used throughout the
-    /// stylesheet for checking within each local scope.
+    /// - Parameters:
+    ///   - compiler: the current compiler for this stylesheet.
 
     override func checkVariableScope( _ compiler: RexselKernel ) {
         if let nodes = nodeChildren {
@@ -345,6 +352,8 @@ class AnalyzeStringNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Generate a list of symbols for this node.
+    ///
+    /// - Returns: Symbol table for this node as string.
 
     override func symbolListing() -> String {
         var childrenSymbols = ""
@@ -360,10 +369,15 @@ class AnalyzeStringNode: ExprNode  {
         return "\(separator)\(thisSymbolListing)\(childrenSymbols)"
     }
 
-   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Generation Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Generate stylesheet tag.
+    /// Generate tag.
+    ///
+    /// - Returns: XSLT equivalent of node.
 
     override func generate() -> String {
 
