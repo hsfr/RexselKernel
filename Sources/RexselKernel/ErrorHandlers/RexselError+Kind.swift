@@ -329,7 +329,7 @@ enum RexselErrorKind {
                 return "\"\(inElement)\" requires \"\(name)\" in line \(lineNumber)"
 
             case .syntaxRequiresZeroOrOneElement( let lineNumber, let name, let inElement ) :
-                return "\"\(inElement)\" requires at least one \"\(name)\" in line \(lineNumber)"
+                return "\"\(inElement)\" requires zero or one \"\(name)\" in line \(lineNumber)"
 
             case .syntaxRequiresZeroOrMoreElement( let lineNumber, let name, let inElement ) :
                 return "\"\(inElement)\" requires zero or more \"\(name)\" in line \(lineNumber)"
@@ -340,14 +340,14 @@ enum RexselErrorKind {
             case .syntaxCannotHaveBothElements( let lineNumber, let names, let inElement ) :
                 var namesString = ""
                 for entry in names {
-                    namesString = "\"\(entry)\" "
+                    namesString += "\"\(entry)\" "
                 }
                 return "Cannot have \(namesString)together in \"\(inElement)\" in line \(lineNumber)"
 
             case .syntaxMustHaveAtLeastOneOfElements( let lineNumber, let names, let inElement ) :
                 var namesString = ""
                 for entry in names {
-                    namesString = "\"\(entry)\" "
+                    namesString += "\"\(entry)\" "
                 }
                 return "Must have at least one of \(namesString)present in \"\(inElement)\" in line \(lineNumber)"
 

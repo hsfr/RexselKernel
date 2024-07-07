@@ -209,6 +209,8 @@ public class RexselKernel {
     /// Where the compiled XSLT will be placed
     public var compiledXSL: String = ""
 
+    let rexselLogger = RexselLogger()
+
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Initialisation
@@ -238,11 +240,11 @@ public class RexselKernel {
                                                   errorListing: String,
                                                   symbolTable: String )
     {
-#if REXSEL_LOGGING
+//#if REXSEL_LOGGING
         if debugOn {
             rLogger.loggingRequired = .debug
         }
-#endif
+//#endif
 
         showUndefinedErrors = showUndefined
         showLineNumbers = lineNumbers

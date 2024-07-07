@@ -1,8 +1,8 @@
 //
-//  ExprNode+Match.swift
+//  ExprNode+Proc.swift
 //  Rexsel
 //
-//  Created by Hugh Field-Richards on 22/01/2024.
+//  Created by Hugh Field-Richards on 19/01/2024.
 //
 
 import Foundation
@@ -14,40 +14,32 @@ import Foundation
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 //
 /// ```xml
-///   <match> ::= "match" ( "using" <XPath extra> )? ( "scope" <QName> )? ( "priority" <int> )?
-///                      ( "{" <contents> "}" )?
+///   <proc> ::= "proc" <proc name> "{
+///                      ( <block templates> )?
+///                  "}"
 /// ```
 
 extension TerminalSymbolEnum {
 
-    static let matchTokens: Set<TerminalSymbolEnum> = blockTokens.union( parameterToken )
-
-    // Slightly brutish way to do this
-    static let matchAttributeTokens: Set<TerminalSymbolEnum> = [
-        .using, .scope, .priority
-    ]
+    static let procTokens: Set<TerminalSymbolEnum> = blockTokens.union( parameterToken )
 
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-extension MatchNode {
+extension ProcNode {
 
     func setSyntax() {
         // Set up the allowed syntax. We only need to specify the min and max.
-        for keyword in TerminalSymbolEnum.matchTokens {
+        for keyword in TerminalSymbolEnum.procTokens {
             let entry = AllowableSyntaxEntryStruct( child: keyword, min: 0, max: Int.max )
             allowableChildrenDict[ keyword.description ] = entry
         }
     }
 
-    func isInMatchTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return TerminalSymbolEnum.matchTokens.contains(token)
-    }
-
-    func isInMatchAttributeTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return TerminalSymbolEnum.matchAttributeTokens.contains(token)
+    func isInProcTokens( _ token: TerminalSymbolEnum ) -> Bool {
+        return TerminalSymbolEnum.procTokens.contains(token)
     }
 
 }
@@ -58,19 +50,7 @@ extension MatchNode {
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-class MatchNode: ExprNode  {
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // MARK: - Instance properties
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-    fileprivate var usingString: String = ""
-
-    fileprivate var scopeString: String = ""
-
-    fileprivate var priorityString: String = ""
+class ProcNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -83,10 +63,8 @@ class MatchNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .match
-        usingString = ""
-        scopeString = ""
-        priorityString = ""
+        exprNodeType = .proc
+        name = ""
         isInBlock = false
 
         setSyntax()
@@ -95,12 +73,12 @@ class MatchNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse match statement.
+    /// Parse variable statement.
+    ///
 
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
-
+        
         defer {
-            name = "\(usingString)::\(scopeString)"
 #if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
@@ -117,11 +95,10 @@ class MatchNode: ExprNode  {
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
 #endif
 
+        thisCompiler.procNameTable = [:]
         thisCompiler.tokenizedSourceIndex += 1
-  
-        var foundUsing = false
 
-      while !thisCompiler.isEndOfFile {
+         while !thisCompiler.isEndOfFile {
 
 #if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
@@ -133,39 +110,23 @@ class MatchNode: ExprNode  {
 
                 // Valid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .using :
-                    usingString = thisCompiler.nextToken.value
-                    thisCompiler.tokenizedSourceIndex += 2
-                    foundUsing = true
-                    continue
-
-                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .scope :
-                    scopeString = thisCompiler.nextToken.value
-                    thisCompiler.tokenizedSourceIndex += 2
-                    continue
-
-                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .priority :
-                    priorityString = thisCompiler.nextToken.value
-                    thisCompiler.tokenizedSourceIndex += 2
-                    continue
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket  && foundUsing :
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket  && name.isNotEmpty :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     isInBlock = true
                     continue
 
-                // Process block -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                case ( .qname, .terminal, _ ) where thisCompiler.nextToken.what == .openCurlyBracket :
+                    name = thisCompiler.currentToken.value
+                    thisCompiler.procNameTable[name] = thisCompiler.currentSourceLineNumber
+                    thisCompiler.tokenizedSourceIndex += 1
+                    continue
 
-                case ( .terminal, _, _ ) where isInMatchTokens( thisCompiler.currentToken.what ) && isInBlock :
+                case ( .terminal, _, _ ) where isInProcTokens( thisCompiler.currentToken.what ) && isInBlock:
 #if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value) in line \(thisCompiler.currentToken.line+1)" )
 #endif
-                    if !isTokenValidForThisVersion( thisCompiler.currentToken.what ) {
-                        markInvalidKeywordForVersion( thisCompiler.currentToken.value,
-                                                      version: thisCompiler.xsltVersion,
-                                                      at: thisCompiler.currentToken.line)
-                    }
+                    markIfInvalidKeywordForThisVersion( thisCompiler )
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -178,8 +139,8 @@ class MatchNode: ExprNode  {
                     let nodeName = node.exprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
-                    // The entry must exist as it was set up in the init
-                    if allowableChildrenDict[ nodeName ]!.count == 0 {
+                    // The entry must exist as it was set up in the init using isInOutputTokens
+                     if allowableChildrenDict[ nodeName ]!.count == 0 {
                         allowableChildrenDict[ nodeName ]!.defined = nodeLine
                     }
                     allowableChildrenDict[ nodeName ]!.count += 1
@@ -187,53 +148,63 @@ class MatchNode: ExprNode  {
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
 
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Exit block
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock:
                     isInBlock = false
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel -= 1
                     return
 
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Early end of file
-
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                     return
 
-                    // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && !foundUsing :
-                    try markExpectedKeywordError( expected: .using,
-                                                  inElement: .match,
-                                                  inLine: thisCompiler.currentToken.line,
-                                                  skip: .toNextkeyword )
-                    // Process the block anyway
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && name.isEmpty :
+                    // Missing proc name
+                    try markMissingItemError( what: .name,
+                                              inLine: thisCompiler.currentToken.line,
+                                              after: exprNodeType.description )
+                    thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
+                    // Assume that we have found name so set up to parse block
                     isInBlock = true
                     continue
 
-                case ( .terminal, .terminal, _ ) where isInMatchAttributeTokens( thisCompiler.currentToken.what )
-                                                    && thisCompiler.nextToken.what == .openCurlyBracket:
-                    try markMissingItemError( what: .expression,
-                                              inLine: thisCompiler.currentToken.line,
-                                              after: thisCompiler.currentToken.value,
-                                              skip: .toNextkeyword )
-                    continue
-
-                case ( .terminal, .terminal, _ ) where isInMatchAttributeTokens( thisCompiler.currentToken.what )
-                                                    && isInMatchAttributeTokens( thisCompiler.nextToken.what ):
-                    try markMissingItemError( what: .expression,
-                                              inLine: thisCompiler.currentToken.line,
-                                              after: thisCompiler.currentToken.value,
-                                              skip: .toNextkeyword )
-                    continue
-
-                default :
-                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value, 
+                case ( .terminal, _, _ ) where !isInProcTokens( thisCompiler.currentToken.what ) :
+                    // Illegal keyword (proc, match, etc.)
+                    // Reset nesting counter if leaving from within a block.
+                    if isInBlock {
+                        thisCompiler.nestedLevel += 1
+                    }
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    inElement: exprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
+                    // Exit to continue processing at a higher level
+                    return
+                    
+                case ( .expression, _, _ ) where name.isEmpty :
+                    // Spurious expression found istead of name
+                    try markExpectedNameError( after: exprNodeType.description,
+                                               inLine: thisCompiler.currentToken.line,
+                                               skip: .toNextkeyword)
+                    // Exit to continue processing at a higher level
+                    return
+                    
+
+                case ( .qname, _, _ ) :
+                    // Found unexpected QName symbol not covered by the above
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   inElement: exprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextkeyword )
+                    return
+
+                default :
+                    // Tidying up with nothing found above.
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   inElement: exprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextkeyword )
                     return
 
             }
@@ -244,17 +215,13 @@ class MatchNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Check duplicates.
-    ///
-    /// Only variable names are checked here. The variables
-    /// list (_VariablesDict_) has already been formed, but no
-    /// where used yet.
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "match:\(usingString)::\(scopeString)"
+        variablesDict.title = "proc:\(name)"
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.matchTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.procTokens )
 
         // Check for parameter having to be first
         if let nodes = nodeChildren {
@@ -307,17 +274,12 @@ class MatchNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Check variable scoping.
+    /// Check variable scoping in value.
     ///
     /// At this stage the check for duplicates will have been run
     /// so the tables, _variableDict_ should be populated for this node.
-    ///
-    /// This table (the root node) will be used throughout the
-    /// stylesheet for checking within each local scope.
 
     override func checkVariableScope( _ compiler: RexselKernel ) {
-        scanVariablesInNodeValue( usingString, inLine: sourceLine )
-
         if let nodes = nodeChildren {
             scanForVariablesInBlock( compiler, nodes )
         }
@@ -342,7 +304,7 @@ class MatchNode: ExprNode  {
         return "\(separator)\(thisSymbolListing)\(childrenSymbols)"
     }
 
-   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Generate stylesheet tag.
@@ -351,19 +313,12 @@ class MatchNode: ExprNode  {
 
         let lineComment = super.generate()
 
-        var contents = ""
         var attributes = ""
-
-        if usingString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.using.xml)=\"\(usingString)\""
-        }
-        if scopeString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.scope.xml)=\"\(scopeString)\""
-        }
-        if priorityString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.priority.xml)=\"\(priorityString)\""
+        if name.isNotEmpty {
+            attributes += "\(TerminalSymbolEnum.name.xml)=\"\(name)\""
         }
 
+        var contents = ""
         if let children = nodeChildren {
             for child in children {
                 contents += " \(child.generate())\n"
@@ -377,4 +332,5 @@ class MatchNode: ExprNode  {
             return "\(lineComment)<\(thisElementName) \(attributes)>\n\(contents)\n</\(thisElementName)>"
         }
     }
+
 }

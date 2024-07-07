@@ -325,21 +325,21 @@ class ExprNode: NSObject {
     func checkOccurances( _ actual: Int,
                           min minimum: Int, max maximum: Int,
                           name inName: String,
-                          inKeyword: String )
+                          inKeyword: ExprNode )
     {
-        switch ( minimum, maximum ) {
+         switch ( minimum, maximum ) {
 
             // <x> x is required
             case ( 1, 1 ) where actual == 0 :
-                markSyntaxRequiresElement( inLine: thisCompiler.currentToken.line,
+                markSyntaxRequiresElement( inLine: inKeyword.sourceLine,
                                            name: inName,
-                                           inElement: inKeyword )
+                                           inElement: inKeyword.exprNodeType.description )
 
             // (x)? zero or one instance of x
             case ( 0, 1 ) where actual >= 2 :
-                markSyntaxRequiresZeroOrOneElement( inLine: thisCompiler.currentToken.line,
+                markSyntaxRequiresZeroOrOneElement( inLine: inKeyword.sourceLine,
                                                     name: inName,
-                                                    inElement: inKeyword )
+                                                    inElement: inKeyword.exprNodeType.description )
 
             // (x)* zero or more instances of x
             case ( 0, Int.max ) :
@@ -347,9 +347,9 @@ class ExprNode: NSObject {
 
             // (x)+ one or more instances of x
             case ( 1, Int.max ) where actual == 0 :
-                markSyntaxRequiresOneOrMoreElement( inLine: thisCompiler.currentToken.line,
+                markSyntaxRequiresOneOrMoreElement( inLine: inKeyword.sourceLine,
                                                     name: inName,
-                                                    inElement: inKeyword )
+                                                    inElement: inKeyword.exprNodeType.description )
 
             default :
                 ()
@@ -484,22 +484,23 @@ extension ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Is this token/keyword supported in the current version.
+    /// Mark error if current keyword not supported.
     ///
     /// - Parameters:
-    ///   - token: The token to be checked (_TerminalSymbolEnum_).
-    /// - Returns: _true_ if supported, otherwise generates an error and return _false_.
+    ///   - compiler: the compiler instance being used.
 
-   func isTokenValidForThisVersion( _ token: TerminalSymbolEnum ) -> Bool {
-        let tokenValue = token.rawValue
+    func markIfInvalidKeywordForThisVersion( _ thisCompiler: RexselKernel ) {
+        let tokenValue = thisCompiler.currentToken.what.rawValue
         let version = thisCompiler.xsltVersion
         let versionRangeMin = rexsel_versionRange[ version ]!.min
         let versionRangeMax = rexsel_versionRange[ version ]!.max
         let vRange = versionRangeMin..<versionRangeMax
-        return vRange.contains( tokenValue )
+        guard vRange.contains( tokenValue ) else {
+            markInvalidKeywordForVersion( thisCompiler.currentToken.value,
+                                          version: thisCompiler.xsltVersion,
+                                          at: thisCompiler.currentToken.line)
+            return
+        }
     }
-
-
-
 }
 

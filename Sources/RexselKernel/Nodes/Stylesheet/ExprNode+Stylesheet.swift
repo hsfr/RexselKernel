@@ -187,11 +187,7 @@ class StylesheetNode: ExprNode {
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
 
-                    if !isTokenValidForThisVersion( thisCompiler.currentToken.what ) {
-                        markInvalidKeywordForVersion( thisCompiler.currentToken.value,
-                                                      version: thisCompiler.xsltVersion,
-                                                      at: thisCompiler.currentToken.line)
-                    }
+                    markIfInvalidKeywordForThisVersion( thisCompiler )
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {

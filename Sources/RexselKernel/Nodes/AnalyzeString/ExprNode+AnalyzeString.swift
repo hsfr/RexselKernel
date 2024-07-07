@@ -83,19 +83,19 @@ extension AnalyzeStringNode {
             checkOccurances( entry.count,
                              min: entry.min, max: entry.max,
                              name: keyword.description,
-                             inKeyword: thisCompiler.currentToken.value )
+                             inKeyword: self )
         }
         for ( keyword, entry ) in childrenDict {
             checkOccurances( entry.count,
                              min: entry.min, max: entry.max,
                              name: keyword.description,
-                             inKeyword: thisCompiler.currentToken.value )
+                             inKeyword: self )
         }
         if childrenDict[ .matchingSubstring ]!.count == 0 && childrenDict[ .nonMatchingSubstring ]!.count == 0 {
-            markMustHaveAtLeastOneOfElements(inLine: thisCompiler.currentToken.line,
-                                             names: [ childrenDict[ .matchingSubstring ]!.value,
-                                                      childrenDict[ .nonMatchingSubstring ]!.value ],
-                                             inElement: thisCompiler.currentToken.value )
+            markMustHaveAtLeastOneOfElements( inLine: sourceLine,
+                                              names: [ TerminalSymbolEnum.matchingSubstring.description,
+                                                       TerminalSymbolEnum.nonMatchingSubstring.description ],
+                                              inElement: exprNodeType.description )
         }
     }
 }
@@ -203,11 +203,8 @@ class AnalyzeStringNode: ExprNode  {
 #if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
-                    if !isTokenValidForThisVersion( thisCompiler.currentToken.what ) {
-                        markInvalidKeywordForVersion( thisCompiler.currentToken.value,
-                                                      version: thisCompiler.xsltVersion,
-                                                      at: thisCompiler.currentToken.line)
-                    }
+
+                    markIfInvalidKeywordForThisVersion( thisCompiler )
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -384,6 +381,16 @@ class AnalyzeStringNode: ExprNode  {
         let lineComment = super.generate()
 
         var contents = ""
+        var attributes = ""
+
+        if string.isNotEmpty {
+            attributes += " \(TerminalSymbolEnum.select.xml)=\"\(string)\""
+        }
+        for ( key, entry ) in optionsDict {
+            if entry.value.isNotEmpty {
+                attributes += " \(key.xml)=\"\(entry.value)\""
+            }
+        }
 
         if let children = nodeChildren {
             for child in children {
@@ -393,9 +400,9 @@ class AnalyzeStringNode: ExprNode  {
 
         let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
         if contents.isEmpty {
-            return "\(lineComment)<\(thisElementName)/>\n"
+            return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {
-            return "\(lineComment)<\(thisElementName)>\n\(contents)\n</\(thisElementName)>"
+            return "\(lineComment)<\(thisElementName) \(attributes)>\n\(contents)\n</\(thisElementName)>"
         }
     }
 }

@@ -8,17 +8,21 @@
 
 import Foundation
 
+//#if REXSEL_LOGGING
+    var rLogger = RexselLogger()
+//#endif
+
 class RexselLogger: NSObject {
 
     public enum RexselLoggerLevelEnum {
         case trace, debug, info, warn, error, fatal, off
     }
 
-#if REXSEL_LOGGING
+//#if REXSEL_LOGGING
     fileprivate var loggerList = [String:NSObject]()
-#endif
+//#endif
 
-    var loggingRequired: RexselLoggerLevelEnum = .off
+    var loggingRequired: RexselLoggerLevelEnum = .debug
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -29,9 +33,9 @@ class RexselLogger: NSObject {
     override init() {
         super.init()
 
-#if REXSEL_LOGGING
+//#if REXSEL_LOGGING
        loggerList = [:]
-#endif
+//#endif
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

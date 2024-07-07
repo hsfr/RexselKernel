@@ -26,21 +26,17 @@ extension MatchingSubstringNode {
     /// Slightly crude way to do it but should suffice.
     ///
     /// ```xml
-    ///   <matching-substring> ::= <bloclTokens>+
+    ///   <matching-substring> ::= <blockTokens>+
     /// ```
 
     func setSyntax() {
-        for keyword in AnalyzeStringNode.optionTokens {
+        for keyword in MatchingSubstringNode.optionTokens {
             optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
         }
-        // Modify as necessary
-        optionsDict[ .regex ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
 
-        for keyword in AnalyzeStringNode.tokens {
-            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+        for keyword in MatchingSubstringNode.tokens {
+            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
         }
-        // Modify as necessary
-        childrenDict[ .fallback ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -70,19 +66,13 @@ extension MatchingSubstringNode {
             checkOccurances( entry.count,
                              min: entry.min, max: entry.max,
                              name: keyword.description,
-                             inKeyword: thisCompiler.currentToken.value )
+                             inKeyword: self )
         }
         for ( keyword, entry ) in childrenDict {
             checkOccurances( entry.count,
                              min: entry.min, max: entry.max,
                              name: keyword.description,
-                             inKeyword: thisCompiler.currentToken.value )
-        }
-        if childrenDict[ .matchingSubstring ]!.count == 0 && childrenDict[ .nonMatchingSubstring ]!.count == 0 {
-            markMustHaveAtLeastOneOfElements(inLine: thisCompiler.currentToken.line,
-                                             names: [ childrenDict[ .matchingSubstring ]!.value,
-                                                      childrenDict[ .nonMatchingSubstring ]!.value ],
-                                             inElement: thisCompiler.currentToken.value )
+                             inKeyword: self )
         }
     }
 }
@@ -153,30 +143,15 @@ class MatchingSubstringNode: ExprNode  {
 
         while !thisCompiler.isEndOfFile {
 
-#if REXSEL_LOGGING
+//#if DEBUG
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+//#endif
 
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
                 // Valid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-                case ( .expression, .terminal, _ ) where string.isEmpty &&
-                                                         isInOptionTokens( thisCompiler.nextToken.what ) :
-                    string = thisCompiler.currentToken.value
-                    thisCompiler.tokenizedSourceIndex += 1
-                    continue
-
-                case ( .terminal, .expression, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) :
-                    optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.nextToken.value
-                    if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
-                        optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line
-                    }
-                    optionsDict[ thisCompiler.currentToken.what ]?.count += 1
-                    thisCompiler.tokenizedSourceIndex += 2
-                    continue
 
                 case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
                                                        thisCompiler.nextToken.what != .closeCurlyBracket :
@@ -191,11 +166,7 @@ class MatchingSubstringNode: ExprNode  {
 #if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
-                    if !isTokenValidForThisVersion( thisCompiler.currentToken.what ) {
-                        markInvalidKeywordForVersion( thisCompiler.currentToken.value,
-                                                      version: thisCompiler.xsltVersion,
-                                                      at: thisCompiler.currentToken.line)
-                    }
+                    markIfInvalidKeywordForThisVersion( thisCompiler )
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
