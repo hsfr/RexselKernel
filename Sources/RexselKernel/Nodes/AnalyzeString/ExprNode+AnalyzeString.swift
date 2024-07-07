@@ -58,24 +58,6 @@ extension AnalyzeStringNode {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Helper function to detect valid block tokens.
-
-    func isInBlockTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return childrenDict.keys.contains(token)
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Helper function to detect valid option tokens.
-
-    func isInOptionTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return optionsDict.keys.contains(token)
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     func checkSyntax() 
     {

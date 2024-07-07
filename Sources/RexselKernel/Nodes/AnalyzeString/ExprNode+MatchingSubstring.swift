@@ -23,10 +23,8 @@ extension MatchingSubstringNode {
     //
     /// Set up the syntax based on the BNF.
     ///
-    /// Slightly crude way to do it but should suffice.
-    ///
     /// ```xml
-    ///   <matching-substring> ::= <blockTokens>+
+    ///   <matching-substring> ::= "matching-substring" "{" <block templates>+ "}"
     /// ```
 
     func setSyntax() {
@@ -37,24 +35,6 @@ extension MatchingSubstringNode {
         for keyword in MatchingSubstringNode.tokens {
             childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
         }
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Helper function to detect valid block tokens.
-
-    func isInBlockTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return childrenDict.keys.contains(token)
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Helper function to detect valid option tokens.
-
-    func isInOptionTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return optionsDict.keys.contains(token)
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

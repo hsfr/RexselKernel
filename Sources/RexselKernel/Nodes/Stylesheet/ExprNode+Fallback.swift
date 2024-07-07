@@ -9,35 +9,49 @@ import Foundation
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// MARK: - Syntax properties
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-//
-/// ```xml
-///   <fallback> ::= "fallback" "{" <contents> "}"
-/// ```
-
-extension TerminalSymbolEnum {
-
-    static let fallbackTokens: StylesheetTokensType = blockTokens.subtracting(fallbackToken)
-
-}
-
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 extension FallbackNode {
 
-    func setSyntax() {
-        // Set up the allowed syntax. We only need to specify the min and max.
-        for keyword in TerminalSymbolEnum.matchTokens {
-            let entry = AllowableSyntaxEntryStruct( child: keyword, min: 0, max: Int.max )
-            allowableChildrenDict[ keyword.description ] = entry
-        }
+    static let tokens: StylesheetTokensType = TerminalSymbolEnum.blockTokens
+
+    static let optionTokens: StylesheetTokensType = []
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///   <fallback> ::= "fallback" "{" <block templates>+ "}"
+    /// ```
+
+   func setSyntax() {
+       for keyword in FallbackNode.optionTokens {
+           optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+       }
+
+       for keyword in FallbackNode.tokens {
+           childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
+       }
     }
 
-    func isInFallbackTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return TerminalSymbolEnum.fallbackTokens.contains(token)
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+    func checkSyntax()
+    {
+        for ( keyword, entry ) in optionsDict {
+            checkOccurances( entry.count,
+                             min: entry.min, max: entry.max,
+                             name: keyword.description,
+                             inKeyword: self )
+        }
+        for ( keyword, entry ) in childrenDict {
+            checkOccurances( entry.count,
+                             min: entry.min, max: entry.max,
+                             name: keyword.description,
+                             inKeyword: self )
+        }
     }
 
 }
@@ -115,10 +129,12 @@ class FallbackNode: ExprNode  {
 
                 // Process block -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-                case ( .terminal, _, _ ) where isInFallbackTokens( thisCompiler.currentToken.what ) && isInBlock :
+                case ( .terminal, _, _ ) where isInBlockTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
+                    markIfInvalidKeywordForThisVersion( thisCompiler )
+
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
                         self.nodeChildren = [ExprNode]()
@@ -127,14 +143,15 @@ class FallbackNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    // let nodeName = node.exprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
-                    // The entry must exist as it was set up in the init
-                    if allowableChildrenDict[ nodeName ]!.count == 0 {
-                        allowableChildrenDict[ nodeName ]!.defined = nodeLine
+                    childrenDict[ thisCompiler.currentToken.what ]!.count += 1
+
+                    if childrenDict[ node.exprNodeType ]!.count == 0 {
+                        childrenDict[ node.exprNodeType ]!.defined = nodeLine
                     }
-                    allowableChildrenDict[ nodeName ]!.count += 1
+                    childrenDict[ node.exprNodeType ]!.count += 1
 
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
@@ -162,13 +179,13 @@ class FallbackNode: ExprNode  {
                                                        skip: .toNextkeyword )
                     return
 
-                case ( .terminal, _, _ ) where isInFallbackTokens( thisCompiler.currentToken.what ) :
-                    try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                                   insteadOf: TerminalSymbolEnum.openCurlyBracket.description,
-                                                   inElement: exprNodeType,
-                                                   inLine: thisCompiler.currentToken.line,
-                                                   skip: .ignore)
-                    return
+//                case ( .terminal, _, _ ) where isInBlockTokens( thisCompiler.currentToken.what ) :
+//                    try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
+//                                                   insteadOf: TerminalSymbolEnum.openCurlyBracket.description,
+//                                                   inElement: exprNodeType,
+//                                                   inLine: thisCompiler.currentToken.line,
+//                                                   skip: .ignore)
+//                    return
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,

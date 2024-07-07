@@ -44,7 +44,7 @@ extension ApplyTemplatesNode {
         return TerminalSymbolEnum.applyTemplateTokens.contains(token)
     }
 
-    func isInBlockTokens( _ token: TerminalSymbolEnum ) -> Bool {
+    func isInBlockTokens1( _ token: TerminalSymbolEnum ) -> Bool {
         return TerminalSymbolEnum.blockTokens.contains(token)
     }
 
@@ -187,7 +187,7 @@ class ApplyTemplatesNode: ExprNode  {
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
                     
-                case ( .terminal, _, _ ) where isInBlockTokens( thisCompiler.currentToken.what ) && !isInBlock :
+                case ( .terminal, _, _ ) where isInBlockTokens1( thisCompiler.currentToken.what ) && !isInBlock :
                     // End of instruction with no block
                     return
 
