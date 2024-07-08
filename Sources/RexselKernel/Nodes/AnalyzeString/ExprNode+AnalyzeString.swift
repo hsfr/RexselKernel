@@ -59,7 +59,7 @@ extension AnalyzeStringNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Check the syntax that was knput against that defined
-    /// in _setSyntax_. Any special reuirements are done here
+    /// in _setSyntax_. Any special requirements are done here
     /// such as required combinations of keywords.
 
     func checkSyntax()
@@ -158,7 +158,8 @@ class AnalyzeStringNode: ExprNode  {
 
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-                // Valid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Valid constructions
 
                 case ( .expression, .terminal, _ ) where string.isEmpty &&
                                                          isInOptionTokens( thisCompiler.nextToken.what ) :
@@ -182,7 +183,8 @@ class AnalyzeStringNode: ExprNode  {
                     isInBlock = true
                     continue
 
-                // Process block -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Process block
 
                 case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
@@ -199,7 +201,6 @@ class AnalyzeStringNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    // let nodeName = node.exprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     if childrenDict[ thisCompiler.currentToken.what ]!.count == 0 {

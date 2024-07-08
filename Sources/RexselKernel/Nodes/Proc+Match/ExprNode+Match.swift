@@ -27,10 +27,12 @@ extension MatchNode {
     /// Slightly crude way to do it but should suffice.
     ///
     /// ```xml
-    ///   <match> ::= "match" ( "using" <XPath extra> )? 
+    ///   <match> ::= "match" ( "using" <XPath> )?
     ///                       ( "scope" <QName> )?
     ///                       ( "priority" <int> )?
-    ///               ( "{" <block templates> "}" )?
+    ///               "{"
+    ///                  <block templates>?
+    ///               "}"
     /// ```
 
     func setSyntax() {
@@ -39,10 +41,8 @@ extension MatchNode {
         }
 
         for keyword in MatchNode.blockTokens {
-            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
         }
-        // Modify as necessary
-        childrenDict[ .fallback ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -194,6 +194,14 @@ class MatchNode: ExprNode  {
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Exit block
+
+                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
+                    // Empty block allowed
+                    checkSyntax()
+                    isInBlock = false
+                    thisCompiler.tokenizedSourceIndex += 2
+                    return
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
                     // Before exiting we must carry out checks

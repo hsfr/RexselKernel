@@ -6,6 +6,12 @@
 
 import Foundation
 
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// MARK: - Syntax properties
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
 extension TerminalSymbolEnum {
 
     // Convenience for error messaging
@@ -21,81 +27,34 @@ extension TerminalSymbolEnum {
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 extension StylesheetNode {
 
-    static let blockTokens: StylesheetTokensType = TerminalSymbolEnum.stylesheetTokens
-
-    static let optionTokens: StylesheetTokensType = []
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Set up the syntax based on the BNF.
-    ///
-    /// Slightly crude way to do it but should suffice.
-    ///
-    /// ```xml
-    ///     <stylesheet> ::= “stylesheet”
-    ///                      “{”
-    ///                           “version” <version number>
-    ///                           ( “id” <name> )?
-    ///                           (
-    ///                             <name space def> |
-    ///                             <attribute set> |
-    ///                             <decimal format> |
-    ///                             <exclude result prefixes> |
-    ///                             <import> |
-    ///                             <include> |
-    ///                             <key> |
-    ///                             <namespace alias> |
-    ///                             <parameter> |
-    ///                             <preserve space> |
-    ///                             <script> |
-    ///                             <strip space> |
-    ///                             <variable> |
-    ///                             <matcher> |
-    ///                             <proc>
-    ///                           )*
-    ///                      “}”
-    /// ```
-
     func setSyntax() {
-        for keyword in StylesheetNode.optionTokens {
-            optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+        // Set up the allowed syntax. Set the min max as default.
+        for keyword in TerminalSymbolEnum.stylesheetTokens {
+            let entry = AllowableSyntaxEntryStruct( child: keyword, min: 0, max: 1 )
+            allowableChildrenDict[ keyword.description ] = entry
         }
 
-        for keyword in StylesheetNode.blockTokens {
-            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
-        }
-        // Modify as necessary
-        childrenDict[ .id ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
-        childrenDict[ .version ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
+        // Set the specific entries (0 or more)
+        allowableChildrenDict[ TerminalSymbolEnum.xmlns.description ]?.max = Int.max
+        allowableChildrenDict[ TerminalSymbolEnum.parameter.description ]?.max = Int.max
+        allowableChildrenDict[ TerminalSymbolEnum.variable.description ]?.max = Int.max
+        allowableChildrenDict[ TerminalSymbolEnum.proc.description ]?.max = Int.max
+        allowableChildrenDict[ TerminalSymbolEnum.match.description ]?.max = Int.max
+        allowableChildrenDict[ TerminalSymbolEnum.key.description ]?.max = Int.max
+        allowableChildrenDict[ TerminalSymbolEnum.includeSheet.description ]?.max = Int.max
+        allowableChildrenDict[ TerminalSymbolEnum.attributeSet.description ]?.max = Int.max
+        allowableChildrenDict[ TerminalSymbolEnum.script.description ]?.max = Int.max
+
+        // Required entry
+        allowableChildrenDict[ TerminalSymbolEnum.version.description ]?.min = 1
     }
 
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Check the syntax that was knput against that defined
-    /// in _setSyntax_. Any special requirements are done here
-    /// such as required combinations of keywords.
-
-    func checkSyntax()
-    {
-        for ( keyword, entry ) in optionsDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-        for ( keyword, entry ) in childrenDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
+    func isInStylesheetTokens( _ token: TerminalSymbolEnum ) -> Bool {
+        return TerminalSymbolEnum.stylesheetTokens.contains(token)
     }
 
 }
@@ -195,19 +154,35 @@ class StylesheetNode: ExprNode {
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Valid constructions
+                // Process brackets
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                       thisCompiler.nextToken.what != .closeCurlyBracket :
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket :
+                    isInBlock = true
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
-                    isInBlock = true
                     continue
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what != .openCurlyBracket && !isInBlock :
+                    try? markMissingItemError( what: .openCurlyBracket, inLine: thisCompiler.currentToken.line, skip: .ignore )
+                    return
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
+                    thisCompiler.tokenizedSourceIndex += 1
+                    thisCompiler.nestedLevel -= 1
+                    return
+
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Early end of file
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
+                    // Don't bother to check. End of file here is an error anyway which
+                    // will be picked up above this node. Almost certainly a brackets problem.
+                    return
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Process block material
 
-                case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                case ( .terminal, _, _ ) where isInStylesheetTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
@@ -222,52 +197,56 @@ class StylesheetNode: ExprNode {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
+                    let nodeName = node.exprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
-                    if childrenDict[ thisCompiler.currentToken.what ]!.count == 0 {
-                        childrenDict[ thisCompiler.currentToken.what ]!.defined = nodeLine
+                    // The entry must exist as it was set up in the init using isInOutputTokens
+                    if allowableChildrenDict[ nodeName ]!.count == 0 {
+                        allowableChildrenDict[ nodeName ]!.defined = nodeLine
                     }
-                    childrenDict[ thisCompiler.currentToken.what ]!.count += 1
+                    allowableChildrenDict[ nodeName ]!.count += 1
 
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Exit block
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
-                    // Before exiting we must carry out checks
-                    checkSyntax()
-                    isInBlock = false
-                    thisCompiler.tokenizedSourceIndex += 1
-                    thisCompiler.nestedLevel -= 1
-                    return
-
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Early end of file
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
-                    return
-
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Invalid constructions
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what != .openCurlyBracket && !isInBlock :
-                    try? markMissingItemError( what: .openCurlyBracket,
-                                               inLine: thisCompiler.currentToken.line,
-                                               skip: .ignore )
-                    return
-
-                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
-                    // Reset nesting counter if leaving from within a block.
+                case ( .terminal, _, _ ) where !isInStylesheetTokens( thisCompiler.currentToken.what ) :
+                    // Illegal keyword (proc, match, etc.)
+                    // Reset nesting counter since we are already in a stylesheet block.
                     if isInBlock {
-                        thisCompiler.nestedLevel += 1
+                        thisCompiler.nestedLevel -= 1
                     }
-                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                    try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
                                                    inElement: exprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
-                    thisCompiler.tokenizedSourceIndex += 1
+                    // Exit to continue processing at a higher level
                     return
+
+                case ( .expression, _, _ ) where isInBlock :
+                    fallthrough
+
+                case ( .qname, _, _ ) where isInBlock :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   insteadOf: TerminalSymbolEnum.stylesheetTokensDescription,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextkeyword )
+                    continue
+
+                case ( .qname, .expression, _ ) where !isInBlock :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   insteadOf: TerminalSymbolEnum.stylesheetTokensDescription,
+                                                   inLine: thisCompiler.currentToken.line )
+                    thisCompiler.tokenizedSourceIndex += 1
+                    continue
+
+                case ( .qname, _, _ ) where !isInBlock :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   insteadOf: TerminalSymbolEnum.stylesheetTokensDescription,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextkeyword )
+                    continue
 
                 default :
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,

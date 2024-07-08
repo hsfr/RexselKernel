@@ -122,11 +122,11 @@ class MatchingSubstringNode: ExprNode  {
 
         while !thisCompiler.isEndOfFile {
 
-//#if DEBUG
+#if DEBUG
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-//#endif
+#endif
 
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
