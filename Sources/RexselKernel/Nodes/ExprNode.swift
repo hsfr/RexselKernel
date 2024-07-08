@@ -166,7 +166,6 @@ class ExprNode: NSObject {
             // Grab context list(s) from parent which conntains
             // all the scoping from higher contexts.
             currentVariableContextList = parentNode.currentVariableContextList
-            // currentVariableContextList.append( SymbolTable() )
         }
 
         // Concentrate, this bit is a little tricky. Check for
@@ -361,7 +360,7 @@ class ExprNode: NSObject {
     //
     /// Helper function to detect valid block tokens.
 
-    func isInBlockTokens( _ token: TerminalSymbolEnum ) -> Bool {
+    func isInChildrenTokens( _ token: TerminalSymbolEnum ) -> Bool {
         return childrenDict.keys.contains(token)
     }
 

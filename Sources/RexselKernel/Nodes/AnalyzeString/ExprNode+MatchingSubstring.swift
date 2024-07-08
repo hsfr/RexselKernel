@@ -13,7 +13,7 @@ import Foundation
 
 extension MatchingSubstringNode {
 
-    static let tokens: StylesheetTokensType = TerminalSymbolEnum.blockTokens
+    static let blockTokens: StylesheetTokensType = TerminalSymbolEnum.blockTokens
 
     static let optionTokens: StylesheetTokensType = []
 
@@ -31,7 +31,7 @@ extension MatchingSubstringNode {
             optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
         }
 
-        for keyword in MatchingSubstringNode.tokens {
+        for keyword in MatchingSubstringNode.blockTokens {
             childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
         }
     }
@@ -141,7 +141,7 @@ class MatchingSubstringNode: ExprNode  {
 
                 // Process block -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-                case ( .terminal, _, _ ) where isInBlockTokens( thisCompiler.currentToken.what ) && isInBlock :
+                case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
@@ -218,22 +218,7 @@ class MatchingSubstringNode: ExprNode  {
         variablesDict.title = "\(exprNodeType.description)[\(thisCompiler.currentToken.line)]"
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.matchTokens )
-
-        // Check for parameter having to be first
-        if let nodes = nodeChildren {
-            var nonParameterFound = false
-            for child in nodes {
-                if child.exprNodeType != .parameter {
-                    nonParameterFound = true
-                }
-                if nonParameterFound && child.exprNodeType == .parameter {
-                    markParameterMustBeAtStartOfBlock( name: child.name,
-                                                       within: "\(variablesDict.title)",
-                                                       at: child.sourceLine )
-                }
-            }
-        }
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: MatchingSubstringNode.blockTokens )
 
         // Set up the symbol table entries
         if let nodes = nodeChildren {

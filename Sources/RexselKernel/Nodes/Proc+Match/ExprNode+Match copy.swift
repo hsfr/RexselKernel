@@ -8,65 +8,48 @@
 import Foundation
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// MARK: - Syntax properties
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+//
+/// ```xml
+///   <match> ::= "match" ( "using" <XPath extra> )? ( "scope" <QName> )? ( "priority" <int> )?
+///                      ( "{" <contents> "}" )?
+/// ```
+
+extension TerminalSymbolEnum {
+
+    static let matchTokens: Set<TerminalSymbolEnum> = blockTokens.union( parameterToken )
+
+    // Slightly brutish way to do this
+    static let matchAttributeTokens: Set<TerminalSymbolEnum> = [
+        .using, .scope, .priority
+    ]
+
+}
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 extension MatchNode {
 
-    static let blockTokens: StylesheetTokensType = TerminalSymbolEnum.blockTokens
-
-    static let optionTokens: StylesheetTokensType = [
-        .using, .scope, .priority
-    ]
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Set up the syntax based on the BNF.
-    ///
-    /// Slightly crude way to do it but should suffice.
-    ///
-    /// ```xml
-    ///   <match> ::= "match" ( "using" <XPath extra> )? 
-    ///                       ( "scope" <QName> )?
-    ///                       ( "priority" <int> )?
-    ///               ( "{" <block templates> "}" )?
-    /// ```
-
     func setSyntax() {
-        for keyword in MatchNode.optionTokens {
-            optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
-        }
-
-        for keyword in MatchNode.blockTokens {
-            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
-        }
-        // Modify as necessary
-        childrenDict[ .fallback ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Check the syntax that was knput against that defined
-    /// in _setSyntax_. Any special reuirements are done here
-    /// such as required combinations of keywords.
-
-    func checkSyntax()
-    {
-        for ( keyword, entry ) in optionsDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-        for ( keyword, entry ) in childrenDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
+        // Set up the allowed syntax. We only need to specify the min and max.
+        for keyword in TerminalSymbolEnum.matchTokens {
+            let entry = AllowableSyntaxEntryStruct( child: keyword, min: 0, max: Int.max )
+            allowableChildrenDict[ keyword.description ] = entry
         }
     }
+
+    func isInMatchTokens( _ token: TerminalSymbolEnum ) -> Bool {
+        return TerminalSymbolEnum.matchTokens.contains(token)
+    }
+
+    func isInMatchAttributeTokens( _ token: TerminalSymbolEnum ) -> Bool {
+        return TerminalSymbolEnum.matchAttributeTokens.contains(token)
+    }
+
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -87,6 +70,8 @@ class MatchNode: ExprNode  {
 
     fileprivate var scopeString: String = ""
 
+    fileprivate var priorityString: String = ""
+
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Initialisation Methods
@@ -99,7 +84,11 @@ class MatchNode: ExprNode  {
     {
         super.init()
         exprNodeType = .match
+        usingString = ""
+        scopeString = ""
+        priorityString = ""
         isInBlock = false
+
         setSyntax()
     }
 
@@ -130,7 +119,9 @@ class MatchNode: ExprNode  {
 
         thisCompiler.tokenizedSourceIndex += 1
   
-        while !thisCompiler.isEndOfFile {
+        var foundUsing = false
+
+      while !thisCompiler.isEndOfFile {
 
 #if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
@@ -142,24 +133,23 @@ class MatchNode: ExprNode  {
 
                 // Valid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-                case ( .terminal, .expression, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) :
-                    optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.nextToken.value
-                    if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
-                        optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line
-                    }
-                    // Update for name of this node
-                    if thisCompiler.currentToken.what == .using {
-                        usingString = thisCompiler.nextToken.value
-                    }
-                    if thisCompiler.currentToken.what == .scope {
-                        scopeString = thisCompiler.nextToken.value
-                    }
-                    optionsDict[ thisCompiler.currentToken.what ]?.count += 1
+                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .using :
+                    usingString = thisCompiler.nextToken.value
+                    thisCompiler.tokenizedSourceIndex += 2
+                    foundUsing = true
+                    continue
+
+                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .scope :
+                    scopeString = thisCompiler.nextToken.value
                     thisCompiler.tokenizedSourceIndex += 2
                     continue
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                       thisCompiler.nextToken.what != .closeCurlyBracket :
+                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .priority :
+                    priorityString = thisCompiler.nextToken.value
+                    thisCompiler.tokenizedSourceIndex += 2
+                    continue
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket  && foundUsing :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     isInBlock = true
@@ -167,7 +157,7 @@ class MatchNode: ExprNode  {
 
                 // Process block -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-                case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                case ( .terminal, _, _ ) where isInMatchTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
@@ -181,13 +171,14 @@ class MatchNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    // let nodeName = node.exprNodeType.description
+                    let nodeName = node.exprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
-                    if childrenDict[ thisCompiler.currentToken.what ]!.count == 0 {
-                        childrenDict[ thisCompiler.currentToken.what ]!.defined = nodeLine
+                    // The entry must exist as it was set up in the init
+                    if allowableChildrenDict[ nodeName ]!.count == 0 {
+                        allowableChildrenDict[ nodeName ]!.defined = nodeLine
                     }
-                    childrenDict[ thisCompiler.currentToken.what ]!.count += 1
+                    allowableChildrenDict[ nodeName ]!.count += 1
 
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
@@ -196,8 +187,6 @@ class MatchNode: ExprNode  {
                 // Exit block
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
-                    // Before exiting we must carry out checks
-                    checkSyntax()
                     isInBlock = false
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel -= 1
@@ -209,10 +198,19 @@ class MatchNode: ExprNode  {
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                     return
 
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Invalid constructions
+                    // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-                case ( .terminal, .terminal, _ ) where isInOptionTokens( thisCompiler.currentToken.what )
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && !foundUsing :
+                    try markExpectedKeywordError( expected: .using,
+                                                  inElement: .match,
+                                                  inLine: thisCompiler.currentToken.line,
+                                                  skip: .toNextkeyword )
+                    // Process the block anyway
+                    thisCompiler.nestedLevel += 1
+                    isInBlock = true
+                    continue
+
+                case ( .terminal, .terminal, _ ) where isInMatchAttributeTokens( thisCompiler.currentToken.what )
                                                     && thisCompiler.nextToken.what == .openCurlyBracket:
                     try markMissingItemError( what: .expression,
                                               inLine: thisCompiler.currentToken.line,
@@ -220,8 +218,8 @@ class MatchNode: ExprNode  {
                                               skip: .toNextkeyword )
                     continue
 
-                case ( .terminal, .terminal, _ ) where isInOptionTokens( thisCompiler.currentToken.what )
-                                                    && isInOptionTokens( thisCompiler.nextToken.what ):
+                case ( .terminal, .terminal, _ ) where isInMatchAttributeTokens( thisCompiler.currentToken.what )
+                                                    && isInMatchAttributeTokens( thisCompiler.nextToken.what ):
                     try markMissingItemError( what: .expression,
                                               inLine: thisCompiler.currentToken.line,
                                               after: thisCompiler.currentToken.value,
@@ -252,7 +250,7 @@ class MatchNode: ExprNode  {
         variablesDict.title = "match:\(usingString)::\(scopeString)"
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: MatchNode.blockTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.matchTokens )
 
         // Check for parameter having to be first
         if let nodes = nodeChildren {
@@ -352,10 +350,14 @@ class MatchNode: ExprNode  {
         var contents = ""
         var attributes = ""
 
-        for ( key, entry ) in optionsDict {
-            if entry.value.isNotEmpty {
-                attributes += " \(key.xml)=\"\(entry.value)\""
-            }
+        if usingString.isNotEmpty {
+            attributes += " \(TerminalSymbolEnum.using.xml)=\"\(usingString)\""
+        }
+        if scopeString.isNotEmpty {
+            attributes += " \(TerminalSymbolEnum.scope.xml)=\"\(scopeString)\""
+        }
+        if priorityString.isNotEmpty {
+            attributes += " \(TerminalSymbolEnum.priority.xml)=\"\(priorityString)\""
         }
 
         if let children = nodeChildren {

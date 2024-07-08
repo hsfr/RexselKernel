@@ -12,7 +12,7 @@ import Foundation
 
 extension FallbackNode {
 
-    static let tokens: StylesheetTokensType = TerminalSymbolEnum.blockTokens
+    static let blockTokens: StylesheetTokensType = TerminalSymbolEnum.blockTokens
 
     static let optionTokens: StylesheetTokensType = []
 
@@ -30,7 +30,7 @@ extension FallbackNode {
            optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
        }
 
-       for keyword in FallbackNode.tokens {
+       for keyword in FallbackNode.blockTokens {
            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
        }
     }
@@ -129,7 +129,7 @@ class FallbackNode: ExprNode  {
 
                 // Process block -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-                case ( .terminal, _, _ ) where isInBlockTokens( thisCompiler.currentToken.what ) && isInBlock :
+                case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
@@ -211,7 +211,7 @@ class FallbackNode: ExprNode  {
         variablesDict.title = "\(exprNodeType.description)[\(thisCompiler.currentToken.line)]"
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.matchTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: FallbackNode.blockTokens )
 
         // Check for parameter having to be first
         if let nodes = nodeChildren {

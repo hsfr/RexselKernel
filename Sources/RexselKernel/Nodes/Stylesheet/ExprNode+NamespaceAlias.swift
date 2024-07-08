@@ -194,7 +194,7 @@ class NamespaceAliasNode: ExprNode  {
         variablesDict.title = "\(exprNodeType.description):\(mapFromString)"
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.matchTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.namespaceAliasAttributeTokens )
 
         // Check for parameter having to be first
         if let nodes = nodeChildren {

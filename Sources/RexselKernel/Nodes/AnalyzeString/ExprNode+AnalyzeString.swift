@@ -184,7 +184,7 @@ class AnalyzeStringNode: ExprNode  {
 
                 // Process block -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-                case ( .terminal, _, _ ) where isInBlockTokens( thisCompiler.currentToken.what ) && isInBlock :
+                case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
                     rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
@@ -227,7 +227,8 @@ class AnalyzeStringNode: ExprNode  {
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                     return
 
-                // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Invalid constructions
 
                 case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
                                                        thisCompiler.nextToken.what == .closeCurlyBracket :
@@ -260,22 +261,7 @@ class AnalyzeStringNode: ExprNode  {
         variablesDict.title = "\(exprNodeType.description)[\(thisCompiler.currentToken.line)]"
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.matchTokens )
-
-        // Check for parameter having to be first
-        if let nodes = nodeChildren {
-            var nonParameterFound = false
-            for child in nodes {
-                if child.exprNodeType != .parameter {
-                    nonParameterFound = true
-                }
-                if nonParameterFound && child.exprNodeType == .parameter {
-                    markParameterMustBeAtStartOfBlock( name: child.name,
-                                                       within: "\(variablesDict.title)",
-                                                       at: child.sourceLine )
-                }
-            }
-        }
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: AnalyzeStringNode.blockTokens )
 
         // Set up the symbol table entries
         if let nodes = nodeChildren {
@@ -306,9 +292,6 @@ class AnalyzeStringNode: ExprNode  {
                 child.buildSymbolTableAndSemanticChecks()
             }
         }
-
-        // Special checks go here
-
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
