@@ -8,13 +8,12 @@
 import Foundation
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-//
-// This is where the formal syntax is declared.
 
 extension AnalyzeStringNode {
 
-    static let tokens: StylesheetTokensType = [
+    static let blockTokens: StylesheetTokensType = [
         .matchingSubstring, .nonMatchingSubstring, .fallback
     ]
 
@@ -32,8 +31,8 @@ extension AnalyzeStringNode {
     /// ```xml
     ///   <analyzeString> ::= "analyze-string" <quote> <expression> <quote>
     ///                         "regex" <quote> <string> <quote>
-    ///                         "flags" <quote> <string> <quote>
-    ///                       "{" 
+    ///                         ( "flags" <quote> <string> <quote> )?
+    ///                       "{"
     ///                            (
     ///                               ( <matching-substring> <non-matching-substring>? ) |
     ///                               ( <matching-substring>? <non-matching-substring> )
@@ -42,14 +41,14 @@ extension AnalyzeStringNode {
     ///                       "}"
     /// ```
 
-    func setSyntax() {
+    func setSyntax() { 
         for keyword in AnalyzeStringNode.optionTokens {
             optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
         }
         // Modify as necessary
         optionsDict[ .regex ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
 
-        for keyword in AnalyzeStringNode.tokens {
+        for keyword in AnalyzeStringNode.blockTokens {
             childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
         }
         // Modify as necessary
@@ -58,8 +57,12 @@ extension AnalyzeStringNode {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was knput against that defined
+    /// in _setSyntax_. Any special reuirements are done here
+    /// such as required combinations of keywords.
 
-    func checkSyntax() 
+    func checkSyntax()
     {
         for ( keyword, entry ) in optionsDict {
             checkOccurances( entry.count,
@@ -198,8 +201,6 @@ class AnalyzeStringNode: ExprNode  {
                     // Record this node's details for later analysis.
                     // let nodeName = node.exprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
-
-                    // childrenDict[ thisCompiler.currentToken.what ]!.count += 1
 
                     if childrenDict[ thisCompiler.currentToken.what ]!.count == 0 {
                         childrenDict[ thisCompiler.currentToken.what ]!.defined = nodeLine
