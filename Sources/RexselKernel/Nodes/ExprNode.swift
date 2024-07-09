@@ -10,6 +10,20 @@ class ExprNode: NSObject {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Logging Properties
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Is logging required for this node?
+    ///
+    /// This is the base of a slightky crude logging system.
+    /// I would prefer to use something like Hestia but the
+    /// overheads were too great.
+
+    var isLogging = false
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Common instance properties
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -371,6 +385,23 @@ class ExprNode: NSObject {
 
     func isInOptionTokens( _ token: TerminalSymbolEnum ) -> Bool {
         return optionsDict.keys.contains(token)
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Return a description of selected tokens for error report.
+
+    func tokensDescription( _ tokens: StylesheetTokensType ) -> String
+    {
+        var str = ""
+        for entry in tokens {
+            str += "\(entry.description), "
+        }
+        if str.isNotEmpty {
+            str.removeLast(2)
+        }
+        return str
     }
 
 }

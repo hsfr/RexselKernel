@@ -12,6 +12,7 @@ import Foundation
 /// Determines which part of the source needs skipping.
 
 enum SkipEnum {
+    case absorbBlock
     case outOfBlock
     case toNextkeyword
     case toNextline
@@ -23,10 +24,132 @@ enum SkipEnum {
 
 extension ExprNode {
 
+    func processSkip( _ skip: SkipEnum ) throws {
+        switch skip {
+            case .absorbBlock :
+                try absordNextBlock()
+            case .outOfBlock :
+                try skipOutOfBlock()
+            case .toNextkeyword :
+                try skipToNextKeyword()
+            case .toNextline :
+                try skipToNextLine()
+            case .ignore :
+                ()
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Skip ouut of block to next keyword.
+    ///
+    /// Moves past any expressions etc.
+    ///
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
+
+    func skipOutOfBlock() throws {
+        while true {
+            thisCompiler.tokenizedSourceIndex += 1
+            let theToken = thisCompiler.tokenizedSource[ thisCompiler.tokenizedSourceIndex ]
+            if theToken.what == .endOfFile {
+                throw RexselErrorData.init( kind: RexselErrorKind.endOfFile )
+            }
+            if theToken.what == .closeCurlyBracket {
+                return
+            }
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Absorbs the next block.
+    ///
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
+
+    func absordNextBlock() throws {
+        var level = 0
+        while level == 0 {
+            thisCompiler.tokenizedSourceIndex += 1
+            switch thisCompiler.currentToken.what {
+                case .openCurlyBracket :
+                    level += 1
+                case .endOfFile :
+                    throw RexselErrorData.init( kind: RexselErrorKind.endOfFile )
+                default :
+                    ()
+            }
+        }
+        while true {
+            thisCompiler.tokenizedSourceIndex += 1
+            switch thisCompiler.currentToken.what {
+                case .openCurlyBracket :
+                    level += 1
+                case .closeCurlyBracket :
+                    level -= 1
+                case .endOfFile :
+                    throw RexselErrorData.init( kind: RexselErrorKind.endOfFile )
+                default :
+                    ()
+            }
+            if level == 0 {
+                return
+            }
+        }
+    }
+
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Skip to Next Keyword.
+    ///
+    /// Moves past any expressions etc.
+    ///
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
+
+    func skipToNextKeyword() throws {
+        while true {
+            thisCompiler.tokenizedSourceIndex += 1
+            let theToken = thisCompiler.tokenizedSource[ thisCompiler.tokenizedSourceIndex ]
+            if theToken.what == .endOfFile {
+                throw RexselErrorData.init( kind: RexselErrorKind.endOfFile )
+            }
+            if theToken.type == .terminal {
+                return
+            }
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Skip to Next Line.
+    ///
+    /// Moves past remainder of current line.
+    ///
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file}.
+
+    func skipToNextLine() throws {
+        let currentLine = thisCompiler.currentToken.line
+        while currentLine == thisCompiler.tokenizedSource[ thisCompiler.tokenizedSourceIndex ].line {
+            thisCompiler.tokenizedSourceIndex += 1
+            if thisCompiler.isEndOfFile {
+                throw RexselErrorData.init( kind: RexselErrorKind.endOfFile )
+            }
+        }
+    }
+}
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+    extension ExprNode {
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Mark missing item.
     ///
     /// Moves past any expressions etc.
     ///
@@ -78,79 +201,7 @@ extension ExprNode {
 
         }
         thisCompiler.rexselErrorList.add( RexselErrorData.init( kind: theError ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Skip to Next Keyword.
-    ///
-    /// Moves past any expressions etc.
-    ///
-    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
-
-    func skipOutOfBlock() throws {
-        while true {
-            thisCompiler.tokenizedSourceIndex += 1
-            let theToken = thisCompiler.tokenizedSource[ thisCompiler.tokenizedSourceIndex ]
-            if theToken.what == .endOfFile {
-                throw RexselErrorData.init( kind: RexselErrorKind.endOfFile )
-            }
-            if theToken.what == .closeCurlyBracket {
-                return
-            }
-        }
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Skip to Next Keyword.
-    ///
-    /// Moves past any expressions etc.
-    ///
-    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
-
-    func skipToNextKeyword() throws {
-        while true {
-            thisCompiler.tokenizedSourceIndex += 1
-            let theToken = thisCompiler.tokenizedSource[ thisCompiler.tokenizedSourceIndex ]
-            if theToken.what == .endOfFile {
-                throw RexselErrorData.init( kind: RexselErrorKind.endOfFile )
-            }
-            if theToken.type == .terminal {
-                return
-            }
-        }
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Skip to Next Line.
-    ///
-    /// Moves past remainder of current line.
-    ///
-    /// - throws: _RexselErrorKind.endOfFile_ if early end of file}.
-
-    func skipToNextLine() throws {
-        let currentLine = thisCompiler.currentToken.line
-        while currentLine == thisCompiler.tokenizedSource[ thisCompiler.tokenizedSourceIndex ].line {
-            thisCompiler.tokenizedSourceIndex += 1
-            if thisCompiler.isEndOfFile {
-                throw RexselErrorData.init( kind: RexselErrorKind.endOfFile )
-            }
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -171,17 +222,7 @@ extension ExprNode {
             .add( RexselErrorData
                 .init( kind: RexselErrorKind
                     .missingVariableValue( lineNumber: inLine+1, name: inWhat ) ) )
-        // Error in this line so move onto the token in the next line.
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -199,16 +240,7 @@ extension ExprNode {
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
                 .cannotHaveBothDefaultAndBlock( lineNumber: inLine+1 ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -227,16 +259,7 @@ extension ExprNode {
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
                 .defaultAndBlockMissing( lineNumber: inLine+1 ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -261,16 +284,7 @@ extension ExprNode {
             .add( RexselErrorData
                 .init( kind: RexselErrorKind
                     .alreadyDeclaredIn(lineNumber: inOriginal+1, name: inWhat.description, atLine: inWhere+1 ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -295,16 +309,7 @@ extension ExprNode {
             .add( RexselErrorData
                 .init( kind: RexselErrorKind
                     .missingItem( lineNumber: inLine+1, what: inWhich ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -331,16 +336,7 @@ extension ExprNode {
             .add( RexselErrorData
                 .init( kind: RexselErrorKind
                     .duplicateSymbol(lineNumber: inOriginal+1, name: inWhat, where: inWhere ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -366,16 +362,7 @@ extension ExprNode {
                     .unknownValue( lineNumber: lineNumber+1,
                                    inElement: inElement.description,
                                    found: found, insteadOf: insteadOf ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -400,16 +387,7 @@ extension ExprNode {
                 .requiredElement( lineNumber: lineNumber+1,
                                   name: expected.description,
                                   inElement: inElement.description ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -436,16 +414,7 @@ extension ExprNode {
                                                      found: found,
                                                      insteadOf: insteadOf,
                                                      inElement: "" ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -473,16 +442,7 @@ extension ExprNode {
                                                      found: what.description,
                                                      insteadOf: insteadOf,
                                                      inElement: inElement.description ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -510,16 +470,7 @@ extension ExprNode {
                                                      found: foundSymbol,
                                                      insteadOf: insteadOf,
                                                      inElement: inElement.description ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -544,16 +495,7 @@ extension ExprNode {
                     .foundUnexpectedSymbol( lineNumber: inLine+1,
                                             found: foundSymbol,
                                             inElement: inElement.description ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -588,17 +530,7 @@ extension ExprNode {
                                                 found: what.description,
                                                 inElement: inElement.description ) ) )
         }
-
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -620,16 +552,7 @@ extension ExprNode {
                 .init( kind: RexselErrorKind
                     .expectedName( lineNumber: thisCompiler.currentToken.line+1,
                                    name: afterName ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -647,16 +570,7 @@ extension ExprNode {
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
                 .emptyBlock( lineNumber: thisCompiler.currentToken.line+1 ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -683,16 +597,7 @@ extension ExprNode {
                                     found: foundSymbol,
                                     insteadOf: insteadOf,
                                     inElement: inElement.description ) ) )
-        switch skip {
-            case .outOfBlock :
-                try skipOutOfBlock()
-            case .toNextkeyword :
-                try skipToNextKeyword()
-            case .toNextline :
-                try skipToNextLine()
-            case .ignore :
-                ()
-        }
+        try processSkip( skip )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -749,7 +654,9 @@ extension ExprNode {
     func markInvalidKeywordForVersion( _ illegalKeyword: String, version: String, at inLine: Int ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
-                .init( kind: RexselErrorKind.invalidKeywordForVersion(lineNumber: inLine+1, keyword: illegalKeyword, version: version ) ) )
+                .init( kind: RexselErrorKind.invalidKeywordForVersion( lineNumber: inLine+1,
+                                                                       keyword: illegalKeyword,
+                                                                       version: version ) ) )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -792,7 +699,8 @@ extension ExprNode {
     func markMissingScriptOption( inLine: Int, what: TerminalSymbolEnum ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
-                .init( kind: RexselErrorKind.missingScriptOption( lineNumber: inLine+1, symbol: what.description ) ) )
+                .init( kind: RexselErrorKind.missingScriptOption( lineNumber: inLine+1, 
+                                                                  symbol: what.description ) ) )
     }
     
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -809,7 +717,8 @@ extension ExprNode {
     func missingPrefixDeclaration( inLine: Int, prefix missingPrefix: String ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
-                .init( kind: RexselErrorKind.prefixNotDeclared( lineNumber: inLine+1, prefix: missingPrefix ) ) )
+                .init( kind: RexselErrorKind.prefixNotDeclared( lineNumber: inLine+1, 
+                                                                prefix: missingPrefix ) ) )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -825,7 +734,9 @@ extension ExprNode {
     func markSyntaxRequiresElement( inLine: Int, name: String, inElement: String ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
-                .init( kind: RexselErrorKind.syntaxRequiresElement( lineNumber: inLine+1, name: name, inElement: inElement ) ) )
+                .init( kind: RexselErrorKind.syntaxRequiresElement( lineNumber: inLine+1, 
+                                                                    name: name,
+                                                                    inElement: inElement ) ) )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -841,7 +752,9 @@ extension ExprNode {
     func markSyntaxRequiresZeroOrOneElement( inLine: Int, name: String, inElement: String ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
-                .init( kind: RexselErrorKind.syntaxRequiresZeroOrOneElement( lineNumber: inLine+1, name: name, inElement: inElement ) ) )
+                .init( kind: RexselErrorKind.syntaxRequiresZeroOrOneElement( lineNumber: inLine+1, 
+                                                                             name: name,
+                                                                             inElement: inElement ) ) )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -857,7 +770,9 @@ extension ExprNode {
     func markSyntaxRequiresZeroOrMoreElement( inLine: Int, name: String, inElement: String ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
-                .init( kind: RexselErrorKind.syntaxRequiresZeroOrMoreElement( lineNumber: inLine+1, name: name, inElement: inElement ) ) )
+                .init( kind: RexselErrorKind.syntaxRequiresZeroOrMoreElement( lineNumber: inLine+1, 
+                                                                              name: name,
+                                                                              inElement: inElement ) ) )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -873,7 +788,9 @@ extension ExprNode {
     func markSyntaxRequiresOneOrMoreElement( inLine: Int, name: String, inElement: String ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
-                .init( kind: RexselErrorKind.syntaxRequiresOneOrMoreElement( lineNumber: inLine+1, name: name, inElement: inElement ) ) )
+                .init( kind: RexselErrorKind.syntaxRequiresOneOrMoreElement( lineNumber: inLine+1, 
+                                                                             name: name,
+                                                                             inElement: inElement ) ) )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
