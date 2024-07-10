@@ -13,7 +13,7 @@ import Foundation
 
 extension MatchNode {
 
-    static let blockTokens: StylesheetTokensType = TerminalSymbolEnum.blockTokens
+    static let blockTokens: StylesheetTokensType = TerminalSymbolEnum.blockTokens.union( TerminalSymbolEnum.parameterToken )
 
     static let optionTokens: StylesheetTokensType = [
         .using, .scope, .priority
@@ -24,14 +24,13 @@ extension MatchNode {
     //
     /// Set up the syntax based on the BNF.
     ///
-    /// Slightly crude way to do it but should suffice.
-    ///
     /// ```xml
-    ///   <match> ::= "match" ( "using" <XPath> )?
-    ///                       ( "scope" <QName> )?
-    ///                       ( "priority" <int> )?
+    ///   <match> ::= "match" "using" <quote> <xpath expression> <quote>
+    ///                       ( "scope" <quote> <qname> <quote> )?
+    ///                       ( "priority" <quote> <int> <quote>  )?
     ///               "{"
-    ///                  <block templates>?
+    ///                  <parameter>*
+    ///                  <block templates>+
     ///               "}"
     /// ```
 
@@ -39,6 +38,7 @@ extension MatchNode {
         for keyword in MatchNode.optionTokens {
             optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
         }
+        optionsDict[ .using ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
 
         for keyword in MatchNode.blockTokens {
             childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
@@ -65,6 +65,20 @@ extension MatchNode {
                              min: entry.min, max: entry.max,
                              name: keyword.description,
                              inKeyword: self )
+        }
+        // Check for parameters having to be first
+        if let nodes = nodeChildren {
+            var nonParameterFound = false
+            for child in nodes {
+                if child.exprNodeType != .parameter {
+                    nonParameterFound = true
+                }
+                if nonParameterFound && child.exprNodeType == .parameter {
+                    markParameterMustBeAtStartOfBlock( name: child.name,
+                                                       within: self.exprNodeType.description,
+                                                       at: child.sourceLine )
+                }
+            }
         }
     }
 }
@@ -99,6 +113,7 @@ class MatchNode: ExprNode  {
     {
         super.init()
         exprNodeType = .match
+        isLogging = false  // Adjust as required
         isInBlock = false
         setSyntax()
     }
@@ -112,35 +127,36 @@ class MatchNode: ExprNode  {
 
         defer {
             name = "\(usingString)::\(scopeString)"
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if REXSEL_LOGGING
+        if isLogging {
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        }
 
         thisCompiler.tokenizedSourceIndex += 1
-  
+
         while !thisCompiler.isEndOfFile {
 
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
 
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-                // Valid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Valid constructions
 
                 case ( .terminal, .expression, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) :
                     optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.nextToken.value
@@ -165,12 +181,13 @@ class MatchNode: ExprNode  {
                     isInBlock = true
                     continue
 
-                // Process block -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Process block
 
                 case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
-#if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
-#endif
+                    if isLogging {
+                        rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    }
                     markIfInvalidKeywordForThisVersion( thisCompiler )
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
@@ -181,7 +198,6 @@ class MatchNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    // let nodeName = node.exprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     if childrenDict[ thisCompiler.currentToken.what ]!.count == 0 {
@@ -196,7 +212,7 @@ class MatchNode: ExprNode  {
                 // Exit block
 
                 case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
+                    thisCompiler.nextToken.what == .closeCurlyBracket :
                     // Empty block allowed
                     checkSyntax()
                     isInBlock = false
@@ -220,16 +236,18 @@ class MatchNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Invalid constructions
 
-                case ( .terminal, .terminal, _ ) where isInOptionTokens( thisCompiler.currentToken.what )
-                                                    && thisCompiler.nextToken.what == .openCurlyBracket:
+                case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
+                                               thisCompiler.nextToken.what != .expression :
+                    // Missing expression after option
                     try markMissingItemError( what: .expression,
                                               inLine: thisCompiler.currentToken.line,
-                                              after: thisCompiler.currentToken.value,
-                                              skip: .toNextkeyword )
+                                              after: thisCompiler.currentToken.value )
+                    thisCompiler.tokenizedSourceIndex += 1
+                    thisCompiler.nestedLevel += 1
                     continue
 
-                case ( .terminal, .terminal, _ ) where isInOptionTokens( thisCompiler.currentToken.what )
-                                                    && isInOptionTokens( thisCompiler.nextToken.what ):
+                case ( .terminal, .terminal, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
+                                                       isInOptionTokens( thisCompiler.nextToken.what ):
                     try markMissingItemError( what: .expression,
                                               inLine: thisCompiler.currentToken.line,
                                               after: thisCompiler.currentToken.value,
@@ -237,7 +255,7 @@ class MatchNode: ExprNode  {
                     continue
 
                 default :
-                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value, 
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    inElement: exprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
@@ -261,21 +279,6 @@ class MatchNode: ExprNode  {
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: MatchNode.blockTokens )
-
-        // Check for parameter having to be first
-        if let nodes = nodeChildren {
-            var nonParameterFound = false
-            for child in nodes {
-                if child.exprNodeType != .parameter {
-                    nonParameterFound = true
-                }
-                if nonParameterFound && child.exprNodeType == .parameter {
-                    markParameterMustBeAtStartOfBlock( name: child.name,
-                                                       within: "\(variablesDict.title)",
-                                                       at: child.sourceLine )
-                }
-            }
-        }
 
         // Set up the symbol table entries
         if let nodes = nodeChildren {
@@ -323,7 +326,6 @@ class MatchNode: ExprNode  {
 
     override func checkVariableScope( _ compiler: RexselKernel ) {
         scanVariablesInNodeValue( usingString, inLine: sourceLine )
-
         if let nodes = nodeChildren {
             scanForVariablesInBlock( compiler, nodes )
         }
@@ -348,7 +350,7 @@ class MatchNode: ExprNode  {
         return "\(separator)\(thisSymbolListing)\(childrenSymbols)"
     }
 
-   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Generate stylesheet tag.

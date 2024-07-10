@@ -179,7 +179,7 @@ class AnalyzeStringNode: ExprNode  {
                     continue
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                       thisCompiler.nextToken.what != .closeCurlyBracket :
+                                               thisCompiler.nextToken.what != .closeCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     isInBlock = true
@@ -249,7 +249,6 @@ class AnalyzeStringNode: ExprNode  {
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .absorbBlock )
                     thisCompiler.tokenizedSourceIndex += 1
-                    print( thisCompiler.currentToken.value )
                     continue
 
                 default :

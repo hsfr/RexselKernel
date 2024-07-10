@@ -45,8 +45,8 @@ enum RexselErrorKind {
     case missingParameterName( lineNumber: Int )
     case missingVariableValue( lineNumber: Int, name: String )
     case missingTest( lineNumber: Int )
-    case missingExpression( lineNumber: Int )
- 
+    case missingExpression( lineNumber: Int, name: String )
+
     case missingNamespace( lineNumber: Int )
     case missingURI( lineNumber: Int, symbol: String )
     case missingElementName( lineNumber: Int, position: Int, found: String )
@@ -128,7 +128,7 @@ enum RexselErrorKind {
             case .missingList( _, _ ) : return 127
             case .cannotHaveBothDefaultAndBlock( _ ) : return 128
             case .defaultAndBlockMissing( _ ) : return 129
-            case .missingExpression( _ ) : return 130
+            case .missingExpression( _, _ ) : return 130
 
             case .parameterMustBeFirst( _, _, _ ) : return 131
             case .parameterCannotAppearHere( _ ) : return 132
@@ -246,8 +246,8 @@ enum RexselErrorKind {
             case .missingTest( let lineNumber ) : 
                 return "Missing test expression in line \(lineNumber)"
 
-            case .missingExpression( let lineNumber ) : 
-                return "Missing using/scope/priority expression in line \(lineNumber)"
+            case .missingExpression( let lineNumber, let name ) :
+                return "Missing \"\(name)\" expression in line \(lineNumber)"
 
             case .missingURI( let lineNumber, let symbol ) : 
                 return "Missing URI, found \"\(symbol)\" in line \(lineNumber)"
@@ -406,8 +406,8 @@ enum RexselErrorKind {
             
             case .missingTest( _ ) : return "Insert test."
             
-            case .missingExpression( _ ) : return "Insert expression."
-            
+            case .missingExpression( _, _ ) : return "Insert expression."
+
             case .missingElementName( _, _, _ ) : return "Supply valid element name."
             
             case .missingName( _, _ ) : return "Insert name"

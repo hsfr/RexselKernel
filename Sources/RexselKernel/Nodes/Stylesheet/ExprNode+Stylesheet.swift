@@ -6,20 +6,6 @@
 
 import Foundation
 
-extension TerminalSymbolEnum {
-
-    // Convenience for error messaging
-    static var stylesheetTokensDescription: String {
-        var returnString = ""
-        for token in TerminalSymbolEnum.stylesheetTokens {
-            returnString += "'\(token.description)',"
-        }
-        // Remove end comma
-        _ = returnString.removeLast()
-        return returnString
-    }
-}
-
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -38,10 +24,11 @@ extension StylesheetNode {
     /// Slightly crude way to do it but should suffice.
     ///
     /// ```xml
-    ///     <stylesheet> ::= “stylesheet”
-    ///                      “{”
-    ///                           “version” <version number>
-    ///                           ( “id” <name> )?
+    ///     <stylesheet> ::= "stylesheet"
+    ///                      "{"
+    ///                           "version" <version number>
+    ///                           ( "id" <name> )?
+    ///                           <output>?
     ///                           (
     ///                             <name space def> |
     ///                             <attribute set> |
@@ -59,7 +46,7 @@ extension StylesheetNode {
     ///                             <matcher> |
     ///                             <proc>
     ///                           )*
-    ///                      “}”
+    ///                      "}"
     /// ```
 
     func setSyntax() {
@@ -70,8 +57,8 @@ extension StylesheetNode {
         for keyword in StylesheetNode.blockTokens {
             childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
         }
-        // Modify as necessary
         childrenDict[ .id ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+        childrenDict[ .output ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
         childrenDict[ .version ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
     }
 
@@ -127,6 +114,7 @@ class StylesheetNode: ExprNode {
     override init()
     {
         super.init()
+        isLogging = false  // Adjust as required
         exprNodeType = .stylesheet
         isInBlock = false
         setSyntax()
@@ -149,21 +137,21 @@ class StylesheetNode: ExprNode {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
 
         // Slide past keyword
         thisCompiler.tokenizedSourceIndex += 1
@@ -180,37 +168,37 @@ class StylesheetNode: ExprNode {
         while !thisCompiler.isEndOfFile {
 
             totalTokens -= 1
-      
+
             // Necessary to stop endless parse loop
             guard totalTokens > 0 else {
                 return
             }
 
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
 
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Valid constructions
+                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // Valid constructions
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                       thisCompiler.nextToken.what != .closeCurlyBracket :
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                    thisCompiler.nextToken.what != .closeCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     isInBlock = true
                     continue
 
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Process block material
+                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // Process block material
 
                 case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
-#if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
-#endif
+                    if isLogging {
+                        rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    }
 
                     markIfInvalidKeywordForThisVersion( thisCompiler )
 
@@ -232,8 +220,8 @@ class StylesheetNode: ExprNode {
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
 
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Exit block
+                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // Exit block
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
                     // Before exiting we must carry out checks
@@ -243,19 +231,27 @@ class StylesheetNode: ExprNode {
                     thisCompiler.nestedLevel -= 1
                     return
 
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Early end of file
+                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // Early end of file
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                     return
 
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Invalid constructions
+                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // Invalid constructions
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what != .openCurlyBracket && !isInBlock :
-                    try? markMissingItemError( what: .openCurlyBracket,
+                    try markMissingItemError( what: .openCurlyBracket,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .ignore )
+                    return
+
+                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
+                    // Empty block will also flag up version missing.
+                    checkSyntax()
+                    try makeCannotHaveEmptyBlockError( inLine: thisCompiler.currentToken.line,
+                                                       skip: .toNextkeyword )
                     return
 
                 case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
@@ -264,15 +260,18 @@ class StylesheetNode: ExprNode {
                         thisCompiler.nestedLevel += 1
                     }
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   insteadOf: tokensDescription( StylesheetNode.blockTokens ),
                                                    inElement: exprNodeType,
-                                                   inLine: thisCompiler.currentToken.line )
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .absorbBlock )
                     thisCompiler.tokenizedSourceIndex += 1
-                    return
+                    continue
 
                 default :
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
                                                    inElement: exprNodeType,
-                                                   inLine: thisCompiler.currentToken.line )
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextkeyword )
                     continue
 
             }
@@ -331,9 +330,6 @@ class StylesheetNode: ExprNode {
                 child.buildSymbolTableAndSemanticChecks()
             }
         }
-
-        // Special checks go here
-
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -369,14 +365,14 @@ class StylesheetNode: ExprNode {
     override func doesContextContainVariable( _ normalisedName: String, line whereUsed: Int ) -> Bool {
         if variablesDict.isNameDeclared( normalisedName ) {
             variablesDict.addNameToUsedList( normalisedName, inLine: whereUsed )
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, "Adding \(normalisedName) used in line number \(whereUsed+1) in local table for \(variablesDict.title)" )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, "Adding \(normalisedName) used in line number \(whereUsed+1) in local table for \(variablesDict.title)" )
+            }
             return true
         }
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, "Could not find parameter/variable \(normalisedName) used in line number \(whereUsed+1)" )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, "Could not find parameter/variable \(normalisedName) used in line number \(whereUsed+1)" )
+        }
         markCouldNotFindXPathVariableError( normalisedName, at: whereUsed )
         return false
     }

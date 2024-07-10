@@ -188,7 +188,7 @@ extension ExprNode {
                 theError = .missingTest(lineNumber: inLine+1 )
 
             case .expression :
-                theError = .missingExpression(lineNumber: inLine+1 )
+                theError = .missingExpression(lineNumber: inLine+1, name: afterName )
 
             case .namespace :
                 theError = .missingNamespace( lineNumber: inLine+1 )
