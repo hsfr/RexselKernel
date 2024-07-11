@@ -1,5 +1,5 @@
 //
-//  Compiler+commonSyntax .swift
+//  ExprNode+commonSyntax.swift
 //  RexselKernel
 //
 //  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
@@ -9,63 +9,8 @@ import Foundation
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-struct AllowableSyntaxEntryStruct {
-
-    /// The basic string value for this entry
-    var value: String = ""
-
-    /// The child for this structure
-    var child: TerminalSymbolEnum = .unknownToken
-
-    /// The minimuum required
-    var min: Int = 0
-
-    /// The maximum allowed
-    var max: Int = 0
-
-    /// Where the child is originally defined.
-    ///
-    /// Used when duplicates are checked for.
-    var defined: Int = -1
-
-    /// Number defined so far.
-    ///
-    /// Used to check on min/max
-    var count: Int = 0
-
-    /// Are duplicates allowed?
-    var duplicatesAllowed: Bool {
-        get {
-            return max > 1
-        }
-    }
-
-    /// Is this child required?
-    var required: Bool {
-        get {
-            return min > 0
-        }
-    }
-
-}
-
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-//
-// Used in several places so declared globally.
-
-func isInBlockTemplateTokens( _ token: TerminalSymbolEnum ) -> Bool {
-    return TerminalSymbolEnum.blockTokens.contains(token)
-}
-
-func isInBoolTokens( _ token: TerminalSymbolEnum ) -> Bool {
-    return TerminalSymbolEnum.YesNoTokens.contains(token)
-}
-
 typealias StylesheetTokensType = Set<TerminalSymbolEnum>
 
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 extension TerminalSymbolEnum {
 
@@ -120,3 +65,66 @@ extension TerminalSymbolEnum {
     ]
 
 }
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+struct AllowableSyntaxEntryStruct {
+
+    /// The basic string value for this entry
+    var value: String = ""
+
+    /// The child for this structure
+    var child: TerminalSymbolEnum = .unknownToken
+
+    /// The minimuum required
+    var min: Int = 0
+
+    /// The maximum allowed
+    var max: Int = 0
+
+    /// Where the child is originally defined.
+    ///
+    /// Used when duplicates are checked for.
+    var defined: Int = -1
+
+    /// Number defined so far.
+    ///
+    /// Used to check on min/max
+    var count: Int = 0
+
+    /// Are duplicates allowed?
+    var duplicatesAllowed: Bool {
+        get {
+            return max > 1
+        }
+    }
+
+    /// Is this child required?
+    var required: Bool {
+        get {
+            return min > 0
+        }
+    }
+
+}
+
+extension ExprNode {
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    // Used in several places so declared globally.
+
+    func isInBlockTemplateTokens( _ token: TerminalSymbolEnum ) -> Bool {
+        return TerminalSymbolEnum.blockTokens.contains(token)
+    }
+
+    func isInBoolTokens( _ token: TerminalSymbolEnum ) -> Bool {
+        return TerminalSymbolEnum.YesNoTokens.contains(token)
+    }
+
+
+}
+
+

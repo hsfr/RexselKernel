@@ -331,6 +331,44 @@ class ExprNode: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
+    /// Set up the syntax based on the BNF.
+
+    func setSyntax( options optionsList: StylesheetTokensType, elements elementsList: StylesheetTokensType ) {
+        for keyword in optionsList {
+            optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+        }
+
+        for keyword in elementsList {
+            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    func checkSyntax()
+    {
+        for ( keyword, entry ) in optionsDict {
+            checkOccurances( entry.count,
+                             min: entry.min, max: entry.max,
+                             name: keyword.description,
+                             inKeyword: self )
+        }
+        for ( keyword, entry ) in childrenDict {
+            checkOccurances( entry.count,
+                             min: entry.min, max: entry.max,
+                             name: keyword.description,
+                             inKeyword: self )
+        }
+    }
+    
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
     /// Check actual occurance against syntax.
     ///
     /// No return because only job is to report errors.

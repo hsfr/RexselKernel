@@ -19,68 +19,6 @@ extension MatchNode {
         .using, .scope, .priority
     ]
 
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Set up the syntax based on the BNF.
-    ///
-    /// ```xml
-    ///   <match> ::= "match" "using" <quote> <xpath expression> <quote>
-    ///                       ( "scope" <quote> <qname> <quote> )?
-    ///                       ( "priority" <quote> <int> <quote>  )?
-    ///               "{"
-    ///                  <parameter>*
-    ///                  <block templates>+
-    ///               "}"
-    /// ```
-
-    func setSyntax() {
-        for keyword in MatchNode.optionTokens {
-            optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
-        }
-        optionsDict[ .using ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
-
-        for keyword in MatchNode.blockTokens {
-            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
-        }
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Check the syntax that was knput against that defined
-    /// in _setSyntax_. Any special reuirements are done here
-    /// such as required combinations of keywords.
-
-    func checkSyntax()
-    {
-        for ( keyword, entry ) in optionsDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-        for ( keyword, entry ) in childrenDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-        // Check for parameters having to be first
-        if let nodes = nodeChildren {
-            var nonParameterFound = false
-            for child in nodes {
-                if child.exprNodeType != .parameter {
-                    nonParameterFound = true
-                }
-                if nonParameterFound && child.exprNodeType == .parameter {
-                    markParameterMustBeAtStartOfBlock( name: child.name,
-                                                       within: self.exprNodeType.description,
-                                                       at: child.sourceLine )
-                }
-            }
-        }
-    }
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -89,7 +27,7 @@ extension MatchNode {
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-class MatchNode: ExprNode  {
+class MatchNode: ExprNode {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -109,19 +47,25 @@ class MatchNode: ExprNode  {
     //
     /// Initialise Node base.
 
-    override init()
-    {
+    override init() {
         super.init()
         exprNodeType = .match
         isLogging = false  // Adjust as required
         isInBlock = false
-        setSyntax()
+        setSyntax( options: MatchNode.optionTokens, elements: MatchNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Parsing/Generate Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse match statement.
+    /// Parse source (with tokens).
+    ///
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
@@ -264,6 +208,57 @@ class MatchNode: ExprNode  {
         }
     }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///   <match> ::= "match" "using" <quote> <xpath expression> <quote>
+    ///                       ( "scope" <quote> <qname> <quote> )?
+    ///                       ( "priority" <quote> <int> <quote>  )?
+    ///               "{"
+    ///                  <parameter>*
+    ///                  <block templates>+
+    ///               "}"
+    /// ```
+
+    override func setSyntax( options optionsList: StylesheetTokensType, elements elementsList: StylesheetTokensType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+        optionsDict[ .using ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special reuirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
+        // Check for parameters having to be first
+        if let nodes = nodeChildren {
+            var nonParameterFound = false
+            for child in nodes {
+                if child.exprNodeType != .parameter {
+                    nonParameterFound = true
+                }
+                if nonParameterFound && child.exprNodeType == .parameter {
+                    markParameterMustBeAtStartOfBlock( name: child.name,
+                                                       within: self.exprNodeType.description,
+                                                       at: child.sourceLine )
+                }
+            }
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Semantic Checking and Symbol Table Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //

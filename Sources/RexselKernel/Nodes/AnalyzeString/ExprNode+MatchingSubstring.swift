@@ -17,43 +17,6 @@ extension MatchingSubstringNode {
 
     static let optionTokens: StylesheetTokensType = []
 
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Set up the syntax based on the BNF.
-    ///
-    /// ```xml
-    ///   <matching-substring> ::= "matching-substring" "{" <block templates>+ "}"
-    /// ```
-
-    func setSyntax() {
-        for keyword in MatchingSubstringNode.optionTokens {
-            optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
-        }
-
-        for keyword in MatchingSubstringNode.blockTokens {
-            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
-        }
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-    func checkSyntax()
-    {
-        for ( keyword, entry ) in optionsDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-        for ( keyword, entry ) in childrenDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-    }
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -87,17 +50,20 @@ class MatchingSubstringNode: ExprNode  {
         isLogging = false  // Adjust as required
         exprNodeType = .matchingSubstring
         string = ""
-
-        setSyntax()
+        setSyntax( options: MatchingSubstringNode.optionTokens, elements: MatchingSubstringNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // MARK: - Parse Methods
+    // MARK: - Parsing/Generate Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse match statement.
+    /// Parse source (with tokens).
+    ///
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
@@ -215,6 +181,33 @@ class MatchingSubstringNode: ExprNode  {
 
             }
         }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///   <matching-substring> ::= "matching-substring" "{" <block templates>+ "}"
+    /// ```
+
+    override func setSyntax( options optionsList: StylesheetTokensType, elements elementsList: StylesheetTokensType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

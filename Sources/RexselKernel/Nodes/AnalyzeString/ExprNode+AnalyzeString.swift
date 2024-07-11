@@ -21,69 +21,6 @@ extension AnalyzeStringNode {
         .regex, .flags
     ]
 
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Set up the syntax based on the BNF.
-    ///
-    /// Slightly crude way to do it but should suffice.
-    ///
-    /// ```xml
-    ///   <analyzeString> ::= "analyze-string" <quote> <expression> <quote>
-    ///                         "regex" <quote> <string> <quote>
-    ///                         ( "flags" <quote> <string> <quote> )?
-    ///                       "{"
-    ///                            (
-    ///                               ( <matching-substring> <non-matching-substring>? ) |
-    ///                               ( <matching-substring>? <non-matching-substring> )
-    ///                            )
-    ///                            <fallback>*
-    ///                       "}"
-    /// ```
-
-    func setSyntax() 
-    {
-        for keyword in AnalyzeStringNode.optionTokens {
-            optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
-        }
-        // Modify as necessary
-        optionsDict[ .regex ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
-
-        for keyword in AnalyzeStringNode.blockTokens {
-            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
-        }
-        // Modify as necessary
-        childrenDict[ .fallback ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Check the syntax that was knput against that defined
-    /// in _setSyntax_. Any special requirements are done here
-    /// such as required combinations of keywords.
-
-    func checkSyntax()
-    {
-        for ( keyword, entry ) in optionsDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-        for ( keyword, entry ) in childrenDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-        if childrenDict[ .matchingSubstring ]!.count == 0 && childrenDict[ .nonMatchingSubstring ]!.count == 0 {
-            markMustHaveAtLeastOneOfElements( inLine: sourceLine,
-                                              names: [ TerminalSymbolEnum.matchingSubstring.description,
-                                                       TerminalSymbolEnum.nonMatchingSubstring.description ],
-                                              inElement: exprNodeType.description )
-        }
-    }
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -117,16 +54,20 @@ class AnalyzeStringNode: ExprNode  {
         isLogging = false  // Adjust as required
         exprNodeType = .analyzeString
         string = ""
-        setSyntax()
+        setSyntax( options: AnalyzeStringNode.optionTokens, elements: AnalyzeStringNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // MARK: - Parse Methods
+    // MARK: - Parsing/Generate Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse match statement.
+    /// Parse source (with tokens).
+    ///
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
@@ -258,6 +199,51 @@ class AnalyzeStringNode: ExprNode  {
                     return
 
             }
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///   <analyzeString> ::= "analyze-string" <quote> <expression> <quote>
+    ///                         "regex" <quote> <string> <quote>
+    ///                         ( "flags" <quote> <string> <quote> )?
+    ///                       "{"
+    ///                            (
+    ///                               ( <matching-substring> <non-matching-substring>? ) |
+    ///                               ( <matching-substring>? <non-matching-substring> )
+    ///                            )
+    ///                            <fallback>*
+    ///                       "}"
+    /// ```
+
+    override func setSyntax( options optionsList: StylesheetTokensType, elements elementsList: StylesheetTokensType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+        optionsDict[ .regex ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
+        childrenDict[ .matchingSubstring ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+        childrenDict[ .nonMatchingSubstring ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
+        if childrenDict[ .matchingSubstring ]!.count == 0 && childrenDict[ .nonMatchingSubstring ]!.count == 0 {
+            markMustHaveAtLeastOneOfElements( inLine: sourceLine,
+                                              names: [ TerminalSymbolEnum.matchingSubstring.description,
+                                                       TerminalSymbolEnum.nonMatchingSubstring.description ],
+                                              inElement: exprNodeType.description )
         }
     }
 

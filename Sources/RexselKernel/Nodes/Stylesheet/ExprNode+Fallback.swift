@@ -16,44 +16,6 @@ extension FallbackNode {
 
     static let optionTokens: StylesheetTokensType = []
 
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Set up the syntax based on the BNF.
-    ///
-    /// ```xml
-    ///   <fallback> ::= "fallback" "{" <block templates>+ "}"
-    /// ```
-
-   func setSyntax() {
-       for keyword in FallbackNode.optionTokens {
-           optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
-       }
-
-       for keyword in FallbackNode.blockTokens {
-           childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
-       }
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-    func checkSyntax()
-    {
-        for ( keyword, entry ) in optionsDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-        for ( keyword, entry ) in childrenDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-    }
-
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -72,13 +34,11 @@ class FallbackNode: ExprNode  {
     //
     /// Initialise Node base.
 
-    override init()
-    {
+    override init() {
         super.init()
         exprNodeType = .fallback
         isInBlock = false
-
-        setSyntax()
+        setSyntax( options: FallbackNode.optionTokens, elements: FallbackNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -179,14 +139,6 @@ class FallbackNode: ExprNode  {
                                                        skip: .toNextkeyword )
                     return
 
-//                case ( .terminal, _, _ ) where isInBlockTokens( thisCompiler.currentToken.what ) :
-//                    try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-//                                                   insteadOf: TerminalSymbolEnum.openCurlyBracket.description,
-//                                                   inElement: exprNodeType,
-//                                                   inLine: thisCompiler.currentToken.line,
-//                                                   skip: .ignore)
-//                    return
-
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    inElement: exprNodeType,
@@ -195,6 +147,33 @@ class FallbackNode: ExprNode  {
 
             }
         }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///   <fallback> ::= "fallback" "{" <block templates>+ "}"
+    /// ```
+
+    override func setSyntax( options optionsList: StylesheetTokensType, elements elementsList: StylesheetTokensType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

@@ -19,81 +19,7 @@ extension ProcNode {
         .scope, .priority
     ]
 
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Set up the syntax based on the BNF.
-    ///
-    /// ```xml
-    ///   <proc> ::= "proc" <proc name>
-    ///                   ( "scope" <quote> <qname> <quote> )?
-    ///                   ( "priority" <quote> <int> <quote>  )?
-    ///               "{"
-    ///                  <parameter>*
-    ///                  <block templates>+
-    ///               "}"
-    /// ```
-
-    func setSyntax() {
-        for keyword in MatchNode.optionTokens {
-            optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
-        }
-        for keyword in MatchNode.blockTokens {
-            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
-        }
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Check the syntax that was knput against that defined
-    /// in _setSyntax_. Any special reuirements are done here
-    /// such as required combinations of keywords.
-
-    func checkSyntax()
-    {
-        for ( keyword, entry ) in optionsDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-        for ( keyword, entry ) in childrenDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-        // Check for parameters having to be first
-        if let nodes = nodeChildren {
-            var nonParameterFound = false
-            for child in nodes {
-                if child.exprNodeType != .parameter {
-                    nonParameterFound = true
-                }
-                if nonParameterFound && child.exprNodeType == .parameter {
-                    markParameterMustBeAtStartOfBlock( name: child.name,
-                                                       within: self.exprNodeType.description,
-                                                       at: child.sourceLine )
-                }
-            }
-        }
-        // Check that there are some block elements (other than parameters) declared.
-        var blockElementFound = false
-        for ( key, entry ) in childrenDict {
-            if entry.count > 0 && key.description != TerminalSymbolEnum.parameter.description {
-                blockElementFound = true
-                break
-            }
-        }
-        if !blockElementFound {
-            markSyntaxRequiresOneOrMoreElement( inLine: sourceLine,
-                                                name: tokensDescription( TerminalSymbolEnum.blockTokens ),
-                                                inElement: self.exprNodeType.description )
-        }
-   }
 }
-
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -125,13 +51,20 @@ class ProcNode: ExprNode  {
         exprNodeType = .proc
         isLogging = false  // Adjust as required
         isInBlock = false
-        setSyntax()
+        setSyntax( options: ProcNode.optionTokens, elements: ProcNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Parsing/Generate Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse variable statement.
+    /// Parse source (with tokens).
+    ///
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
@@ -299,6 +232,70 @@ class ProcNode: ExprNode  {
         }
     }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///   <proc> ::= "proc" <proc name>
+    ///                   ( "scope" <quote> <qname> <quote> )?
+    ///                   ( "priority" <quote> <int> <quote>  )?
+    ///               "{"
+    ///                  <parameter>*
+    ///                  <block templates>+
+    ///               "}"
+    /// ```
+
+    override func setSyntax( options optionsList: StylesheetTokensType, elements elementsList: StylesheetTokensType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+    }
+
+   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special reuirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax()
+    {
+        super.checkSyntax()
+        // Check for parameters having to be first
+        if let nodes = nodeChildren {
+            var nonParameterFound = false
+            for child in nodes {
+                if child.exprNodeType != .parameter {
+                    nonParameterFound = true
+                }
+                if nonParameterFound && child.exprNodeType == .parameter {
+                    markParameterMustBeAtStartOfBlock( name: child.name,
+                                                       within: self.exprNodeType.description,
+                                                       at: child.sourceLine )
+                }
+            }
+        }
+        // Check that there are some block elements (other than parameters) declared.
+        var blockElementFound = false
+        for ( key, entry ) in childrenDict {
+            if entry.count > 0 && key.description != TerminalSymbolEnum.parameter.description {
+                blockElementFound = true
+                break
+            }
+        }
+        if !blockElementFound {
+            markSyntaxRequiresOneOrMoreElement( inLine: sourceLine,
+                                                name: tokensDescription( TerminalSymbolEnum.blockTokens ),
+                                                inElement: self.exprNodeType.description )
+        }
+   }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Semantic Checking and Symbol Table Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //

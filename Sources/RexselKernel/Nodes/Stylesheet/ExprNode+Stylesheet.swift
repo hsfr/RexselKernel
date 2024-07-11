@@ -16,75 +16,6 @@ extension StylesheetNode {
 
     static let optionTokens: StylesheetTokensType = []
 
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Set up the syntax based on the BNF.
-    ///
-    /// Slightly crude way to do it but should suffice.
-    ///
-    /// ```xml
-    ///     <stylesheet> ::= "stylesheet"
-    ///                      "{"
-    ///                           "version" <version number>
-    ///                           ( "id" <name> )?
-    ///                           <output>?
-    ///                           (
-    ///                             <name space def> |
-    ///                             <attribute set> |
-    ///                             <decimal format> |
-    ///                             <exclude result prefixes> |
-    ///                             <import> |
-    ///                             <include> |
-    ///                             <key> |
-    ///                             <namespace alias> |
-    ///                             <parameter> |
-    ///                             <preserve space> |
-    ///                             <script> |
-    ///                             <strip space> |
-    ///                             <variable> |
-    ///                             <matcher> |
-    ///                             <proc>
-    ///                           )*
-    ///                      "}"
-    /// ```
-
-    func setSyntax() {
-        for keyword in StylesheetNode.optionTokens {
-            optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
-        }
-
-        for keyword in StylesheetNode.blockTokens {
-            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
-        }
-        childrenDict[ .id ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
-        childrenDict[ .output ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
-        childrenDict[ .version ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Check the syntax that was knput against that defined
-    /// in _setSyntax_. Any special requirements are done here
-    /// such as required combinations of keywords.
-
-    func checkSyntax()
-    {
-        for ( keyword, entry ) in optionsDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-        for ( keyword, entry ) in childrenDict {
-            checkOccurances( entry.count,
-                             min: entry.min, max: entry.max,
-                             name: keyword.description,
-                             inKeyword: self )
-        }
-    }
-
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -111,24 +42,23 @@ class StylesheetNode: ExprNode {
     //
     /// Initialise Node base.
 
-    override init()
-    {
+    override init() {
         super.init()
         isLogging = false  // Adjust as required
         exprNodeType = .stylesheet
         isInBlock = false
-        setSyntax()
+        setSyntax( options: StylesheetNode.optionTokens, elements: StylesheetNode.blockTokens )
         isRootNode = true
         xsltVersion = "1.0"
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // MARK: - Instance Methods
+    // MARK: - Parsing/Generate Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse stylesheet statement.
+    /// Parse source (with tokens).
     ///
     /// - Parameters:
     ///   - compiler: the current instance of the compiler.
@@ -278,6 +208,61 @@ class StylesheetNode: ExprNode {
         }
     }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///     <stylesheet> ::= "stylesheet"
+    ///                      "{"
+    ///                           "version" <version number>
+    ///                           ( "id" <name> )?
+    ///                           <output>?
+    ///                           (
+    ///                             <name space def> |
+    ///                             <attribute set> |
+    ///                             <decimal format> |
+    ///                             <exclude result prefixes> |
+    ///                             <import> |
+    ///                             <include> |
+    ///                             <key> |
+    ///                             <namespace alias> |
+    ///                             <parameter> |
+    ///                             <preserve space> |
+    ///                             <script> |
+    ///                             <strip space> |
+    ///                             <variable> |
+    ///                             <matcher> |
+    ///                             <proc>
+    ///                           )*
+    ///                      "}"
+    /// ```
+
+    override func setSyntax( options optionsList: StylesheetTokensType, elements elementsList: StylesheetTokensType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+        childrenDict[ .id ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+        childrenDict[ .output ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+        childrenDict[ .version ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Semantic Checking and Symbol Table Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
