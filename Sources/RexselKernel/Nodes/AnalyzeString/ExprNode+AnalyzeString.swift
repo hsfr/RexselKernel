@@ -13,11 +13,11 @@ import Foundation
 
 extension AnalyzeStringNode {
 
-    static let blockTokens: StylesheetTokensType = [
+    static let blockTokens: TerminalSymbolEnumSetType = [
         .matchingSubstring, .nonMatchingSubstring, .fallback
     ]
 
-    static let optionTokens: StylesheetTokensType = [
+    static let optionTokens: TerminalSymbolEnumSetType = [
         .regex, .flags
     ]
 
@@ -223,7 +223,7 @@ class AnalyzeStringNode: ExprNode  {
     ///                       "}"
     /// ```
 
-    override func setSyntax( options optionsList: StylesheetTokensType, elements elementsList: StylesheetTokensType ) {
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
         super.setSyntax( options: optionsList, elements: elementsList )
         optionsDict[ .regex ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
         childrenDict[ .matchingSubstring ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
@@ -277,9 +277,12 @@ class AnalyzeStringNode: ExprNode  {
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
-                        } catch let err as RexselErrorData {
+                        } catch let err as SymbolTableError {
                             // Already in list so mark duplicate error
-                            thisCompiler.rexselErrorList.add( err )
+                            try? markDuplicateError( symbol: err.name,
+                                                     declaredIn: err.declaredLine,
+                                                     preciouslDelaredIn: err.previouslyDeclaredIn,
+                                                     skip: .ignore )
                         } catch {
                             thisCompiler.rexselErrorList.add(
                                 RexselErrorData.init( kind: RexselErrorKind

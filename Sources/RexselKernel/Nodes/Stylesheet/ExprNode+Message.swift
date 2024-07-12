@@ -168,7 +168,7 @@ class MessageNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInMessageTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.valueString)" )
 #endif
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -226,13 +226,13 @@ class MessageNode: ExprNode  {
                                             && isInBlock
                                             && nodeChildren == nil :
                     thisCompiler.nestedLevel -= 1
-                    try markDefaultAndBlockMissingError( where: thisCompiler.currentToken.line,
+                    try markDefaultAndBlockMissingError( inLine: thisCompiler.currentToken.line,
                                                          skip: .toNextkeyword )
                     return
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
                                             && messageString.isNotEmpty :
-                    try markCannotHaveBothDefaultAndBlockError( where: sourceLine )
+                    try markCannotHaveBothDefaultAndBlockError( inLine: sourceLine )
                     thisCompiler.nestedLevel += 1
                     thisCompiler.tokenizedSourceIndex += 1
                     isInBlock = true
@@ -304,9 +304,12 @@ class MessageNode: ExprNode  {
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
-                        } catch let err as RexselErrorData {
+                        } catch let err as SymbolTableError {
                             // Already in list so mark duplicate error
-                            thisCompiler.rexselErrorList.add( err )
+                            try? markDuplicateError( symbol: err.name,
+                                                     declaredIn: err.declaredLine,
+                                                     preciouslDelaredIn: err.previouslyDeclaredIn,
+                                                     skip: .ignore )
                         } catch {
                             thisCompiler.rexselErrorList.add(
                                 RexselErrorData.init( kind: RexselErrorKind

@@ -333,7 +333,7 @@ class ExprNode: NSObject {
     //
     /// Set up the syntax based on the BNF.
 
-    func setSyntax( options optionsList: StylesheetTokensType, elements elementsList: StylesheetTokensType ) {
+    func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
         for keyword in optionsList {
             optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
         }
@@ -430,7 +430,7 @@ class ExprNode: NSObject {
     //
     /// Return a description of selected tokens for error report.
 
-    func tokensDescription( _ tokens: StylesheetTokensType ) -> String
+    func tokensDescription( _ tokens: TerminalSymbolEnumSetType ) -> String
     {
         var str = ""
         for entry in tokens {
@@ -461,7 +461,7 @@ extension ExprNode {
 
     func markUnexpectedExpressionError() {
 #if REXSEL_LOGGING
-        let errorMessage = RexselErrorKind.foundUnexpectedExpression(lineNumber: sourceLine, found: thisCompiler.currentToken.value ).description
+        let errorMessage = RexselErrorKind.foundUnexpectedExpression(lineNumber: sourceLine, found: thisCompiler.currentToken.valueString ).description
         rLogger.log( self, .debug, "**** \(errorMessage)." )
 #endif
         thisCompiler.rexselErrorList
@@ -498,7 +498,7 @@ extension ExprNode {
 
     func markExpectedParameterNameErrorAndSkipLine() -> Bool {
 #if REXSEL_LOGGING
-        rLogger.log( self, .debug, "**** Unknown symbol '\(thisCompiler.currentToken.value)' in line \(thisCompiler.currentToken.line+1)" )
+        rLogger.log( self, .debug, "**** Unknown symbol '\(thisCompiler.currentToken.valueString)' in line \(thisCompiler.currentToken.line+1)" )
 #endif
         thisCompiler.rexselErrorList
             .add( RexselErrorData
@@ -552,7 +552,7 @@ extension ExprNode {
     func isTokenSupportedKeyword( incrementIndexBy: Int ) -> Bool {
         if notSupported.contains( thisCompiler.currentToken.what ) {
 #if REXSEL_LOGGING
-            rLogger.log( self, .debug, "**** '\(thisCompiler.currentToken.value)' not supported in line \(thisCompiler.currentToken.line+1)" )
+            rLogger.log( self, .debug, "**** '\(thisCompiler.currentToken.valueString)' not supported in line \(thisCompiler.currentToken.line+1)" )
 #endif
             thisCompiler.rexselErrorList
                 .add( RexselErrorData

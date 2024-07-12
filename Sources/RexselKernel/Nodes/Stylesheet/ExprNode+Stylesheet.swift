@@ -12,9 +12,9 @@ import Foundation
 
 extension StylesheetNode {
 
-    static let blockTokens: StylesheetTokensType = TerminalSymbolEnum.stylesheetTokens
+    static let blockTokens: TerminalSymbolEnumSetType = TerminalSymbolEnum.stylesheetTokens
 
-    static let optionTokens: StylesheetTokensType = []
+    static let optionTokens: TerminalSymbolEnumSetType = []
 
 }
 
@@ -242,7 +242,7 @@ class StylesheetNode: ExprNode {
     ///                      "}"
     /// ```
 
-    override func setSyntax( options optionsList: StylesheetTokensType, elements elementsList: StylesheetTokensType ) {
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
         super.setSyntax( options: optionsList, elements: elementsList )
         childrenDict[ .id ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
         childrenDict[ .output ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
@@ -289,19 +289,14 @@ class StylesheetNode: ExprNode {
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
                         } catch let err as SymbolTableError {
-                            let currentLine = err.newLine
-                            let existingLine = err.declaredLine
-                            let symbol = err.name
-
-                            // Test to make sure that is a valid symbol, not just a blcnk which
+                            // Test to make sure that is a valid symbol, not just a blank which
                             // can happen with some consequential errors.
-                            if symbol.isNotEmpty {
+                            if err.name.isNotEmpty {
                                 // Already in list so mark duplicate error
-                                thisCompiler.rexselErrorList.add(
-                                    RexselErrorData.init( kind: RexselErrorKind
-                                        .duplicateSymbol( lineNumber: currentLine+1,
-                                                          name: symbol,
-                                                          where: existingLine+1 ) ) )
+                                try? markDuplicateError( symbol: err.name,
+                                                         declaredIn: err.declaredLine,
+                                                         preciouslDelaredIn: err.previouslyDeclaredIn,
+                                                         skip: .ignore )
                             }
                         } catch {
                             thisCompiler.rexselErrorList.add(

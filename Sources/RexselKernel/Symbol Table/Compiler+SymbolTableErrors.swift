@@ -31,7 +31,7 @@ struct SymbolTableError: Error {
 
     var declaredLine: Int = 0
 
-    var newLine: Int = 0
+    var previouslyDeclaredIn: Int = 0
 
     /// Optional message associated with this error
     var errorMessage: String = ""

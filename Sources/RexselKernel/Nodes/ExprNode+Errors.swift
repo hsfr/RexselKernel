@@ -154,7 +154,7 @@ extension ExprNode {
     /// Moves past any expressions etc.
     ///
     /// - Parameters:
-    ///   - what: what type os token is missing (_.openCurlyBracket_, _.name_ etc..
+    ///   - what: what type of token is missing (_.openCurlyBracket_, _.name_ etc..
     ///   - inLine: the line in which the element was declared first.
     ///   - andPosition: the position in the line in which the element was declared first, defaults to 0)
     ///   - after: the element after which the error occured.
@@ -235,7 +235,7 @@ extension ExprNode {
     ///   - skip: Skip to next keyword/line (defaults to _.ignore_)
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
-    func markCannotHaveBothDefaultAndBlockError( where inLine: Int,
+    func markCannotHaveBothDefaultAndBlockError( inLine: Int,
                                                  skip: SkipEnum = .ignore ) throws {
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
@@ -246,7 +246,7 @@ extension ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parameters, variables and attributes must have either default
+    /// Parameters, variables, etc must have either default
     /// value or block.
     ///
     /// - Parameters:
@@ -254,7 +254,7 @@ extension ExprNode {
     ///   - skip: Skip to next keyword/line (defaults to _.ignore_)
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
-    func markDefaultAndBlockMissingError( where inLine: Int,
+    func markDefaultAndBlockMissingError( inLine: Int,
                                           skip: SkipEnum = .ignore ) throws {
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
@@ -328,14 +328,14 @@ extension ExprNode {
     ///   - skip: Skip to next keyword/line (defaults to _.ignore_)
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
-    func markDuplicateError( symbol inWhat: String,
-                             this inWhere: Int,
-                             where inOriginal: Int,
+    func markDuplicateError( symbol inName: String,
+                             declaredIn inWhere: Int,
+                             preciouslDelaredIn inOriginal: Int,
                              skip: SkipEnum = .ignore ) throws {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
                 .init( kind: RexselErrorKind
-                    .duplicateSymbol(lineNumber: inOriginal+1, name: inWhat, where: inWhere ) ) )
+                    .duplicateSymbol(lineNumber: inWhere+1, name: inName, originalLine: inOriginal+1 ) ) )
         try processSkip( skip )
     }
 

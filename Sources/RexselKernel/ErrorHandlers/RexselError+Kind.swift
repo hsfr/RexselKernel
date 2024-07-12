@@ -32,7 +32,7 @@ enum RexselErrorKind {
     case foundUnexpectedExpression( lineNumber: Int, found: String )
     case unknownValue( lineNumber: Int, inElement: String, found: String, insteadOf: String )
     case alreadyDeclaredIn( lineNumber: Int, name: String, atLine: Int )
-    case duplicateSymbol( lineNumber: Int, name: String, where: Int )
+    case duplicateSymbol( lineNumber: Int, name: String, originalLine: Int )
     case duplicateNamespace( lineNumber: Int, name: String, where: Int )
 
     case duplicateParameter( lineNumber: Int, name: String, where: Int )

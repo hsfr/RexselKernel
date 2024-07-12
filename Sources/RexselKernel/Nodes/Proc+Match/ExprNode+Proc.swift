@@ -13,9 +13,9 @@ import Foundation
 
 extension ProcNode {
 
-    static let blockTokens: StylesheetTokensType = TerminalSymbolEnum.blockTokens.union( TerminalSymbolEnum.parameterToken )
+    static let blockTokens: TerminalSymbolEnumSetType = TerminalSymbolEnum.blockTokens.union( TerminalSymbolEnum.parameterToken )
 
-    static let optionTokens: StylesheetTokensType = [
+    static let optionTokens: TerminalSymbolEnumSetType = [
         .scope, .priority
     ]
 
@@ -160,7 +160,7 @@ class ProcNode: ExprNode  {
                 // Exit block
 
                 case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                    thisCompiler.nextToken.what == .closeCurlyBracket :
+                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
                     // Empty block allowed
                     checkSyntax()
                     isInBlock = false
@@ -250,7 +250,7 @@ class ProcNode: ExprNode  {
     ///               "}"
     /// ```
 
-    override func setSyntax( options optionsList: StylesheetTokensType, elements elementsList: StylesheetTokensType ) {
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
         super.setSyntax( options: optionsList, elements: elementsList )
     }
 
@@ -321,9 +321,12 @@ class ProcNode: ExprNode  {
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
-                        } catch let err as RexselErrorData {
+                        } catch let err as SymbolTableError {
                             // Already in list so mark duplicate error
-                            thisCompiler.rexselErrorList.add( err )
+                            try? markDuplicateError( symbol: err.name,
+                                                     declaredIn: err.declaredLine,
+                                                     preciouslDelaredIn: err.previouslyDeclaredIn,
+                                                     skip: .ignore )
                         } catch {
                             thisCompiler.rexselErrorList.add(
                                 RexselErrorData.init( kind: RexselErrorKind

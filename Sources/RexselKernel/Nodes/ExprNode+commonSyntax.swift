@@ -9,7 +9,7 @@ import Foundation
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-typealias StylesheetTokensType = Set<TerminalSymbolEnum>
+typealias TerminalSymbolEnumSetType = Set<TerminalSymbolEnum>
 
 
 extension TerminalSymbolEnum {
@@ -18,7 +18,7 @@ extension TerminalSymbolEnum {
     /// At the top level a restricted set of keywords are allowed.
     /// The list includes all versions. Detection and restrictions
     /// between versions is done in appropriate node.
-    static let stylesheetTokens: StylesheetTokensType = [
+    static let stylesheetTokens: TerminalSymbolEnumSetType = [
         .importSheet, .includeSheet, .stripSpace,
         .preserveSpace, .output, .key, .decimalFormat,
         .parameter, .variable, .proc, .match,
@@ -31,7 +31,7 @@ extension TerminalSymbolEnum {
     /// template blocks (element, variable etc.)
     /// The list includes all versions. Detection and restrictions
     /// between versions is done in appropriate node.
-    static let blockTokens: StylesheetTokensType = [
+    static let blockTokens: TerminalSymbolEnumSetType = [
         .variable, .applyImports,
         .applyTemplates, .attrib, .call,
         .choose,.copy, .copyOf, .element,
@@ -46,7 +46,7 @@ extension TerminalSymbolEnum {
     /// attribute blocks.
     /// The list includes all versions. Detection and restrictions
     /// between versions is done in appropriate node.
-    static let attributeBlockTokens: StylesheetTokensType = [
+    static let attributeBlockTokens: TerminalSymbolEnumSetType = [
         .variable,
         .applyTemplates, .call,
         .choose,.copy, .copyOf,
@@ -54,15 +54,15 @@ extension TerminalSymbolEnum {
         .valueOf, .text
     ]
 
-    static let fallbackToken: StylesheetTokensType = [ .fallback ]
+    static let fallbackToken: TerminalSymbolEnumSetType = [ .fallback ]
 
-    static let sortToken: StylesheetTokensType = [ .sort ]
+    static let sortToken: TerminalSymbolEnumSetType = [ .sort ]
 
-    static let parameterToken: StylesheetTokensType = [ .parameter ]
+    static let parameterToken: TerminalSymbolEnumSetType = [ .parameter ]
 
-    static let YesNoTokens: StylesheetTokensType = [
-        .yes, .no
-    ]
+    static let withToken: TerminalSymbolEnumSetType = [ .with ]
+
+    static let YesNoTokens: TerminalSymbolEnumSetType = [ .yes, .no ]
 
 }
 

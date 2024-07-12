@@ -142,7 +142,7 @@ class ParameterNode: ExprNode {
 
                 case ( .terminal, _, _ ) where isInParameterTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.valueString)" )
 #endif
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -198,7 +198,7 @@ class ParameterNode: ExprNode {
                     value = thisCompiler.currentToken.value
                     isInBlock = true
                     thisCompiler.nestedLevel += 1
-                    try markCannotHaveBothDefaultAndBlockError( where: sourceLine )
+                    try markCannotHaveBothDefaultAndBlockError( inLine: sourceLine )
                     thisCompiler.tokenizedSourceIndex += 2
                    continue
 
@@ -262,9 +262,12 @@ class ParameterNode: ExprNode {
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
-                        } catch let err as RexselErrorData {
+                        } catch let err as SymbolTableError {
                             // Already in list so mark duplicate error
-                            thisCompiler.rexselErrorList.add( err )
+                            try? markDuplicateError( symbol: err.name,
+                                                     declaredIn: err.declaredLine,
+                                                     preciouslDelaredIn: err.previouslyDeclaredIn,
+                                                     skip: .ignore )
                         } catch {
                             thisCompiler.rexselErrorList.add(
                                 RexselErrorData.init( kind: RexselErrorKind

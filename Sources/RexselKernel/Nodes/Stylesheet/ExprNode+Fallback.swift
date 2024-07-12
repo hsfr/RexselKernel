@@ -12,9 +12,9 @@ import Foundation
 
 extension FallbackNode {
 
-    static let blockTokens: StylesheetTokensType = TerminalSymbolEnum.blockTokens
+    static let blockTokens: TerminalSymbolEnumSetType = TerminalSymbolEnum.blockTokens
 
-    static let optionTokens: StylesheetTokensType = []
+    static let optionTokens: TerminalSymbolEnumSetType = []
 
 }
 
@@ -91,7 +91,7 @@ class FallbackNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.valueString)" )
 #endif
                     markIfInvalidKeywordForThisVersion( thisCompiler )
 
@@ -161,7 +161,7 @@ class FallbackNode: ExprNode  {
     ///   <fallback> ::= "fallback" "{" <block templates>+ "}"
     /// ```
 
-    override func setSyntax( options optionsList: StylesheetTokensType, elements elementsList: StylesheetTokensType ) {
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
         super.setSyntax( options: optionsList, elements: elementsList )
     }
 
@@ -220,9 +220,12 @@ class FallbackNode: ExprNode  {
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
-                        } catch let err as RexselErrorData {
+                        } catch let err as SymbolTableError {
                             // Already in list so mark duplicate error
-                            thisCompiler.rexselErrorList.add( err )
+                            try? markDuplicateError( symbol: err.name,
+                                                     declaredIn: err.declaredLine,
+                                                     preciouslDelaredIn: err.previouslyDeclaredIn,
+                                                     skip: .ignore )
                         } catch {
                             thisCompiler.rexselErrorList.add(
                                 RexselErrorData.init( kind: RexselErrorKind

@@ -70,7 +70,7 @@ struct SymbolTable {
             throw SymbolTableError( kind: .duplicateSymbol,
                                     name: symbolName,
                                     declaredLine: declaredInLine,
-                                    newLine: symbolTableDict[ symbolName ]!.whereDeclared )
+                                    previouslyDeclaredIn: symbolTableDict[ symbolName ]!.whereDeclared )
         }
         symbolTableDict[symbolName] = newEntry
     }

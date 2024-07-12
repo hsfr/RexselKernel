@@ -13,9 +13,9 @@ import Foundation
 
 extension MatchingSubstringNode {
 
-    static let blockTokens: StylesheetTokensType = TerminalSymbolEnum.blockTokens
+    static let blockTokens: TerminalSymbolEnumSetType = TerminalSymbolEnum.blockTokens
 
-    static let optionTokens: StylesheetTokensType = []
+    static let optionTokens: TerminalSymbolEnumSetType = []
 
 }
 
@@ -195,7 +195,7 @@ class MatchingSubstringNode: ExprNode  {
     ///   <matching-substring> ::= "matching-substring" "{" <block templates>+ "}"
     /// ```
 
-    override func setSyntax( options optionsList: StylesheetTokensType, elements elementsList: StylesheetTokensType ) {
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
         super.setSyntax( options: optionsList, elements: elementsList )
     }
 
@@ -240,9 +240,12 @@ class MatchingSubstringNode: ExprNode  {
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
-                        } catch let err as RexselErrorData {
+                        } catch let err as SymbolTableError {
                             // Already in list so mark duplicate error
-                            thisCompiler.rexselErrorList.add( err )
+                            try? markDuplicateError( symbol: err.name,
+                                                     declaredIn: err.declaredLine,
+                                                     preciouslDelaredIn: err.previouslyDeclaredIn,
+                                                     skip: .ignore )
                         } catch {
                             thisCompiler.rexselErrorList.add(
                                 RexselErrorData.init( kind: RexselErrorKind

@@ -50,7 +50,7 @@ class DocTypeSystemNode: ExprNode  {
             case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == self.exprNodeType :
                 value = thisCompiler.nextToken.value
 #if REXSEL_LOGGING
-                rLogger.log( self, .debug, "Found output '\(exprNodeType.xml)':'\(value)' in line \(sourceLine)" )
+                rLogger.log( self, .debug, "Found output '\(exprNodeType.xml)':'\(valueString)' in line \(sourceLine)" )
 #endif
                 thisCompiler.tokenizedSourceIndex += 2
 
