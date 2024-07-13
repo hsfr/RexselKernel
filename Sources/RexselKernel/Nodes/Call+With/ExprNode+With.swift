@@ -67,7 +67,7 @@ class WithNode: ExprNode  {
         super.init()
         exprNodeType = .with
         isInBlock = false
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         setSyntax( options: WithNode.optionTokens, elements: WithNode.blockTokens )
    }
 
@@ -122,10 +122,10 @@ class WithNode: ExprNode  {
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .with
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what != .openCurlyBracket
                                             && name.isNotEmpty
                                             && valueString.isNotEmpty :
-                    // Expecting another parameter
+                    // Found another terminal
                     return
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
@@ -246,7 +246,7 @@ class WithNode: ExprNode  {
         super.setSyntax( options: optionsList, elements: elementsList )
     }
 
-   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Check the syntax that was input against that defined

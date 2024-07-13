@@ -208,6 +208,29 @@ class CopyNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Semantic Checking and Symbol Table Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Perform semantic checks.
+
+    override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> = [] ) {
+
+        variablesDict.title = exprNodeType.description
+        variablesDict.blockLine = sourceLine
+
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.stylesheetTokens )
+
+        // Set up the symbol table entries
+        if let nodes = nodeChildren {
+            for child in nodes {
+                child.buildSymbolTableAndSemanticChecks()
+            }
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Generate stylesheet tag.
     ///

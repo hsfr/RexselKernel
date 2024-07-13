@@ -156,6 +156,7 @@ class ApplyTemplatesNode: ExprNode  {
                     continue
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
+                    checkSyntax()
                     if isInBlock {
                         thisCompiler.tokenizedSourceIndex += 1
                         thisCompiler.nestedLevel -= 1
