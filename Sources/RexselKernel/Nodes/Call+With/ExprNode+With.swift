@@ -55,9 +55,6 @@ class WithNode: ExprNode  {
     ///  Value (when not derived from block)
     fileprivate var valueString: String = ""
 
-    /// With statements must always have a value.
-    // fileprivate var isBlockEmpty = true
-
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Initialisation Methods

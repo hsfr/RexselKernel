@@ -333,7 +333,8 @@ class ExprNode: NSObject {
     //
     /// Set up the syntax based on the BNF.
 
-    func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
+    func setSyntax( options optionsList: TerminalSymbolEnumSetType, 
+                    elements elementsList: TerminalSymbolEnumSetType ) {
         for keyword in optionsList {
             optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
         }
