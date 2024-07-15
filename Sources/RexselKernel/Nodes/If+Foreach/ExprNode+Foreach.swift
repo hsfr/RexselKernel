@@ -194,9 +194,8 @@ class ForeachNode: ExprNode  {
     //
     /// Set up the syntax based on the BNF.
     ///
-    ///
     /// ```xml
-    ///   <foreach> ::= "foreach" <expression>
+    ///   <foreach> ::= "foreach" <quote> <xpath expression> <quote>
     ///                 "{"
     ///                    <sort>?
     ///                    <block elements>+
@@ -283,7 +282,7 @@ class ForeachNode: ExprNode  {
 
                 switch child.thisExprNodeType {
 
-                    case .parameter, .variable :
+                    case .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
                                                          type: child.thisExprNodeType,
@@ -309,8 +308,6 @@ class ForeachNode: ExprNode  {
                 child.buildSymbolTableAndSemanticChecks()
             }
         }
-
-        // Special checks go here
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
