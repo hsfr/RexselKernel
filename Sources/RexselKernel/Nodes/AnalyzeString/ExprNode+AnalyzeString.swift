@@ -101,8 +101,8 @@ class AnalyzeStringNode: ExprNode  {
 
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                    // Valid constructions
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Valid constructions
 
                 case ( .expression, .terminal, _ ) where string.isEmpty &&
                                                          isInOptionTokens( thisCompiler.nextToken.what ) :
@@ -126,8 +126,8 @@ class AnalyzeStringNode: ExprNode  {
                     isInBlock = true
                     continue
 
-                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                    // Process block
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Process block
 
                 case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
                     if isLogging {
