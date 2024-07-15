@@ -26,7 +26,7 @@ class StripSpaceNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .stripSpace
+        thisExprNodeType = .stripSpace
         stripSpaceList = ""
     }
 
@@ -92,7 +92,7 @@ class StripSpaceNode: ExprNode  {
 
             default :
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line )
                 return
         }
@@ -108,7 +108,7 @@ class StripSpaceNode: ExprNode  {
         let lineComment = super.generate()
 
         let attributes = " elements=\"\(stripSpaceList)\""
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         guard stripSpaceList.isNotEmpty else {
             return ""
         }

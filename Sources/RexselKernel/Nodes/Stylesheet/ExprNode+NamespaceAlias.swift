@@ -68,7 +68,7 @@ class NamespaceAliasNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .namespaceAlias
+        thisExprNodeType = .namespaceAlias
         mapFromString = ""
         mapToString = ""
     }
@@ -172,7 +172,7 @@ class NamespaceAliasNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
 
@@ -191,7 +191,7 @@ class NamespaceAliasNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "\(exprNodeType.description):\(mapFromString)"
+        variablesDict.title = "\(thisExprNodeType.description):\(mapFromString)"
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.namespaceAliasAttributeTokens )
@@ -200,10 +200,10 @@ class NamespaceAliasNode: ExprNode  {
         if let nodes = nodeChildren {
             var nonParameterFound = false
             for child in nodes {
-                if child.exprNodeType != .parameter {
+                if child.thisExprNodeType != .parameter {
                     nonParameterFound = true
                 }
-                if nonParameterFound && child.exprNodeType == .parameter {
+                if nonParameterFound && child.thisExprNodeType == .parameter {
                     markParameterMustBeAtStartOfBlock( name: child.name,
                                                        within: "\(variablesDict.title)",
                                                        at: child.sourceLine )
@@ -215,12 +215,12 @@ class NamespaceAliasNode: ExprNode  {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -302,7 +302,7 @@ class NamespaceAliasNode: ExprNode  {
             attributes += " \(TerminalSymbolEnum.mapTo.xml)=\"\(mapToString)\""
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
     }
 }

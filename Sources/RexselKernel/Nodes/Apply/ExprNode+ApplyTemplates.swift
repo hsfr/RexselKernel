@@ -53,7 +53,7 @@ class ApplyTemplatesNode: ExprNode  {
     
     override init() {
         super.init()
-        exprNodeType = .applyTemplates
+        thisExprNodeType = .applyTemplates
         isLogging = true  // Adjust as required
         isInBlock = false
         setSyntax( options: ApplyTemplatesNode.optionTokens, elements: ApplyTemplatesNode.blockTokens )
@@ -202,7 +202,7 @@ class ApplyTemplatesNode: ExprNode  {
                 case ( .expression, _, _ ) :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    insteadOf: "using or scope",
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     continue
@@ -210,7 +210,7 @@ class ApplyTemplatesNode: ExprNode  {
                 case ( .qname, _, _ ) :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    insteadOf: "using or scope",
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     continue
@@ -229,7 +229,7 @@ class ApplyTemplatesNode: ExprNode  {
                     // Illegal block elements done now instead of in checkSyntax.
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    insteadOf: tokensDescription( ApplyTemplatesNode.blockTokens ),
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .outOfBlock )
                     thisCompiler.tokenizedSourceIndex += 1
@@ -238,7 +238,7 @@ class ApplyTemplatesNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
 
@@ -302,12 +302,12 @@ class ApplyTemplatesNode: ExprNode  {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .with :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -396,7 +396,7 @@ class ApplyTemplatesNode: ExprNode  {
             }
         }
         
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {

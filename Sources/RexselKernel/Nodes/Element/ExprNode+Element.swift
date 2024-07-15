@@ -84,7 +84,7 @@ class ElementNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .element
+        thisExprNodeType = .element
      
         elementName = ""
         namespaceString = ""
@@ -194,7 +194,7 @@ class ElementNode: ExprNode  {
 
                 case ( .expression, _, _ ) where !isInElementAttributeTokens( thisCompiler.nextToken.what ) :
                     try markUnexpectedSymbolError( found: thisCompiler.nextToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
@@ -203,14 +203,14 @@ class ElementNode: ExprNode  {
                                                     && thisCompiler.nextToken.what == .openCurlyBracket :
                     try markUnexpectedSymbolError( found: thisCompiler.nextToken.value,
                                                    insteadOf: "expression",
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
 
                 default:
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
@@ -235,12 +235,12 @@ class ElementNode: ExprNode  {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -334,7 +334,7 @@ class ElementNode: ExprNode  {
             }
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {

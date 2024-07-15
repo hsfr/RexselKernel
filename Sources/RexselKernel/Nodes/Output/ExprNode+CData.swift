@@ -26,7 +26,7 @@ class CDataNode: ExprNode  {
 
     override init() {
         super.init()
-        self.exprNodeType = .cdataList
+        self.thisExprNodeType = .cdataList
         cdataValue = ""
     }
 
@@ -49,10 +49,10 @@ class CDataNode: ExprNode  {
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-            case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == self.exprNodeType :
+            case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == self.thisExprNodeType :
                 cdataValue = thisCompiler.nextToken.value
 #if REXSEL_LOGGING
-                rLogger.log( self, .debug, "Found '\(exprNodeType.xml)':'\(cdataValue)' in line \(sourceLine)" )
+                rLogger.log( self, .debug, "Found '\(thisExprNodeType.xml)':'\(cdataValue)' in line \(sourceLine)" )
 #endif
                 thisCompiler.tokenizedSourceIndex += 2
 
@@ -64,7 +64,7 @@ class CDataNode: ExprNode  {
 
             default :
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return
@@ -85,7 +85,7 @@ class CDataNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(cdataValue)\""
+        return "\(thisExprNodeType.xml)=\"\(cdataValue)\""
     }
 
 }

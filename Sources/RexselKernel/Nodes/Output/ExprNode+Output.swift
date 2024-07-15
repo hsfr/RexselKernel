@@ -71,7 +71,7 @@ class OutputNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .output
+        thisExprNodeType = .output
 
         setSyntax()
    }
@@ -136,7 +136,7 @@ class OutputNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    let nodeName = node.thisExprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     // The entry must exist as it was set up in the init using isInOutputTokens
@@ -158,7 +158,7 @@ class OutputNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
@@ -214,7 +214,7 @@ class OutputNode: ExprNode  {
 
         // Only output if there are attributes (chioldren)
         if attributes.isNotEmpty {
-            return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml) \(attributes)/>\n"
+            return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)/>\n"
         }
         return ""
     }

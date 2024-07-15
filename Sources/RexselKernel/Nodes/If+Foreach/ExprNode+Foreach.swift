@@ -70,7 +70,7 @@ class ForeachNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .foreach
+        thisExprNodeType = .foreach
 
         loopExpression = ""
         setSyntax()
@@ -140,7 +140,7 @@ class ForeachNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    let nodeName = node.thisExprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     // The entry must exist as it was set up in the init using isInOutputTokens
@@ -180,7 +180,7 @@ class ForeachNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
@@ -208,10 +208,10 @@ class ForeachNode: ExprNode  {
         if let nodes = nodeChildren {
             var nonSortFound = false
             for child in nodes {
-                if child.exprNodeType != .sort {
+                if child.thisExprNodeType != .sort {
                     nonSortFound = true
                 }
-                if nonSortFound && child.exprNodeType == .sort {
+                if nonSortFound && child.thisExprNodeType == .sort {
                     markSortMustBeAtStartOfBlock( within: "\(variablesDict.title)",
                                                   at: child.sourceLine )
                 }
@@ -222,12 +222,12 @@ class ForeachNode: ExprNode  {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -299,7 +299,7 @@ class ForeachNode: ExprNode  {
             }
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {

@@ -7,6 +7,30 @@
 
 import Foundation
 
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+extension SortNode {
+
+    static let blockTokens: TerminalSymbolEnumSetType = [
+    ]
+
+    static let optionTokens: TerminalSymbolEnumSetType = [
+        .using, .lang, 
+        .ascending, .descending,
+        .upperFirst, .lowerFirst,
+        .textSort, .numberSort
+    ]
+
+}
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// MARK: -
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
 class SortNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -51,13 +75,107 @@ class SortNode: ExprNode  {
 
     override init() {
         super.init()
-        self.exprNodeType = .sort
+        self.thisExprNodeType = .sort
+        isLogging = true  // Adjust as required
+        setSyntax( options: SortNode.optionTokens, elements: SortNode.blockTokens )
+   }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Parsing/Generate Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Parse source (with tokens).
+    ///
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
+
+    override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
+
+        defer {
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
+        }
+        thisCompiler = compiler
+        sourceLine = thisCompiler.currentToken.line
+
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
+
+        // Slide past keyword
+        thisCompiler.tokenizedSourceIndex += 1
+
+        while !thisCompiler.isEndOfFile {
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
+
+            switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
+
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Valid constructions
+
+                case ( .terminal, .expression, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) :
+                    // Any illegal expression after an option are detected when checking syntax.
+                    optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.nextToken.value
+                    if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
+                        optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line
+                    }
+                    optionsDict[ thisCompiler.currentToken.what ]?.count += 1
+                    thisCompiler.tokenizedSourceIndex += 2
+                    continue
+
+                case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) :
+                    optionsDict[ thisCompiler.currentToken.what ]?.value = ""
+                    if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
+                        optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line
+                    }
+                    optionsDict[ thisCompiler.currentToken.what ]?.count += 1
+                    thisCompiler.tokenizedSourceIndex += 1
+                    continue
+
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Invalid constructions
+
+                case ( _, .terminal, _ ) where thisCompiler.currentToken.type == .qname :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextkeyword )
+                    continue
+
+                case ( .expression, _, _ ) : // Naked expression
+                    try markUnexpectedExpressionError( inLine: thisCompiler.currentToken.line,
+                                                       what: thisCompiler.currentToken.value )
+                    checkSyntax()
+                    return
+
+                // Everything gets passed up the chain.
+
+                default :
+                    checkSyntax()
+                    return
+            }
+        }
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse with statement.
+    /// Set up the syntax based on the BNF.
     ///
     /// ```xml
     ///   <sort> ::= "sort" ( "using" <expression> )?
@@ -67,79 +185,51 @@ class SortNode: ExprNode  {
     ///                     ( ( "text" | "number" ) )?
     /// ```
 
-    override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+        optionsDict[ .ascending ] = AllowableSyntaxEntryStruct( max: 1, needsExpression: false )
+        optionsDict[ .descending ] = AllowableSyntaxEntryStruct( max: 1, needsExpression: false )
+        optionsDict[ .upperFirst ] = AllowableSyntaxEntryStruct( max: 1, needsExpression: false )
+        optionsDict[ .lowerFirst ] = AllowableSyntaxEntryStruct( max: 1, needsExpression: false )
+        optionsDict[ .textSort ] = AllowableSyntaxEntryStruct( max: 1, needsExpression: false )
+        optionsDict[ .numberSort ] = AllowableSyntaxEntryStruct( max: 1, needsExpression: false )
+    }
 
-        defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
-        }
-        thisCompiler = compiler
-        sourceLine = thisCompiler.currentToken.line
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special reuirements are done here
+    /// such as required combinations of keywords.
 
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
-
-        // Slide past keyword
-        thisCompiler.tokenizedSourceIndex += 1
-
-        while !thisCompiler.isEndOfFile {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
-
-            switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
-
-                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .using :
-                    usingString = thisCompiler.nextToken.value
-                    thisCompiler.tokenizedSourceIndex += 2
-
-                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .lang :
-                    langString = thisCompiler.nextToken.value
-                    thisCompiler.tokenizedSourceIndex += 2
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .ascending :
-                    ascending = true
-                    thisCompiler.tokenizedSourceIndex += 1
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .descending :
-                    ascending = false
-                    thisCompiler.tokenizedSourceIndex += 1
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .upperFirst :
-                    upper = true
-                    thisCompiler.tokenizedSourceIndex += 1
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .lowerFirst :
-                    upper = false
-                    thisCompiler.tokenizedSourceIndex += 1
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .textSort :
-                    text = true
-                    thisCompiler.tokenizedSourceIndex += 1
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .numberSort :
-                    text = false
-                    thisCompiler.tokenizedSourceIndex += 1
-
-                case ( .expression, _, _ ) : // Naked expression
-                    markUnexpectedExpressionError()
-                    return
-
-                case ( .terminal, _, _ ) : // Otherwise pass up the parse chain
-                    return
-
-                default :
-                    return
-
+    override func checkSyntax()
+    {
+        super.checkSyntax()
+        // Check for illegal expressions
+        for ( _, entry ) in optionsDict {
+            if !entry.needsExpression && entry.value.isNotEmpty {
+                try? markUnexpectedExpressionError( inLine: thisCompiler.currentToken.line,
+                                                   what: thisCompiler.currentToken.value )
             }
+        }
+        // Check for duplicates
+        if optionsDict[ TerminalSymbolEnum.ascending ]!.count > 0 && optionsDict[ TerminalSymbolEnum.descending ]!.count > 0 {
+            markCannotHaveBothOptions( inLine: thisCompiler.currentToken.line,
+                                       option1: TerminalSymbolEnum.ascending.description,
+                                       option2: TerminalSymbolEnum.descending.description,
+                                       inElement: thisExprNodeType.description )
+        }
+        if optionsDict[ TerminalSymbolEnum.upperFirst ]!.count > 0 && optionsDict[ TerminalSymbolEnum.lowerFirst ]!.count > 0 {
+            markCannotHaveBothOptions( inLine: thisCompiler.currentToken.line,
+                                       option1: TerminalSymbolEnum.upperFirst.description,
+                                       option2: TerminalSymbolEnum.lowerFirst.description,
+                                       inElement: thisExprNodeType.description )
+        }
+        if optionsDict[ TerminalSymbolEnum.textSort ]!.count > 0 && optionsDict[ TerminalSymbolEnum.numberSort ]!.count > 0 {
+            markCannotHaveBothOptions( inLine: thisCompiler.currentToken.line,
+                                       option1: TerminalSymbolEnum.textSort.description,
+                                       option2: TerminalSymbolEnum.numberSort.description,
+                                       inElement: thisExprNodeType.description )
         }
     }
 
@@ -164,31 +254,40 @@ class SortNode: ExprNode  {
         _ = super.generate()
 
         var attributes = ""
-        if usingString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.select.xml)=\"\(usingString)\""
+
+        if optionsDict[ TerminalSymbolEnum.using ]!.value.isNotEmpty {
+            attributes += " \(TerminalSymbolEnum.select.xml)=\"\(optionsDict[ TerminalSymbolEnum.using ]!.value)\""
         }
-        if langString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.lang.xml)=\"\(langString)\""
+
+        if optionsDict[ TerminalSymbolEnum.lang ]!.value.isNotEmpty {
+            attributes += " \(TerminalSymbolEnum.lang.xml)=\"\(optionsDict[ TerminalSymbolEnum.lang ]!.value)\""
         }
-        if !ascending {
+
+        if optionsDict[ TerminalSymbolEnum.ascending ]!.count > 0 {
+            attributes += " \(TerminalSymbolEnum.order.xml)=\"\(TerminalSymbolEnum.ascending.xml)\""
+        }
+
+        if optionsDict[ TerminalSymbolEnum.descending ]!.count > 0 {
             attributes += " \(TerminalSymbolEnum.order.xml)=\"\(TerminalSymbolEnum.descending.xml)\""
         }
-        // This will need modifying eventually to support other languages.
-        switch ( upper, lower ) {
-            case ( true, false ) where text :
-                attributes += " \(TerminalSymbolEnum.caseOrder.xml)=\"\(TerminalSymbolEnum.upperFirst.xml)\""
 
-            case ( false, true ) where text :
-                attributes += " \(TerminalSymbolEnum.caseOrder.xml)=\"\(TerminalSymbolEnum.upperFirst.xml)\""
-                
-            default: ()
-        }
-        // This will need modifying to include a QName construct
-        if !text {
-            attributes += " \(TerminalSymbolEnum.dataType.xml)=\"\(TerminalSymbolEnum.number.xml)\""
+        if optionsDict[ TerminalSymbolEnum.upperFirst ]!.count > 0 {
+            attributes += " \(TerminalSymbolEnum.caseOrder.xml)=\"\(TerminalSymbolEnum.upperFirst.xml)\""
         }
 
-        return "<\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml) \(attributes)/>\n"
+        if optionsDict[ TerminalSymbolEnum.lowerFirst ]!.count > 0 {
+            attributes += " \(TerminalSymbolEnum.caseOrder.xml)=\"\(TerminalSymbolEnum.lowerFirst.xml)\""
+        }
+
+        if optionsDict[ TerminalSymbolEnum.textSort ]!.count > 0 {
+            attributes += " \(TerminalSymbolEnum.dataType.xml)=\"\(TerminalSymbolEnum.textSort.xml)\""
+        }
+
+        if optionsDict[ TerminalSymbolEnum.numberSort ]!.count > 0 {
+            attributes += " \(TerminalSymbolEnum.dataType.xml)=\"\(TerminalSymbolEnum.numberSort.xml)\""
+        }
+
+        return "<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)/>\n"
     }
 
 }

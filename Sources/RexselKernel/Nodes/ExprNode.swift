@@ -28,7 +28,7 @@ class ExprNode: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    var exprNodeType = TerminalSymbolEnum.unknownToken
+    var thisExprNodeType = TerminalSymbolEnum.unknownToken
 
     var isRootNode: Bool = false
 
@@ -155,7 +155,7 @@ class ExprNode: NSObject {
 
     func generate( ) -> String {
 #if REXSEL_LOGGING
-        rLogger.log( self, .debug, "Generating \(exprNodeType.description) node" )
+        rLogger.log( self, .debug, "Generating \(thisExprNodeType.description) node" )
 #endif
         // Remember lines start at 0
         if showLineNumbers {
@@ -186,10 +186,10 @@ class ExprNode: NSObject {
         // allowed children.
         if let nodes = nodeChildren {
             for child in nodes {
-                let childName = child.exprNodeType.description
+                let childName = child.thisExprNodeType.description
                 if let entry = allowableChildrenDict[ childName ] {
                     if !entry.duplicatesAllowed && entry.count > 1 && child.sourceLine != entry.defined {
-                        try? markAlreadyDefined( what: child.exprNodeType,
+                        try? markAlreadyDefined( what: child.thisExprNodeType,
                                                  this: child.sourceLine,
                                                  where: entry.defined )
                     }
@@ -205,7 +205,7 @@ class ExprNode: NSObject {
                     if entry.required && entry.count == 0 {
                         // Raise an error
                         try? markExpectedKeywordError( expected: child,
-                                                       inElement: exprNodeType,
+                                                       inElement: thisExprNodeType,
                                                        inLine: sourceLine )
                     }
                 }
@@ -385,13 +385,13 @@ class ExprNode: NSObject {
             case ( 1, 1 ) where actual == 0 :
                 markSyntaxRequiresElement( inLine: inKeyword.sourceLine,
                                            name: inName,
-                                           inElement: inKeyword.exprNodeType.description )
+                                           inElement: inKeyword.thisExprNodeType.description )
 
             // (x)? zero or one instance of x
             case ( 0, 1 ) where actual >= 2 :
                 markSyntaxRequiresZeroOrOneElement( inLine: inKeyword.sourceLine,
                                                     name: inName,
-                                                    inElement: inKeyword.exprNodeType.description )
+                                                    inElement: inKeyword.thisExprNodeType.description )
 
             // (x)* zero or more instances of x
             case ( 0, Int.max ) :
@@ -401,7 +401,7 @@ class ExprNode: NSObject {
             case ( 1, Int.max ) where actual == 0 :
                 markSyntaxRequiresOneOrMoreElement( inLine: inKeyword.sourceLine,
                                                     name: inName,
-                                                    inElement: inKeyword.exprNodeType.description )
+                                                    inElement: inKeyword.thisExprNodeType.description )
 
             default :
                 ()
@@ -454,23 +454,6 @@ class ExprNode: NSObject {
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 extension ExprNode {
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Mark error for unknown symbol.
-
-    func markUnexpectedExpressionError() {
-#if REXSEL_LOGGING
-        let errorMessage = RexselErrorKind.foundUnexpectedExpression(lineNumber: sourceLine, found: thisCompiler.currentToken.valueString ).description
-        rLogger.log( self, .debug, "**** \(errorMessage)." )
-#endif
-        thisCompiler.rexselErrorList
-            .add( RexselErrorData
-                .init( kind: RexselErrorKind
-                    .foundUnexpectedExpression( lineNumber: sourceLine,
-                                                found: thisCompiler.currentToken.value ) ) )
-    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

@@ -29,7 +29,7 @@ class InfinityNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .infinity
+        thisExprNodeType = .infinity
         infinityValue = ""
     }
 
@@ -101,7 +101,7 @@ class InfinityNode: ExprNode  {
 
            default :
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line )
                 return
 
@@ -122,7 +122,7 @@ class InfinityNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(infinityValue)\""
+        return "\(thisExprNodeType.xml)=\"\(infinityValue)\""
     }
 
 }

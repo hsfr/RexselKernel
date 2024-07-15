@@ -71,7 +71,7 @@ class IfNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .ifCondition
+        thisExprNodeType = .ifCondition
         
         isInBlock = false
         testString = ""
@@ -139,7 +139,7 @@ class IfNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    let nodeName = node.thisExprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     // The entry must exist as it was set up in the init using isInOutputTokens
@@ -165,7 +165,7 @@ class IfNode: ExprNode  {
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && testString.isEmpty :
                     try markMissingItemError( what: .test,
                                               inLine: sourceLine,
-                                              after: exprNodeType.description )
+                                              after: thisExprNodeType.description )
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     // Assume that we have found name so set up to parse block
@@ -179,14 +179,14 @@ class IfNode: ExprNode  {
                         thisCompiler.nestedLevel += 1
                     }
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     // Exit to continue processing at a higher level
                     return
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
@@ -215,12 +215,12 @@ class IfNode: ExprNode  {
         if let nodes = nodeChildren {
             for child in nodes {
                 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
                         
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -292,7 +292,7 @@ class IfNode: ExprNode  {
             }
         }
         
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {

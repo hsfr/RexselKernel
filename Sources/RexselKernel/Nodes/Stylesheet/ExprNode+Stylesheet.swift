@@ -45,7 +45,7 @@ class StylesheetNode: ExprNode {
     override init() {
         super.init()
         isLogging = false  // Adjust as required
-        exprNodeType = .stylesheet
+        thisExprNodeType = .stylesheet
         isInBlock = false
         setSyntax( options: StylesheetNode.optionTokens, elements: StylesheetNode.blockTokens )
         isRootNode = true
@@ -191,7 +191,7 @@ class StylesheetNode: ExprNode {
                     }
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    insteadOf: tokensDescription( StylesheetNode.blockTokens ),
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .absorbBlock )
                     thisCompiler.tokenizedSourceIndex += 1
@@ -199,7 +199,7 @@ class StylesheetNode: ExprNode {
 
                 default :
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     continue
@@ -270,7 +270,7 @@ class StylesheetNode: ExprNode {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> = [] ) {
 
-        variablesDict.title = exprNodeType.description
+        variablesDict.title = thisExprNodeType.description
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.stylesheetTokens )
@@ -279,12 +279,12 @@ class StylesheetNode: ExprNode {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable, .proc, .match, .attributeSet, .key :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -404,7 +404,7 @@ class StylesheetNode: ExprNode {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
                     case .xmlns, .version, .id, .excludeResultPrefixes :
                         attributes += " \(child.generate())"
 
@@ -415,9 +415,9 @@ class StylesheetNode: ExprNode {
         }
 
         if contents.isEmpty {
-            return "<\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml) \(attributes)/>\n"
+            return "<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)/>\n"
         } else {
-            return "<\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml) \(attributes)>\n\(contents)\n</\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)>"
+            return "<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)>\n\(contents)\n</\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)>"
         }
     }
 

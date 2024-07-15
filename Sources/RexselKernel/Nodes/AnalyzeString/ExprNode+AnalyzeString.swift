@@ -52,7 +52,7 @@ class AnalyzeStringNode: ExprNode  {
     {
         super.init()
         isLogging = false  // Adjust as required
-        exprNodeType = .analyzeString
+        thisExprNodeType = .analyzeString
         string = ""
         setSyntax( options: AnalyzeStringNode.optionTokens, elements: AnalyzeStringNode.blockTokens )
     }
@@ -72,7 +72,7 @@ class AnalyzeStringNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-            name = "\(exprNodeType.description)[\(thisCompiler.currentToken.line)]"
+            name = "\(thisExprNodeType.description)[\(thisCompiler.currentToken.line)]"
             if isLogging {
                 rLogger.log( self, .debug, thisCompiler.currentTokenLog )
                 rLogger.log( self, .debug, thisCompiler.nextTokenLog )
@@ -186,7 +186,7 @@ class AnalyzeStringNode: ExprNode  {
                     }
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    insteadOf: tokensDescription( AnalyzeStringNode.blockTokens ),
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .absorbBlock )
                     thisCompiler.tokenizedSourceIndex += 1
@@ -194,7 +194,7 @@ class AnalyzeStringNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
 
@@ -243,7 +243,7 @@ class AnalyzeStringNode: ExprNode  {
             markMustHaveAtLeastOneOfElements( inLine: sourceLine,
                                               names: [ TerminalSymbolEnum.matchingSubstring.description,
                                                        TerminalSymbolEnum.nonMatchingSubstring.description ],
-                                              inElement: exprNodeType.description )
+                                              inElement: thisExprNodeType.description )
         }
     }
 
@@ -259,7 +259,7 @@ class AnalyzeStringNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "\(exprNodeType.description)[\(thisCompiler.currentToken.line)]"
+        variablesDict.title = "\(thisExprNodeType.description)[\(thisCompiler.currentToken.line)]"
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: AnalyzeStringNode.blockTokens )
@@ -268,12 +268,12 @@ class AnalyzeStringNode: ExprNode  {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -368,7 +368,7 @@ class AnalyzeStringNode: ExprNode  {
             }
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {

@@ -28,7 +28,7 @@ class IncludeNode: ExprNode {
     override init()
     {
         super.init()
-        exprNodeType = .includeSheet
+        thisExprNodeType = .includeSheet
         hrefString = ""
     }
 
@@ -85,7 +85,7 @@ class IncludeNode: ExprNode {
             default :
                 // Unexpected terminal or bracket
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return
@@ -116,7 +116,7 @@ class IncludeNode: ExprNode {
             }
         }
 
-        return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml) \(attributes)/>\n"
+        return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)/>\n"
     }
 
 

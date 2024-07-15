@@ -26,7 +26,7 @@ class StandAloneNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .standAlone
+        thisExprNodeType = .standAlone
         yesNoValue = .no
     }
 
@@ -71,7 +71,7 @@ class StandAloneNode: ExprNode  {
             case ( .terminal, _, _ ) where !isInBoolTokens( thisCompiler.currentToken.what ) :
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
                                                insteadOf: "'yes' or 'no'",
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: sourceLine )
                 return
 
@@ -84,7 +84,7 @@ class StandAloneNode: ExprNode  {
             default :
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
                                                insteadOf: "'yes' or 'no'",
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: sourceLine )
                 return
 
@@ -109,7 +109,7 @@ class StandAloneNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(yesNoValue.description)\""
+        return "\(thisExprNodeType.xml)=\"\(yesNoValue.description)\""
     }
 
 }

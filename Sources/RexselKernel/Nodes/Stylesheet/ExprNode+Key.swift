@@ -75,7 +75,7 @@ class KeyNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .key
+        thisExprNodeType = .key
         usingString = ""
         keyNodesString = ""
     }
@@ -156,7 +156,7 @@ class KeyNode: ExprNode  {
                 case ( .terminal, .terminal, _ ) where isInStyleSheetTokens( thisCompiler.nextToken.what ) :
                     try markUnexpectedSymbolError( found: thisCompiler.nextToken.value,
                                                    insteadOf: "expression after '\(thisCompiler.currentToken.value)'",
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     continue
@@ -164,14 +164,14 @@ class KeyNode: ExprNode  {
                 case ( .terminal, .terminal, _ ) where isInKeyAttributeTokenTokens( thisCompiler.nextToken.what ) :
                     try markUnexpectedSymbolError( found: thisCompiler.nextToken.value,
                                                    insteadOf: "expression after '\(thisCompiler.currentToken.value)'",
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     continue
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
 
@@ -200,7 +200,7 @@ class KeyNode: ExprNode  {
             attributes += " \(TerminalSymbolEnum.keyNodes.xml)=\"\(keyNodesString)\""
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
     }
 }

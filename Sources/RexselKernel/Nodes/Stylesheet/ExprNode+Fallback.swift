@@ -36,7 +36,7 @@ class FallbackNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .fallback
+        thisExprNodeType = .fallback
         isInBlock = false
         setSyntax( options: FallbackNode.optionTokens, elements: FallbackNode.blockTokens )
     }
@@ -49,7 +49,7 @@ class FallbackNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-            name = "\(exprNodeType.description)[\(thisCompiler.currentToken.line)]"
+            name = "\(thisExprNodeType.description)[\(thisCompiler.currentToken.line)]"
 #if REXSEL_LOGGING
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
@@ -108,10 +108,10 @@ class FallbackNode: ExprNode  {
 
                     childrenDict[ thisCompiler.currentToken.what ]!.count += 1
 
-                    if childrenDict[ node.exprNodeType ]!.count == 0 {
-                        childrenDict[ node.exprNodeType ]!.defined = nodeLine
+                    if childrenDict[ node.thisExprNodeType ]!.count == 0 {
+                        childrenDict[ node.thisExprNodeType ]!.defined = nodeLine
                     }
-                    childrenDict[ node.exprNodeType ]!.count += 1
+                    childrenDict[ node.thisExprNodeType ]!.count += 1
 
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
@@ -141,7 +141,7 @@ class FallbackNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
 
@@ -187,7 +187,7 @@ class FallbackNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "\(exprNodeType.description)[\(thisCompiler.currentToken.line)]"
+        variablesDict.title = "\(thisExprNodeType.description)[\(thisCompiler.currentToken.line)]"
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: FallbackNode.blockTokens )
@@ -196,10 +196,10 @@ class FallbackNode: ExprNode  {
         if let nodes = nodeChildren {
             var nonParameterFound = false
             for child in nodes {
-                if child.exprNodeType != .parameter {
+                if child.thisExprNodeType != .parameter {
                     nonParameterFound = true
                 }
-                if nonParameterFound && child.exprNodeType == .parameter {
+                if nonParameterFound && child.thisExprNodeType == .parameter {
                     markParameterMustBeAtStartOfBlock( name: child.name,
                                                        within: "\(variablesDict.title)",
                                                        at: child.sourceLine )
@@ -211,12 +211,12 @@ class FallbackNode: ExprNode  {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -296,7 +296,7 @@ class FallbackNode: ExprNode  {
             }
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName)/>\n"
         } else {

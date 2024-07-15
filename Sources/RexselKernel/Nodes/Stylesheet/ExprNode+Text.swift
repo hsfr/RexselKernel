@@ -60,7 +60,7 @@ class TextNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .text
+        thisExprNodeType = .text
         textString = ""
         disableOutputEscaping = false
     }
@@ -138,7 +138,7 @@ class TextNode: ExprNode  {
                 default:
                     // Anything else is an error.
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
 
@@ -163,7 +163,7 @@ class TextNode: ExprNode  {
             attributes += " \(TerminalSymbolEnum.disableOutputEscaping.xml)=\"\(TerminalSymbolEnum.yes)\""
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
        if textString.isEmpty {
             return "\(lineComment)<\(thisElementName)\(attributes)/>\n"
         } else {

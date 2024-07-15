@@ -26,7 +26,7 @@ class CountNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .count
+        thisExprNodeType = .count
         value = ""
    }
 
@@ -80,7 +80,7 @@ class CountNode: ExprNode  {
 
             default :
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return
@@ -101,7 +101,7 @@ class CountNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(value)\""
+        return "\(thisExprNodeType.xml)=\"\(value)\""
     }
 
 }

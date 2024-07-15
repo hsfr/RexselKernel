@@ -86,6 +86,7 @@ enum RexselErrorKind {
     case syntaxRequiresOneOrMoreElement( lineNumber: Int, name: String, inElement: String )
     case syntaxCannotHaveBothElements( lineNumber: Int, names: [String], inElement: String )
     case syntaxMustHaveAtLeastOneOfElements( lineNumber: Int, names: [String], inElement: String )
+    case cannotHaveBothOptions( lineNumber: Int, inElement: String, option1: String, option2: String )
 
     case endOfFile
 
@@ -157,6 +158,7 @@ enum RexselErrorKind {
             case .syntaxRequiresOneOrMoreElement( _, _, _ ) : return 151
             case .syntaxCannotHaveBothElements( _, _, _ ) : return 152
             case .syntaxMustHaveAtLeastOneOfElements( _, _, _ ) : return 153
+            case .cannotHaveBothOptions( _, _, _, _ ) : return 154
 
             case .endOfFile : return 1001
 
@@ -351,6 +353,9 @@ enum RexselErrorKind {
                 }
                 return "Must have at least one of \(namesString)present in \"\(inElement)\" in line \(lineNumber)"
 
+            case .cannotHaveBothOptions( let lineNumber, let inElement, let option1, let option2 ) :
+                return "Cannot have both \"\(option1)\" and \"\(option2)\" present in \"\(inElement)\" in line \(lineNumber)"
+
             case .endOfFile : return "Early end of file"
 
             case .unknownError( let lineNumber, _ ) : return "Unknown error in line \(lineNumber)"
@@ -486,6 +491,9 @@ enum RexselErrorKind {
 
             case .syntaxMustHaveAtLeastOneOfElements( _, _, _ ) :
                 return "Insert one of the keywords"
+
+            case .cannotHaveBothOptions( _, _, _, _ ) :
+                return "Remove one."
 
             case .endOfFile : return "Check mismatched brackets?"
 

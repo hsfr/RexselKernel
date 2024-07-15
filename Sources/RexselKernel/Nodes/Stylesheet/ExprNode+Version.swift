@@ -26,7 +26,7 @@ class VersionNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .version
+        thisExprNodeType = .version
         versionValue = ""
     }
 
@@ -75,7 +75,7 @@ class VersionNode: ExprNode  {
             case ( .expression, _, _ )  :
                 versionValue = thisCompiler.currentToken.value
 #if REXSEL_LOGGING
-                rLogger.log( self, .debug, "Found version '\(exprNodeType.xml)':'\(versionValue)' in line \(sourceLine)" )
+                rLogger.log( self, .debug, "Found version '\(thisExprNodeType.xml)':'\(versionValue)' in line \(sourceLine)" )
 #endif
                 // Set the xslt version for this compiler instance
                 thisCompiler.xsltVersion = versionValue
@@ -90,7 +90,7 @@ class VersionNode: ExprNode  {
 
             default :
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return
@@ -111,7 +111,7 @@ class VersionNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(versionValue)\""
+        return "\(thisExprNodeType.xml)=\"\(versionValue)\""
     }
 
 }

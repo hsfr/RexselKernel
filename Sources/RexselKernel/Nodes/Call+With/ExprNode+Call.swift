@@ -62,7 +62,7 @@ class CallNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .call
+        thisExprNodeType = .call
 
         isInBlock = false
         setSyntax()
@@ -145,7 +145,7 @@ class CallNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    let nodeName = node.thisExprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     // The entry must exist as it was set up in the init using isInOutputTokens
@@ -169,7 +169,7 @@ class CallNode: ExprNode  {
                     // Missing proc name
                     try markMissingItemError( what: .name,
                                               inLine: thisCompiler.currentToken.line,
-                                              after: exprNodeType.description,
+                                              after: thisExprNodeType.description,
                                               skip: .outOfBlock )
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
@@ -182,7 +182,7 @@ class CallNode: ExprNode  {
                         thisCompiler.nestedLevel += 1
                     }
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .outOfBlock  )
                     // Exit to continue processing at a higher level
@@ -190,7 +190,7 @@ class CallNode: ExprNode  {
 
                 case ( .expression, _, _ ) where !foundName :
                     // Spurious expression found istead of name
-                    try markExpectedNameError( after: exprNodeType.description,
+                    try markExpectedNameError( after: thisExprNodeType.description,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                     // Exit to continue processing at a higher level
@@ -200,7 +200,7 @@ class CallNode: ExprNode  {
                 case ( .qname, _, _ ) :
                     // Found unexpected QName symbol not covered by the above
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
@@ -208,7 +208,7 @@ class CallNode: ExprNode  {
                 default :
                     // Tidying up with nothing found above.
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
@@ -283,7 +283,7 @@ class CallNode: ExprNode  {
             }
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {

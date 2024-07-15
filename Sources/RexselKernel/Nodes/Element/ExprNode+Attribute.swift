@@ -77,7 +77,7 @@ class AttributeNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .attrib
+        thisExprNodeType = .attrib
 
         name = ""
         namespaceValue = ""
@@ -185,7 +185,7 @@ class AttributeNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    let nodeName = node.thisExprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     // The entry must exist as it was set up in the init using isInOutputTokens
@@ -264,7 +264,7 @@ class AttributeNode: ExprNode  {
                                                thisCompiler.nextNextToken.what == .openCurlyBracket :
                     try markMissingItemError( what: .name,
                                               inLine: thisCompiler.currentToken.line,
-                                              after: exprNodeType.description )
+                                              after: thisExprNodeType.description )
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
@@ -272,7 +272,7 @@ class AttributeNode: ExprNode  {
                 case ( .terminal, _, _ ) where name.isEmpty && namespaceValue.isEmpty && thisCompiler.currentToken.what == .openCurlyBracket :
                     try markMissingItemError( what: .name, 
                                               inLine: thisCompiler.currentToken.line, 
-                                              after: exprNodeType.description )
+                                              after: thisExprNodeType.description )
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
@@ -297,7 +297,7 @@ class AttributeNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
@@ -321,12 +321,12 @@ class AttributeNode: ExprNode  {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -408,7 +408,7 @@ class AttributeNode: ExprNode  {
         }
 
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {

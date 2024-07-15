@@ -29,7 +29,7 @@ class NaNNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .notNumber
+        thisExprNodeType = .notNumber
         nanValue = ""    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -101,7 +101,7 @@ class NaNNode: ExprNode  {
 
            default :
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line )
                 return
 
@@ -122,7 +122,7 @@ class NaNNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(nanValue)\""
+        return "\(thisExprNodeType.xml)=\"\(nanValue)\""
     }
 
 }

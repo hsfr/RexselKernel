@@ -66,7 +66,7 @@ class AttributeSetNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .attributeSet
+        thisExprNodeType = .attributeSet
 
         name = ""
         useAttributeSets = ""
@@ -139,7 +139,7 @@ class AttributeSetNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    let nodeName = node.thisExprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     // The entry must exist as it was set up in the init using isInOutputTokens
@@ -168,7 +168,7 @@ class AttributeSetNode: ExprNode  {
                     // Mark error but assume there is a bracket.
                     try markMissingItemError( what: .openCurlyBracket,
                                               inLine: thisCompiler.currentToken.line,
-                                              after: exprNodeType.description,
+                                              after: thisExprNodeType.description,
                                               skip: .toNextkeyword )
                     thisCompiler.nestedLevel += 1
                     isInBlock = true
@@ -177,7 +177,7 @@ class AttributeSetNode: ExprNode  {
                 case ( .terminal, _, _ ) where name.isEmpty && thisCompiler.currentToken.what == .openCurlyBracket :
                     try markMissingItemError( what: .name,
                                               inLine: thisCompiler.currentToken.line,
-                                              after: exprNodeType.description,
+                                              after: thisExprNodeType.description,
                                               skip: .toNextkeyword )
                     thisCompiler.nestedLevel += 1
                     isInBlock = true
@@ -200,7 +200,7 @@ class AttributeSetNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
             }
@@ -273,7 +273,7 @@ class AttributeSetNode: ExprNode  {
             }
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {

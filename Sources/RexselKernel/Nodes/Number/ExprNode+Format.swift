@@ -26,7 +26,7 @@ class FormatNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .format
+        thisExprNodeType = .format
         value = "1"
    }
 
@@ -80,7 +80,7 @@ class FormatNode: ExprNode  {
 
             default :
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return
@@ -101,7 +101,7 @@ class FormatNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(value)\""
+        return "\(thisExprNodeType.xml)=\"\(value)\""
     }
 
 }

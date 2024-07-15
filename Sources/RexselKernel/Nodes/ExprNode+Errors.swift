@@ -141,10 +141,10 @@ extension ExprNode {
     }
 }
 
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    extension ExprNode {
+extension ExprNode {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -203,6 +203,29 @@ extension ExprNode {
         thisCompiler.rexselErrorList.add( RexselErrorData.init( kind: theError ) )
         try processSkip( skip )
     }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Mark error for unexpected expresssion found in line.
+    ///
+    /// - Parameters:
+    ///   - inLine: the line in which the expression occurs.
+    ///   - what: the expression.
+    ///   - skip: Skip to next keyword/line (defaults to _.ignore_)
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
+
+    func markUnexpectedExpressionError( inLine: Int,
+                                        what inWhat: String,
+                                        skip: SkipEnum = .ignore ) throws {
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind
+                    .foundUnexpectedExpression( lineNumber: inLine,
+                                                found: inWhat ) ) )
+        try processSkip( skip )
+    }
+
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -699,10 +722,10 @@ extension ExprNode {
     func markMissingScriptOption( inLine: Int, what: TerminalSymbolEnum ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
-                .init( kind: RexselErrorKind.missingScriptOption( lineNumber: inLine+1, 
+                .init( kind: RexselErrorKind.missingScriptOption( lineNumber: inLine+1,
                                                                   symbol: what.description ) ) )
     }
-    
+
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
@@ -717,7 +740,7 @@ extension ExprNode {
     func missingPrefixDeclaration( inLine: Int, prefix missingPrefix: String ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
-                .init( kind: RexselErrorKind.prefixNotDeclared( lineNumber: inLine+1, 
+                .init( kind: RexselErrorKind.prefixNotDeclared( lineNumber: inLine+1,
                                                                 prefix: missingPrefix ) ) )
     }
 
@@ -734,7 +757,7 @@ extension ExprNode {
     func markSyntaxRequiresElement( inLine: Int, name: String, inElement: String ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
-                .init( kind: RexselErrorKind.syntaxRequiresElement( lineNumber: inLine+1, 
+                .init( kind: RexselErrorKind.syntaxRequiresElement( lineNumber: inLine+1,
                                                                     name: name,
                                                                     inElement: inElement ) ) )
     }
@@ -752,7 +775,7 @@ extension ExprNode {
     func markSyntaxRequiresZeroOrOneElement( inLine: Int, name: String, inElement: String ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
-                .init( kind: RexselErrorKind.syntaxRequiresZeroOrOneElement( lineNumber: inLine+1, 
+                .init( kind: RexselErrorKind.syntaxRequiresZeroOrOneElement( lineNumber: inLine+1,
                                                                              name: name,
                                                                              inElement: inElement ) ) )
     }
@@ -770,7 +793,7 @@ extension ExprNode {
     func markSyntaxRequiresZeroOrMoreElement( inLine: Int, name: String, inElement: String ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
-                .init( kind: RexselErrorKind.syntaxRequiresZeroOrMoreElement( lineNumber: inLine+1, 
+                .init( kind: RexselErrorKind.syntaxRequiresZeroOrMoreElement( lineNumber: inLine+1,
                                                                               name: name,
                                                                               inElement: inElement ) ) )
     }
@@ -788,7 +811,7 @@ extension ExprNode {
     func markSyntaxRequiresOneOrMoreElement( inLine: Int, name: String, inElement: String ) {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
-                .init( kind: RexselErrorKind.syntaxRequiresOneOrMoreElement( lineNumber: inLine+1, 
+                .init( kind: RexselErrorKind.syntaxRequiresOneOrMoreElement( lineNumber: inLine+1,
                                                                              name: name,
                                                                              inElement: inElement ) ) )
     }
@@ -823,6 +846,23 @@ extension ExprNode {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
                 .init( kind: RexselErrorKind.syntaxMustHaveAtLeastOneOfElements( lineNumber: inLine, names: names, inElement: inElement) ) )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Must have at least one of the named elements present.
+    ///
+    /// - Parameters:
+    ///   - inLine:    The line in which the element is used.
+    ///   - option1:   First option.
+    ///   - option2:   second option.
+    ///   - inElement: The element they are in.
+
+    func markCannotHaveBothOptions( inLine: Int, option1: String, option2: String, inElement: String ) {
+        thisCompiler.rexselErrorList
+            .add( RexselErrorData
+                .init( kind: RexselErrorKind.cannotHaveBothOptions(lineNumber: inLine, inElement: inElement, option1: option1, option2: option2) ) )
     }
 
 }

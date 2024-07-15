@@ -52,7 +52,7 @@ class LetterValueNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .letterValue
+        thisExprNodeType = .letterValue
         letterValue = .alphabetic
     }
 
@@ -105,7 +105,7 @@ class LetterValueNode: ExprNode  {
                 return
 
             default :
-                try? markUnknownValue( inElement: exprNodeType,
+                try? markUnknownValue( inElement: thisExprNodeType,
                                        found: thisCompiler.currentToken.value,
                                        insteadOf: "\"alphabetic\", \"traditional\"",
                                        inLine: thisCompiler.currentToken.line,
@@ -128,7 +128,7 @@ class LetterValueNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(letterValue.xml)\""
+        return "\(thisExprNodeType.xml)=\"\(letterValue.xml)\""
     }
 
 }

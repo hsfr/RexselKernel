@@ -81,7 +81,7 @@ class MessageNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .message
+        thisExprNodeType = .message
 
         isInBlock = false
         yesNoValue = .no
@@ -145,7 +145,7 @@ class MessageNode: ExprNode  {
                                                     && thisCompiler.nextToken.what != .openCurlyBracket :
                     yesNoValue = YesNoEnum.translate( thisCompiler.nextToken.value )
                     if !( yesNoValue == .yes || yesNoValue == .no ) {
-                        try? markUnknownValue( inElement: exprNodeType,
+                        try? markUnknownValue( inElement: thisExprNodeType,
                                                found: thisCompiler.currentToken.value,
                                                insteadOf: "'yes' or 'no'",
                                                inLine: sourceLine )
@@ -178,7 +178,7 @@ class MessageNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    let nodeName = node.thisExprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     // The entry must exist as it was set up in the init using isInOutputTokens
@@ -266,7 +266,7 @@ class MessageNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
@@ -295,12 +295,12 @@ class MessageNode: ExprNode  {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -385,7 +385,7 @@ class MessageNode: ExprNode  {
             }
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {

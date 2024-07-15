@@ -65,7 +65,7 @@ class WithNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .with
+        thisExprNodeType = .with
         isInBlock = false
         isLogging = true  // Adjust as required
         setSyntax( options: WithNode.optionTokens, elements: WithNode.blockTokens )
@@ -152,7 +152,7 @@ class WithNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    let nodeName = node.thisExprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     // The entry must exist as it was set up in the init using isInOutputTokens
@@ -194,13 +194,13 @@ class WithNode: ExprNode  {
                 case ( .terminal, _, _ ) where name.isEmpty && thisCompiler.currentToken.what == .openCurlyBracket :
                     isInBlock = false
                     thisCompiler.nestedLevel += 1
-                    try markMissingItemError( what: .name, inLine: thisCompiler.currentToken.line, after: exprNodeType.description )
+                    try markMissingItemError( what: .name, inLine: thisCompiler.currentToken.line, after: thisExprNodeType.description )
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
                 case ( .terminal, _, _ ) where name.isEmpty && thisCompiler.currentToken.what != .openCurlyBracket :
                     isInBlock = false
-                    try markMissingItemError( what: .name, inLine: thisCompiler.currentToken.line, after: exprNodeType.description )
+                    try markMissingItemError( what: .name, inLine: thisCompiler.currentToken.line, after: thisExprNodeType.description )
                     return
 
                 case ( .expression, .terminal, _ ) where thisCompiler.nextToken.what == .openCurlyBracket :
@@ -212,13 +212,13 @@ class WithNode: ExprNode  {
                    continue
 
                 case ( .expression, _, _ ) where name.isEmpty :
-                    try markExpectedNameError( after: exprNodeType.description,
+                    try markExpectedNameError( after: thisExprNodeType.description,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword)
                     return
 
                 default :
-                    try markUnexpectedSymbolError( what: thisCompiler.currentToken.what, inElement: exprNodeType, inLine: sourceLine )
+                    try markUnexpectedSymbolError( what: thisCompiler.currentToken.what, inElement: thisExprNodeType, inLine: sourceLine )
                     return
 
             }
@@ -282,7 +282,7 @@ class WithNode: ExprNode  {
         if !blockElementsPresent {
             markSyntaxRequiresOneOrMoreElement( inLine: sourceLine,
                                                 name: tokensDescription( TerminalSymbolEnum.blockTokens ),
-                                                inElement: self.exprNodeType.description )
+                                                inElement: self.thisExprNodeType.description )
         }
     }
 
@@ -300,7 +300,7 @@ class WithNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = exprNodeType.description
+        variablesDict.title = thisExprNodeType.description
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: WithNode.blockTokens )
@@ -309,12 +309,12 @@ class WithNode: ExprNode  {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -388,7 +388,7 @@ class WithNode: ExprNode  {
             }
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "<\(thisElementName) \(attributes)/>\n"
         } else {

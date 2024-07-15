@@ -73,7 +73,7 @@ class NumberNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .number
+        thisExprNodeType = .number
 
         setSyntax()
    }
@@ -144,7 +144,7 @@ class NumberNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    let nodeName = node.thisExprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     // The entry must exist as it was set up in the init using isInOutputTokens
@@ -166,7 +166,7 @@ class NumberNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     // There maybe more to process in this block
@@ -209,7 +209,7 @@ class NumberNode: ExprNode  {
 
         // Only output if there are attributes (children)
         if attributes.isNotEmpty {
-            return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml) \(attributes)/>\n"
+            return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)/>\n"
         }
         return ""
     }

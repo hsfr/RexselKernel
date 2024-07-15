@@ -51,7 +51,7 @@ class MatchNode: ExprNode {
 
     override init() {
         super.init()
-        exprNodeType = .match
+        thisExprNodeType = .match
         isLogging = false  // Adjust as required
         isInBlock = false
         setSyntax( options: MatchNode.optionTokens, elements: MatchNode.blockTokens )
@@ -202,7 +202,7 @@ class MatchNode: ExprNode {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
 
@@ -246,12 +246,12 @@ class MatchNode: ExprNode {
         if let nodes = nodeChildren {
             var nonParameterFound = false
             for child in nodes {
-                if child.exprNodeType != .parameter {
+                if child.thisExprNodeType != .parameter {
                     nonParameterFound = true
                 }
-                if nonParameterFound && child.exprNodeType == .parameter {
+                if nonParameterFound && child.thisExprNodeType == .parameter {
                     markParameterMustBeAtStartOfBlock( name: child.name,
-                                                       within: self.exprNodeType.description,
+                                                       within: self.thisExprNodeType.description,
                                                        at: child.sourceLine )
                 }
             }
@@ -281,12 +281,12 @@ class MatchNode: ExprNode {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -375,7 +375,7 @@ class MatchNode: ExprNode {
             }
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {

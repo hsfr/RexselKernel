@@ -48,7 +48,7 @@ class ProcNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .proc
+        thisExprNodeType = .proc
         isLogging = false  // Adjust as required
         isInBlock = false
         setSyntax( options: ProcNode.optionTokens, elements: ProcNode.blockTokens )
@@ -198,7 +198,7 @@ class ProcNode: ExprNode  {
                     // Missing proc name
                     try markMissingItemError( what: .name,
                                               inLine: thisCompiler.currentToken.line,
-                                              after: exprNodeType.description )
+                                              after: thisExprNodeType.description )
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     // Assume that we have found name so set up to parse block
@@ -207,7 +207,7 @@ class ProcNode: ExprNode  {
 
                 case ( .expression, _, _ ) where name.isEmpty :
                     // Spurious expression found istead of name
-                    try markExpectedNameError( after: exprNodeType.description,
+                    try markExpectedNameError( after: thisExprNodeType.description,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword)
                     // Exit to continue processing at a higher level
@@ -216,14 +216,14 @@ class ProcNode: ExprNode  {
                 case ( .qname, _, _ ) :
                     // Found unexpected qname symbol not covered by the above
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .absorbBlock )
                     return
@@ -254,7 +254,7 @@ class ProcNode: ExprNode  {
         super.setSyntax( options: optionsList, elements: elementsList )
     }
 
-   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Check the syntax that was input against that defined
@@ -268,12 +268,12 @@ class ProcNode: ExprNode  {
         if let nodes = nodeChildren {
             var nonParameterFound = false
             for child in nodes {
-                if child.exprNodeType != .parameter {
+                if child.thisExprNodeType != .parameter {
                     nonParameterFound = true
                 }
-                if nonParameterFound && child.exprNodeType == .parameter {
+                if nonParameterFound && child.thisExprNodeType == .parameter {
                     markParameterMustBeAtStartOfBlock( name: child.name,
-                                                       within: self.exprNodeType.description,
+                                                       within: self.thisExprNodeType.description,
                                                        at: child.sourceLine )
                 }
             }
@@ -289,9 +289,9 @@ class ProcNode: ExprNode  {
         if !blockElementFound {
             markSyntaxRequiresOneOrMoreElement( inLine: sourceLine,
                                                 name: tokensDescription( TerminalSymbolEnum.blockTokens ),
-                                                inElement: self.exprNodeType.description )
+                                                inElement: self.thisExprNodeType.description )
         }
-   }
+    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -312,12 +312,12 @@ class ProcNode: ExprNode  {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -396,7 +396,7 @@ class ProcNode: ExprNode  {
             }
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {

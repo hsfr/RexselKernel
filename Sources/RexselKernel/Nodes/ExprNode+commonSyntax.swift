@@ -83,6 +83,9 @@ struct AllowableSyntaxEntryStruct {
     /// The maximum allowed
     var max: Int = 0
 
+    /// Associated with an expression
+    var needsExpression: Bool = true
+
     /// Where the child is originally defined.
     ///
     /// Used when duplicates are checked for.

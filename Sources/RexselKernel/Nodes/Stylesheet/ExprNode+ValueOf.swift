@@ -63,7 +63,7 @@ class ValueOfNode: ExprNode {
     override init()
     {
         super.init()
-        exprNodeType = .valueOf
+        thisExprNodeType = .valueOf
         expresssionString = ""
         disableOutputEscaping = false
     }
@@ -142,7 +142,7 @@ class ValueOfNode: ExprNode {
                 default:
                     // Anything else is an error.
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
 
@@ -187,7 +187,7 @@ class ValueOfNode: ExprNode {
             attributes += " \(TerminalSymbolEnum.disableOutputEscaping.xml)=\"\(TerminalSymbolEnum.yes)\""
         }
 
-        return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml) \(attributes)/>\n"
+        return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)/>\n"
     }
 
 }

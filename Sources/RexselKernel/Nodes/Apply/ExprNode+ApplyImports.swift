@@ -20,7 +20,7 @@ class ApplyImportsNode: ExprNode  {
     override init()
     {
         super.init()
-        self.exprNodeType = .applyImports
+        self.thisExprNodeType = .applyImports
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -67,7 +67,7 @@ class ApplyImportsNode: ExprNode  {
 
         _ = super.generate()
 
-        return "<\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)/>\n"
+        return "<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)/>\n"
     }
 
 

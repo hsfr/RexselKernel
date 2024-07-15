@@ -26,7 +26,7 @@ class LangNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .lang
+        thisExprNodeType = .lang
         languageValue = ""
    }
 
@@ -79,7 +79,7 @@ class LangNode: ExprNode  {
 
             default :
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return
@@ -100,7 +100,7 @@ class LangNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(languageValue)\""
+        return "\(thisExprNodeType.xml)=\"\(languageValue)\""
     }
 
 }

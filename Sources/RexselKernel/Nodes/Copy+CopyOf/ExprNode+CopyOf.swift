@@ -28,7 +28,7 @@ class CopyOfNode: ExprNode {
     override init()
     {
         super.init()
-        exprNodeType = .copyOf
+        thisExprNodeType = .copyOf
         selectString = ""
     }
 
@@ -83,7 +83,7 @@ class CopyOfNode: ExprNode {
             default :
                 // Unexpected terminal or bracket
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return
@@ -112,7 +112,7 @@ class CopyOfNode: ExprNode {
             }
         }
 
-        return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)\(attributes)/>\n"
+        return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)\(attributes)/>\n"
     }
 
 

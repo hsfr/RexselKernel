@@ -29,7 +29,7 @@ class MinusSignNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .minusSign
+        thisExprNodeType = .minusSign
         minusValue = ""
     }
 
@@ -100,7 +100,7 @@ class MinusSignNode: ExprNode  {
 
            default :
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line )
                 return
 
@@ -121,7 +121,7 @@ class MinusSignNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(minusValue)\""
+        return "\(thisExprNodeType.xml)=\"\(minusValue)\""
     }
 
 }

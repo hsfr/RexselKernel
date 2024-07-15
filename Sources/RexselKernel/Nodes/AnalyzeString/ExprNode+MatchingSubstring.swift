@@ -48,7 +48,7 @@ class MatchingSubstringNode: ExprNode  {
     {
         super.init()
         isLogging = false  // Adjust as required
-        exprNodeType = .matchingSubstring
+        thisExprNodeType = .matchingSubstring
         string = ""
         setSyntax( options: MatchingSubstringNode.optionTokens, elements: MatchingSubstringNode.blockTokens )
     }
@@ -68,7 +68,7 @@ class MatchingSubstringNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-            name = "\(exprNodeType.description)[\(thisCompiler.currentToken.line)]"
+            name = "\(thisExprNodeType.description)[\(thisCompiler.currentToken.line)]"
             if isLogging {
                 rLogger.log( self, .debug, thisCompiler.currentTokenLog )
                 rLogger.log( self, .debug, thisCompiler.nextTokenLog )
@@ -127,10 +127,10 @@ class MatchingSubstringNode: ExprNode  {
 
                     childrenDict[ thisCompiler.currentToken.what ]!.count += 1
 
-                    if childrenDict[ node.exprNodeType ]!.count == 0 {
-                        childrenDict[ node.exprNodeType ]!.defined = nodeLine
+                    if childrenDict[ node.thisExprNodeType ]!.count == 0 {
+                        childrenDict[ node.thisExprNodeType ]!.defined = nodeLine
                     }
-                    childrenDict[ node.exprNodeType ]!.count += 1
+                    childrenDict[ node.thisExprNodeType ]!.count += 1
 
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
@@ -166,7 +166,7 @@ class MatchingSubstringNode: ExprNode  {
                     }
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    insteadOf: tokensDescription( AnalyzeStringNode.blockTokens ),
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .absorbBlock )
                     thisCompiler.tokenizedSourceIndex += 1
@@ -175,7 +175,7 @@ class MatchingSubstringNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
 
@@ -222,7 +222,7 @@ class MatchingSubstringNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "\(exprNodeType.description)[\(thisCompiler.currentToken.line)]"
+        variablesDict.title = "\(thisExprNodeType.description)[\(thisCompiler.currentToken.line)]"
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: MatchingSubstringNode.blockTokens )
@@ -231,12 +231,12 @@ class MatchingSubstringNode: ExprNode  {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
@@ -324,7 +324,7 @@ class MatchingSubstringNode: ExprNode  {
             }
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName)/>\n"
         } else {

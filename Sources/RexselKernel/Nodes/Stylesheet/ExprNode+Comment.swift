@@ -28,7 +28,7 @@ class CommentNode: ExprNode  {
     override init()
     {
         super.init()
-        self.exprNodeType = .comment
+        self.thisExprNodeType = .comment
         textString = ""  
     }
 
@@ -85,7 +85,7 @@ class CommentNode: ExprNode  {
             default:
                 // Anything else is an error.
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return
@@ -111,7 +111,7 @@ class CommentNode: ExprNode  {
             return ""
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         let lineComment = super.generate()
         return "\(lineComment)<\(thisElementName)><![CDATA[\(textString)]]></\(thisElementName)>"
     }
