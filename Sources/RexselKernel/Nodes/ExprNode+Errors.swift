@@ -313,11 +313,7 @@ extension ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Has this symbol already been defined?
-    ///
-    /// Subtlely different to the above. This monitors symbols
-    /// but _markAlreadyDefined_ marks keywords already defined
-    /// when only one should be declared.
+    /// There is a missing item?
     ///
     /// - Parameters:
     ///   - which: Which item is missing.

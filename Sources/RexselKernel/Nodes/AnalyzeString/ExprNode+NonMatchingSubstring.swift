@@ -191,8 +191,6 @@ class NonMatchingSubstringNode: ExprNode  {
     //
     /// Set up the syntax based on the BNF.
     ///
-    /// Slightly crude way to do it but should suffice.
-    ///
     /// ```xml
     ///   <non-matching-substring> ::= <bloclTokens>+
     /// ```

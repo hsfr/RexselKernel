@@ -246,6 +246,7 @@ class AttributeSetNode: ExprNode  {
     /// Generate stylesheet tag.
     ///
     /// Output is of the form
+    /// 
     /// ```xml
     ///     <xsl:attribute name="elementName" namespace="...">
     ///        contents

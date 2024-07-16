@@ -26,7 +26,7 @@ import Foundation
 
 extension TerminalSymbolEnum {
 
-    static let outputTokens: Set <TerminalSymbolEnum> = [
+    static let outputTokens: Set<TerminalSymbolEnum> = [
         .method, .version, .encoding,
         .cdataList, .doctypePublic, .standAlone,
         .doctypeSystem, .omitXmlDecl, .indent
