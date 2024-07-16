@@ -315,7 +315,7 @@ class AttributeNode: ExprNode  {
         variablesDict.title = "attribute:\(name)"
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.whenTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.blockTokens )
 
         // Set up the symbol table entries
         if let nodes = nodeChildren {

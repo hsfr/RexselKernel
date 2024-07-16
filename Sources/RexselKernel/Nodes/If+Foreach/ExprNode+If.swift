@@ -262,7 +262,7 @@ class IfNode: ExprNode  {
         variablesDict.title = "if:\(testExpression)"
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.whenTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: IfNode.blockTokens )
         
         // Set up the symbol table entries
         if let nodes = nodeChildren {

@@ -23,7 +23,9 @@ extension TerminalSymbolEnum {
 
     static let elementTokens: Set<TerminalSymbolEnum> = blockTokens
 
-    static let elementAttributeTokens: Set<TerminalSymbolEnum> = [ .namespace, .useAttributeSets ]
+    static let elementAttributeTokens: Set<TerminalSymbolEnum> = [
+        .namespace, .useAttributeSets
+    ]
 
 }
 
@@ -229,7 +231,7 @@ class ElementNode: ExprNode  {
         variablesDict.title = "element:\(name)"
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.whenTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.blockTokens )
 
         // Set up the symbol table entries
         if let nodes = nodeChildren {

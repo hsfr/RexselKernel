@@ -218,7 +218,7 @@ class ProcessingInstructionNode: ExprNode  {
         variablesDict.title = thisExprNodeType.description
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.otherwiseTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.blockTokens )
 
         // Set up the symbol table entries
         if let nodes = nodeChildren {

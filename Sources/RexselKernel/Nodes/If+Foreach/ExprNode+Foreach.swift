@@ -260,7 +260,7 @@ class ForeachNode: ExprNode  {
         variablesDict.title = "foreach:\(loopExpression)"
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.whenTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: ForeachNode.blockTokens )
 
         // Check for sort having to be first
         if let nodes = nodeChildren {

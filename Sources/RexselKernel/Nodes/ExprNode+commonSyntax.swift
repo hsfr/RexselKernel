@@ -54,13 +54,9 @@ extension TerminalSymbolEnum {
         .valueOf, .text
     ]
 
-    static let fallbackToken: TerminalSymbolEnumSetType = [ .fallback ]
-
     static let sortToken: TerminalSymbolEnumSetType = [ .sort ]
 
     static let parameterToken: TerminalSymbolEnumSetType = [ .parameter ]
-
-    static let withToken: TerminalSymbolEnumSetType = [ .with ]
 
     static let YesNoTokens: TerminalSymbolEnumSetType = [ .yes, .no ]
 

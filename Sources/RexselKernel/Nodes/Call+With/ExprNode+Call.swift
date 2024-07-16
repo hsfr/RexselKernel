@@ -13,7 +13,9 @@ import Foundation
 
 extension CallNode {
 
-    static let blockTokens: TerminalSymbolEnumSetType = TerminalSymbolEnum.withToken
+    static let blockTokens: TerminalSymbolEnumSetType = [
+        .with
+    ]
 
     static let optionTokens: TerminalSymbolEnumSetType = []
 
@@ -27,7 +29,7 @@ extension CallNode {
 
 class CallNode: ExprNode  {
 
-   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Initialisation Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -237,7 +239,7 @@ class CallNode: ExprNode  {
         super.checkSyntax()
     }
 
-   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Check duplicates.
