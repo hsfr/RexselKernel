@@ -7,6 +7,24 @@
 
 import Foundation
 
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+extension IncludeNode {
+
+    static let blockTokens: TerminalSymbolEnumSetType = []
+
+    static let optionTokens: TerminalSymbolEnumSetType = []
+
+}
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// MARK: -
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
 class IncludeNode: ExprNode {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -15,7 +33,7 @@ class IncludeNode: ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-   fileprivate var hrefString: String!
+    fileprivate var uriString: String!
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -29,26 +47,31 @@ class IncludeNode: ExprNode {
     {
         super.init()
         thisExprNodeType = .includeSheet
-        hrefString = ""
+        isLogging = false  // Adjust as required
+        uriString = ""
+        setSyntax( options: ForeachNode.optionTokens, elements: ForeachNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Parsing/Generate Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse value statement.
+    /// Parse source (with tokens).
     ///
-    /// ```xml
-    ///   <include> ::= "include" <expression>
-    /// ```
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
@@ -56,41 +79,94 @@ class IncludeNode: ExprNode {
 
         // When we arrive here the element terminal symbol is current
 
-#if REXSEL_LOGGING
+        if isLogging {
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        }
 
         // Slide past keyword
         thisCompiler.tokenizedSourceIndex += 1
 
-#if REXSEL_LOGGING
+        if isLogging {
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        }
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Valid constructions
+
             case ( .expression, _, _ ) :
-                hrefString = thisCompiler.currentToken.value
+                uriString = thisCompiler.currentToken.value
                 thisCompiler.tokenizedSourceIndex += 1
+                checkSyntax()
                 return
 
-            case ( .terminal, _, _ ) :
-                try markMissingItemError( what: .uri, inLine: thisCompiler.currentToken.line, found: thisCompiler.currentToken.what.description )
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Exit block
+
+            case ( .terminal, _, _ ) where uriString.isNotEmpty :
+                checkSyntax()
+                return
+
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Early end of file
+
+            case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
+                return
+
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Invalid constructions
+
+            case ( .terminal, _, _ ) where uriString.isEmpty :
+                try markMissingItemError( what: .uri,
+                                          inLine: thisCompiler.currentToken.line,
+                                          found: thisCompiler.currentToken.what.description )
                 return
 
             default :
-                // Unexpected terminal or bracket
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
                                                inElement: thisExprNodeType,
-                                               inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword )
+                                               inLine: thisCompiler.currentToken.line )
                 return
         }
 
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///   <include> ::= "include" <quote> <uri> <quote>
+    /// ```
+
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
+        if uriString.isEmpty {
+            try? markMissingItemError( what: .uri,
+                                       inLine: thisCompiler.currentToken.line,
+                                       found: thisCompiler.currentToken.what.description )
+        }
+        // Eventual check here for a valid uri expression.
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -110,7 +186,7 @@ class IncludeNode: ExprNode {
 
         var attributes = ""
 
-        if let str = hrefString {
+        if let str = uriString {
             if str.isNotEmpty {
                 attributes += " \(TerminalSymbolEnum.href.xml)=\"\(str)\""
             }

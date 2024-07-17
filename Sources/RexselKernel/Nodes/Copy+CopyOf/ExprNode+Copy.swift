@@ -85,7 +85,9 @@ class CopyNode: ExprNode  {
     ///
     /// ```xml
     ///   <copy> ::= "copy" ( "use-attribute-sets" <expression> )?
-    ///                  "{" <contents> "}" )
+    ///                     "{"
+    ///                         <block elements>+
+    ///                     "}"
     /// ```
 
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {

@@ -180,9 +180,9 @@ class SortNode: ExprNode  {
     /// ```xml
     ///   <sort> ::= "sort" ( "using" <expression> )?
     ///                     ( "lang" <expression> )?
-    ///                     ( ( "ascending" | "descending" ) )?
-    ///                     ( ( "upper-first" | "lower-first" ) )?
-    ///                     ( ( "text" | "number" ) )?
+    ///                     ( "ascending" | "descending" )?
+    ///                     ( "upper-first" | "lower-first" )?
+    ///                     ( "text" | "number" )?
     /// ```
 
     override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {

@@ -259,7 +259,8 @@ class ApplyTemplatesNode: ExprNode  {
     ///                             ( "using" <expression> )?
     ///                             ( "scope" <expression> )?
     ///                         "{"
-    ///                            ( <with> | <sort> )*
+    ///                             <sort>?
+    ///                             <with>*
     ///                         "}"
     /// ```
 

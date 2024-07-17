@@ -272,7 +272,6 @@ class WhenNode: ExprNode  {
             }
         }
 
-        // Special checks go here
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

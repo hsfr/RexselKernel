@@ -15,8 +15,7 @@ import Foundation
 /// RexselError is the means to record an error in the
 /// compiler source.
 
-class RexselError: NSObject
-{
+class RexselError: NSObject {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

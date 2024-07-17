@@ -25,8 +25,7 @@ class CopyOfNode: ExprNode {
     //
     /// Initialise Node base.
 
-    override init()
-    {
+    override init() {
         super.init()
         thisExprNodeType = .copyOf
         selectString = ""

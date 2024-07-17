@@ -176,7 +176,7 @@ class OtherwiseNode: ExprNode  {
     /// Set up the syntax based on the BNF.
     ///
     /// ```xml
-    ///   <otherwise> ::= "otherwise" ( "{" <contents> "}" )?
+    ///   <otherwise> ::= "otherwise" "{" <block templates>+ "}"
     /// ```
 
     override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
