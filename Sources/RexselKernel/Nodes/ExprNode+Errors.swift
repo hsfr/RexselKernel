@@ -179,7 +179,7 @@ extension ExprNode {
                 theError = .missingOpenCurlyBracket( lineNumber: inLine+1 )
 
             case .useAttributeSets :
-                theError = .missingList( lineNumber: inLine+1, symbol: afterName )
+                theError = .missingList( lineNumber: inLine+1, symbol: what.description )
 
             case .name :
                 theError = .expectedName(lineNumber: inLine+1, name: afterName )
