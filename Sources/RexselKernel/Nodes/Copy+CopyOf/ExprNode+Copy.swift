@@ -50,7 +50,7 @@ class CopyNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .copy
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         isInBlock = false
         useAttributeSetsString = ""
         setSyntax( options: CopyNode.optionTokens, elements: CopyNode.blockTokens )
@@ -192,23 +192,23 @@ class CopyNode: ExprNode  {
                                                        skip: .toNextkeyword )
                     return
 
-                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
-                    if isInBlock {
-                        thisCompiler.nestedLevel += 1
-                    }
-                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   insteadOf: tokensDescription( CopyNode.blockTokens ),
-                                                   inElement: thisExprNodeType,
-                                                   inLine: thisCompiler.currentToken.line,
-                                                   skip: .absorbBlock )
-                    thisCompiler.tokenizedSourceIndex += 1
-                    continue
-
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                     return
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Error conditions
+
+                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
+                    if isInBlock {
+                        thisCompiler.nestedLevel += 1
+                    }
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: CopyNode.blockTokens,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .absorbBlock )
+                    thisCompiler.tokenizedSourceIndex += 1
+                    continue
 
                 case ( .terminal, _, _ ) :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
@@ -242,7 +242,7 @@ class CopyNode: ExprNode  {
     /// Set up the syntax based on the BNF.
     ///
     /// ```xml
-    ///   <copy> ::= "copy" ( "use-attribute-sets" <expression> )?
+    ///   <copy> ::= "copy" ( "use-attribute-sets" <quote> <attribbute name list> <quote> )?
     ///              "{"
     ///                  <block elements>+
     ///              "}"

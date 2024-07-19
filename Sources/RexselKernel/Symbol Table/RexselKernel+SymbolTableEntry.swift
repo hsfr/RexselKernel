@@ -1,8 +1,8 @@
 //
-//  Compiler+SymbolTableEntry.swift
+//  RexselKernel+SymbolTableEntry.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -28,7 +28,7 @@ struct SymbolTableEntry {
     ///
     /// - Parameters:
     ///   - maxLength: Maximum line length
-    /// - returns: Symbol table string
+    /// - Returns: Symbol table string
 
     func description( maxLength inMaximumLength: Int ) -> String
     {

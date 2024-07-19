@@ -2,7 +2,7 @@
 //  RexelError+Kind.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -45,7 +45,7 @@ enum RexselErrorKind {
     case missingParameterName( lineNumber: Int )
     case missingVariableValue( lineNumber: Int, name: String )
     case missingTest( lineNumber: Int )
-    case missingExpression( lineNumber: Int, name: String )
+    case missingExpression( lineNumber: Int, after: String )
 
     case missingNamespace( lineNumber: Int )
     case missingURI( lineNumber: Int, symbol: String )
@@ -188,16 +188,16 @@ enum RexselErrorKind {
                     return "Unexpected symbol in \"\(inElement)\" in line \(lineNumber)"
                 }
 
-            case .foundUnexpectedSymbolInsteadOf( let lineNumber, let found, let insteadOf, let inElement ) :
+            case .foundUnexpectedSymbolInsteadOf( let lineNumber, let found, _, let inElement ) :
                 switch ( found.isNotEmpty, inElement.isNotEmpty ) {
                     case ( true, true ) :
-                        return "Unexpected symbol \"\(found)\" instead of \"\(insteadOf)\" in \"\(inElement)\" in line \(lineNumber)"
+                        return "Unexpected symbol \"\(found)\" in \"\(inElement)\" in line \(lineNumber)"
                     case ( true, false ) :
-                        return "Unexpected symbol \"\(found)\" instead of \"\(insteadOf)\" in line \(lineNumber)"
+                        return "Unexpected symbol \"\(found)\" in line \(lineNumber)"
                     case ( false, true ) :
-                        return "Unexpected symbol found instead of \"\(insteadOf)\" in \"\(inElement)\" in line \(lineNumber)"
+                        return "Unexpected symbol in \"\(inElement)\" in line \(lineNumber)"
                     case ( false, false ) :
-                        return "Unexpected symbol found instead of \"\(insteadOf)\" in line \(lineNumber)"
+                        return "Unexpected symbol in line \(lineNumber)"
                 }
 
             case .foundUnexpectedExpression( let lineNumber, let found ) :
@@ -248,10 +248,10 @@ enum RexselErrorKind {
             case .missingTest( let lineNumber ) : 
                 return "Missing test expression in line \(lineNumber)"
 
-            case .missingExpression( let lineNumber, let name ) :
-                return "Missing \"\(name)\" expression in line \(lineNumber)"
+            case .missingExpression( let lineNumber, let after ) :
+                return "Missing expression after \"\(after)\" in line \(lineNumber)"
 
-            case .missingURI( let lineNumber, let symbol ) : 
+            case .missingURI( let lineNumber, let symbol ) :
                 return "Missing URI, found \"\(symbol)\" in line \(lineNumber)"
 
             case .missingList( let lineNumber, let symbol ) :
@@ -375,8 +375,12 @@ enum RexselErrorKind {
             case .foundUnexpectedSymbol( _, _, _ ) :
                 return "Check spelling, missing expression, bracket or quote?"
 
-            case .foundUnexpectedSymbolInsteadOf( _, _, _, _ ) :
-                return "Check spelling, missing expression, bracket or quote?"
+            case .foundUnexpectedSymbolInsteadOf( _, _, let insteadOf, _ ) :
+                if insteadOf.isNotEmpty {
+                    return "Check spelling, did you mean \(insteadOf)?"
+                } else {
+                    return "Check spelling, no suggestion."
+                }
 
             case .foundUnexpectedExpression( _, _ ) : return "Check missing keyword."
 

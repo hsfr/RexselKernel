@@ -188,7 +188,7 @@ extension ExprNode {
                 theError = .missingTest(lineNumber: inLine+1 )
 
             case .expression :
-                theError = .missingExpression(lineNumber: inLine+1, name: afterName )
+                theError = .missingExpression(lineNumber: inLine+1, after: afterName )
 
             case .namespace :
                 theError = .missingNamespace( lineNumber: inLine+1 )
@@ -472,23 +472,60 @@ extension ExprNode {
     /// - Parameters:
     ///   - found:     The wayward symbol as string.
     ///   - insteadOf: String defining what is expected.
+    ///   - mightBe:   A set of _TerminalSymbolEnum_. against which to check.
     ///   - inElement: Which should occur in this element.
     ///   - inLine:    The line in which the element is used (defaults to -1 if current line to be used).
     ///   - skip:      Skip to next keyword/line (defaults to _.ignore_)
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markUnexpectedSymbolError( found foundSymbol: String,
-                                    insteadOf: String,
+                                    insteadOf: String = "",
+                                    mightBe: TerminalSymbolEnumSetType = [],
                                     inElement: TerminalSymbolEnum,
                                     inLine: Int = -1,
                                     skip: SkipEnum = .ignore ) throws {
-        thisCompiler.rexselErrorList
-            .add( RexselErrorData
-                .init( kind: RexselErrorKind
-                    .foundUnexpectedSymbolInsteadOf( lineNumber: inLine+1,
-                                                     found: foundSymbol,
-                                                     insteadOf: insteadOf,
-                                                     inElement: inElement.description ) ) )
+
+        switch ( insteadOf.isEmpty, mightBe.isEmpty ) {
+
+            // insteadOf takes priority!
+            case ( false, _ ) :
+                thisCompiler.rexselErrorList
+                        .add( RexselErrorData
+                            .init( kind: RexselErrorKind
+                                .foundUnexpectedSymbolInsteadOf( lineNumber: inLine+1,
+                                                                 found: foundSymbol,
+                                                                 insteadOf: insteadOf,
+                                                                 inElement: "" ) ) )
+            case ( _, false ) :
+                // Construct an array with list of mightBe tokens.
+                var tokenList = [String]()
+                for entry in mightBe {
+                    tokenList.append(entry.description)
+                }
+                let mightBeList = thisCompiler.getListOfCloseMatches( foundSymbol, with: tokenList )
+                var mightBeString = ""
+                for entry in mightBeList {
+                    mightBeString += "\"\(entry)\" "
+                }
+                thisCompiler.rexselErrorList
+                        .add( RexselErrorData
+                            .init( kind: RexselErrorKind
+                                .foundUnexpectedSymbolInsteadOf( lineNumber: inLine+1,
+                                                                 found: foundSymbol,
+                                                                 insteadOf: mightBeString,
+                                                                 inElement: "" ) ) )
+
+            default :
+                ()
+        }
+
+//        thisCompiler.rexselErrorList
+//            .add( RexselErrorData
+//                .init( kind: RexselErrorKind
+//                    .foundUnexpectedSymbolInsteadOf( lineNumber: inLine+1,
+//                                                     found: foundSymbol,
+//                                                     insteadOf: insteadOf,
+//                                                     inElement: inElement.description ) ) )
         try processSkip( skip )
     }
 

@@ -164,6 +164,7 @@ class NonMatchingSubstringNode: ExprNode  {
                     if isInBlock {
                         thisCompiler.nestedLevel += 1
                     }
+
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    insteadOf: tokensDescription( AnalyzeStringNode.blockTokens ),
                                                    inElement: thisExprNodeType,

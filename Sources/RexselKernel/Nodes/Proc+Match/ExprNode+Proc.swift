@@ -223,9 +223,17 @@ class ProcNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   // insteadOf: tokensDescription( ProcNode.blockTokens ),
+                                                   mightBe: ProcNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .absorbBlock )
+
+
+//                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+//                                                   inElement: thisExprNodeType,
+//                                                   inLine: thisCompiler.currentToken.line,
+//                                                   skip: .absorbBlock )
                     return
 
             }

@@ -200,10 +200,20 @@ class MatchNode: ExprNode {
                                               skip: .toNextkeyword )
                     continue
 
+                case ( _, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: MatchNode.optionTokens,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextkeyword )
+                    continue
+
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: MatchNode.blockTokens,
                                                    inElement: thisExprNodeType,
-                                                   inLine: thisCompiler.currentToken.line )
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextkeyword )
                     return
 
             }

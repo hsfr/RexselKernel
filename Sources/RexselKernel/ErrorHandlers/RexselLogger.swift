@@ -2,7 +2,7 @@
 //  RexselLogger.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 //
 //  A _very_ simplistic logger that would need expanding.
 
