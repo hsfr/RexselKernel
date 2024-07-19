@@ -49,7 +49,7 @@ class ProcNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .proc
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         isInBlock = false
         setSyntax( options: ProcNode.optionTokens, elements: ProcNode.blockTokens )
     }
@@ -213,27 +213,28 @@ class ProcNode: ExprNode  {
                     // Exit to continue processing at a higher level
                     return
 
-                case ( .qname, _, _ ) :
-                    // Found unexpected qname symbol not covered by the above
+//                case ( .qname, _, _ ) :
+//                    // Found unexpected qname symbol not covered by the above
+//                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+//                                                   inElement: thisExprNodeType,
+//                                                   inLine: thisCompiler.currentToken.line,
+//                                                   skip: .toNextkeyword )
+//                    return
+
+                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: ProcNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
-                    return
+                    continue
 
-                default :
+           default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   // insteadOf: tokensDescription( ProcNode.blockTokens ),
                                                    mightBe: ProcNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .absorbBlock )
-
-
-//                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-//                                                   inElement: thisExprNodeType,
-//                                                   inLine: thisCompiler.currentToken.line,
-//                                                   skip: .absorbBlock )
                     return
 
             }

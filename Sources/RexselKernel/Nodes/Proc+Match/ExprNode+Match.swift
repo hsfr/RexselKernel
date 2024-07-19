@@ -120,7 +120,7 @@ class MatchNode: ExprNode {
                     thisCompiler.tokenizedSourceIndex += 2
                     continue
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
                                                        thisCompiler.nextToken.what != .closeCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
@@ -200,9 +200,17 @@ class MatchNode: ExprNode {
                                               skip: .toNextkeyword )
                     continue
 
-                case ( _, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) :
+                case ( _, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) && !isInBlock :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    mightBe: MatchNode.optionTokens,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextkeyword )
+                    continue
+
+                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: MatchNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )

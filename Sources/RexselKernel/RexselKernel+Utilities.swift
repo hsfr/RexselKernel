@@ -34,7 +34,8 @@ extension RexselKernel {
     //
     /// Matching strings based on Jara-Winkler matching.
     ///
-    /// Based on solution in RosettaCode.
+    /// Based on solution in RosettaCode. It also relies on the
+    /// String extension for subscripted strings.
     ///
     /// - Parameters:
     ///   - str_1 : String to compare with *str_2*
@@ -65,16 +66,17 @@ extension RexselKernel {
             match_distance = ([str_1_len, str_2_len].max()!/2) - 1
         }
 
-        var s_matches = [Bool]()
-        var t_matches = [Bool]()
+        var str_1_matches = [Bool]()
+        var str_2_matches = [Bool]()
 
         // Set up matches array to be correct length (Swift does not have sizing when initializing).
-        for _ in 1...str_1_len { s_matches.append(false) }
-        for _ in 1...str_2_len { t_matches.append(false) }
+        for _ in 1...str_1_len { str_1_matches.append(false) }
+        for _ in 1...str_2_len { str_2_matches.append(false) }
 
         var matches: Double = 0.0
         var transpositions: Double = 0.0
 
+        // Scan the str_1 characters
         for i in 0...str_1_len-1 {
 
             let start = [0, (i-match_distance)].max()!
@@ -85,17 +87,16 @@ extension RexselKernel {
             }
 
             for j in start...end {
+                if str_2_matches[j] { continue }
 
-                if t_matches[j] {
+                if str_1[i] != str_2[j] {
+            //  if str_1[String.Index( utf16Offset: i, in: str_1 )] != str_2[String.Index( utf16Offset: j, in: str_2 )] {
                     continue
                 }
-
-                if str_1[String.Index( utf16Offset: i, in: str_1 )] != str_2[String.Index( utf16Offset: j, in: str_2 )] {
-                    continue
-                }
+        
                 // We must have a match
-                s_matches[i] = true
-                t_matches[j] = true
+                str_1_matches[i] = true
+                str_2_matches[j] = true
                 matches += 1
                 break
             }
@@ -107,14 +108,14 @@ extension RexselKernel {
 
         var k = 0
         for i in 0...str_1_len-1 {
-            if !s_matches[i] {
+            if !str_1_matches[i] {
                 continue
             }
-            while !t_matches[k] {
+            while !str_2_matches[k] {
                 k += 1
             }
-            if str_1[String.Index(utf16Offset: i, in: str_1)] != str_2[String.Index( utf16Offset: k, in: str_2 )] {
-
+            if str_1[i] != str_2[k] {
+           //     if str_1[String.Index(utf16Offset: i, in: str_1)] != str_2[String.Index( utf16Offset: k, in: str_2 )] {
                 transpositions += 1
             }
 
