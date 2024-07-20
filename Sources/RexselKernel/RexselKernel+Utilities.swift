@@ -12,7 +12,10 @@ extension RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Return list of close matches..
+    /// Return list of close matches.
+    ///
+    /// The critera for a close match is when weighting
+    /// is greater than 0.9.
     ///
     /// - Parameters:
     ///   - str : String to compare
@@ -90,7 +93,6 @@ extension RexselKernel {
                 if str_2_matches[j] { continue }
 
                 if str_1[i] != str_2[j] {
-            //  if str_1[String.Index( utf16Offset: i, in: str_1 )] != str_2[String.Index( utf16Offset: j, in: str_2 )] {
                     continue
                 }
         
@@ -115,14 +117,13 @@ extension RexselKernel {
                 k += 1
             }
             if str_1[i] != str_2[k] {
-           //     if str_1[String.Index(utf16Offset: i, in: str_1)] != str_2[String.Index( utf16Offset: k, in: str_2 )] {
                 transpositions += 1
             }
 
             k += 1
         }
 
-        let top = (matches / Double(str_1_len)) + (matches / Double(str_2_len)) + (matches - (transpositions / 2)) / matches
+        let top = ( matches / Double(str_1_len) ) + ( matches / Double(str_2_len ) ) + ( matches - ( transpositions / 2 ) ) / matches
         return top/3
     }
 

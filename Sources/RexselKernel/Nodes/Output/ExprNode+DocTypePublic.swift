@@ -51,7 +51,7 @@ class DocTypePublicNode: ExprNode  {
             case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == self.thisExprNodeType :
                 value = thisCompiler.nextToken.value
 #if REXSEL_LOGGING
-                rLogger.log( self, .debug, "Found output '\(thisExprNodeType.xml)':'\(valueString)' in line \(sourceLine)" )
+                rLogger.log( self, .debug, "Found output '\(thisExprNodeType.xml)':'\(expressionString)' in line \(sourceLine)" )
 #endif
                 thisCompiler.tokenizedSourceIndex += 2
 

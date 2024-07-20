@@ -34,7 +34,7 @@ class WithNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     ///  Value (when not derived from block)
-    fileprivate var valueString: String = ""
+    fileprivate var expressionString: String = ""
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -48,7 +48,7 @@ class WithNode: ExprNode  {
         super.init()
         thisExprNodeType = .with
         isInBlock = false
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         setSyntax( options: WithNode.optionTokens, elements: WithNode.blockTokens )
    }
 
@@ -93,26 +93,23 @@ class WithNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Process valid material
 
-                case ( .qname, _, _ ) where name.isEmpty && valueString.isEmpty :
+                // There should always be a parameter name
+                case ( .qname, _, _ ) where name.isEmpty && expressionString.isEmpty :
                     name = thisCompiler.currentToken.value
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .expression, _, _ ) where name.isNotEmpty && valueString.isEmpty :
-                    valueString = thisCompiler.currentToken.value
+                // Simple expression only. There may be an illegal block so
+                // do not exit yet.
+                case ( .expression, _, _ ) where name.isNotEmpty && expressionString.isEmpty :
+                    expressionString = thisCompiler.currentToken.value
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what != .openCurlyBracket
-                                            && name.isNotEmpty
-                                            && valueString.isNotEmpty :
-                    // Found another terminal
-                    return
-
+                // Block start found (no simple expression).
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
                                             && name.isNotEmpty
-                                            && valueString.isEmpty :
-                    // Block encountered (no expression)
+                                            && expressionString.isEmpty :
                     isInBlock = true
                     thisCompiler.nestedLevel += 1
                     thisCompiler.tokenizedSourceIndex += 1
@@ -173,25 +170,24 @@ class WithNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Invalid constructions
 
+                // No parameter name but following block
                 case ( .terminal, _, _ ) where name.isEmpty && thisCompiler.currentToken.what == .openCurlyBracket :
-                    isInBlock = false
+                    isInBlock = true
                     thisCompiler.nestedLevel += 1
-                    try markMissingItemError( what: .name, inLine: thisCompiler.currentToken.line, after: thisExprNodeType.description )
+                    try markMissingItemError( what: .name, 
+                                              inLine: thisCompiler.currentToken.line,
+                                              after: thisExprNodeType.description )
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .terminal, _, _ ) where name.isEmpty && thisCompiler.currentToken.what != .openCurlyBracket :
-                    isInBlock = false
-                    try markMissingItemError( what: .name, inLine: thisCompiler.currentToken.line, after: thisExprNodeType.description )
-                    return
-
-                case ( .expression, .terminal, _ ) where thisCompiler.nextToken.what == .openCurlyBracket :
-                    valueString = thisCompiler.currentToken.value
+                // Found expression and block
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && expressionString.isNotEmpty :
+                    expressionString = thisCompiler.currentToken.value
                     isInBlock = true
                     thisCompiler.nestedLevel += 1
-                    try markCannotHaveBothDefaultAndBlockError( inLine: sourceLine )
-                    thisCompiler.tokenizedSourceIndex += 2
-                   continue
+                    try markCannotHaveBothDefaultAndBlockError( inLine: sourceLine, skip: .absorbBlock )
+                    thisCompiler.tokenizedSourceIndex += 1
+                    return
 
                 case ( .expression, _, _ ) where name.isEmpty :
                     try markExpectedNameError( after: thisExprNodeType.description,
@@ -200,7 +196,7 @@ class WithNode: ExprNode  {
                     return
 
                 default :
-                    try markUnexpectedSymbolError( what: thisCompiler.currentToken.what, inElement: thisExprNodeType, inLine: sourceLine )
+                    // When all else fails throw back to parent.
                     return
 
             }
@@ -249,10 +245,10 @@ class WithNode: ExprNode  {
                 break
             }
         }
-        if blockElementFound && valueString.isNotEmpty {
+        if blockElementFound && expressionString.isNotEmpty {
             try? markCannotHaveBothDefaultAndBlockError( inLine: sourceLine, skip: .ignore )
         }
-        if !blockElementFound && valueString.isEmpty {
+        if !blockElementFound && expressionString.isEmpty {
             try? markDefaultAndBlockMissingError( inLine: sourceLine, skip: .ignore )
         }
      
@@ -336,7 +332,7 @@ class WithNode: ExprNode  {
     /// stylesheet for checking within each local scope.
 
     override func checkVariableScope( _ compiler: RexselKernel ) {
-        scanVariablesInNodeValue( valueString, inLine: sourceLine )
+        scanVariablesInNodeValue( expressionString, inLine: sourceLine )
 
         if let nodes = nodeChildren {
             scanForVariablesInBlock( compiler, nodes )
@@ -362,8 +358,8 @@ class WithNode: ExprNode  {
         _ = super.generate()
 
         var attributes = " \(TerminalSymbolEnum.name.xml)=\"\(name)\""
-        if valueString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.select.xml)=\"\(valueString)\""
+        if expressionString.isNotEmpty {
+            attributes += " \(TerminalSymbolEnum.select.xml)=\"\(expressionString)\""
         }
         var contents = ""
 

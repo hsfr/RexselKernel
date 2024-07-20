@@ -41,7 +41,7 @@ class CallNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .call
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         isInBlock = false
         setSyntax( options: CallNode.optionTokens, elements: CallNode.blockTokens )
     }
@@ -97,12 +97,6 @@ class CallNode: ExprNode  {
                     name = thisCompiler.currentToken.value
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
-                    
-                case ( .qname, _, _ ) where thisCompiler.nextToken.what != .openCurlyBracket :
-                    // No block so we can exit
-                    name = thisCompiler.currentToken.value
-                    thisCompiler.tokenizedSourceIndex += 1
-                    return
                     
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && name.isNotEmpty :
                     isInBlock = true
@@ -178,7 +172,7 @@ class CallNode: ExprNode  {
                         thisCompiler.nestedLevel += 1
                     }
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   insteadOf: tokensDescription( AnalyzeStringNode.blockTokens ),
+                                                   mightBe: CallNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .absorbBlock )

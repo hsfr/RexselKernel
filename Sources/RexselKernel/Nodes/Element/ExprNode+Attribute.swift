@@ -175,7 +175,7 @@ class AttributeNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInAttributeTokens( thisCompiler.currentToken.what ) && isInBlock:
 #if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.valueString)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.expressionString)" )
 #endif
                     node = thisCompiler.currentToken.what.ExpreNodeClass
                     if nodeChildren == nil {

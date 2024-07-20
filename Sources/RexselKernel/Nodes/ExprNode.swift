@@ -117,6 +117,8 @@ class ExprNode: NSObject {
         childrenDict = [:]
         optionsDict = [:]
 
+        isLogging = false
+
         super.init()
     }
 
@@ -139,9 +141,9 @@ class ExprNode: NSObject {
         sourceLine = thisCompiler.currentToken.line
 
         sourceLine = thisCompiler.tokenizedSource[ thisCompiler.tokenizedSourceIndex ].line
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, "Parsing \(thisCompiler.currentToken.what) statement in line \(sourceLine)")
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, "Parsing \(thisCompiler.currentToken.what) statement in line \(sourceLine)")
+        }
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -154,9 +156,9 @@ class ExprNode: NSObject {
     /// - Returns: Line number XML comment.
 
     func generate( ) -> String {
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, "Generating \(thisExprNodeType.description) node" )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, "Generating \(thisExprNodeType.description) node" )
+        }
         // Remember lines start at 0
         if showLineNumbers {
             return "<!-- Line: \(sourceLine+1) -->\n"
@@ -463,9 +465,9 @@ extension ExprNode {
     /// Does not skip line as it just truncates.
 
     func markExpectedCharacterError() {
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, "**** Expected character in line \(thisCompiler.currentToken.line+1)" )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, "**** Expected character in line \(thisCompiler.currentToken.line+1)" )
+        }
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
                 .expectedCharacterNotString( lineNumber: thisCompiler.currentToken.line+1,
@@ -481,9 +483,9 @@ extension ExprNode {
     /// - Returns: true if successful, false if end of file.
 
     func markExpectedParameterNameErrorAndSkipLine() -> Bool {
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, "**** Unknown symbol '\(thisCompiler.currentToken.valueString)' in line \(thisCompiler.currentToken.line+1)" )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, "**** Unknown symbol '\(thisCompiler.currentToken.value)' in line \(thisCompiler.currentToken.line+1)" )
+        }
         thisCompiler.rexselErrorList
             .add( RexselErrorData
                 .init( kind: RexselErrorKind
@@ -504,10 +506,10 @@ extension ExprNode {
     //
 
     func parameterCannotAppearHereError() {
-#if REXSEL_LOGGING
-        let errorMessage = RexselErrorKind.parameterCannotAppearHere(lineNumber: thisCompiler.currentToken.line+1).description
-        rLogger.log( self, .debug, "**** \(errorMessage)" )
-#endif
+        if isLogging {
+            let errorMessage = RexselErrorKind.parameterCannotAppearHere(lineNumber: thisCompiler.currentToken.line+1).description
+            rLogger.log( self, .debug, "**** \(errorMessage)" )
+        }
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
                 .parameterCannotAppearHere( lineNumber: thisCompiler.currentToken.line+1 ) ) )
@@ -535,9 +537,9 @@ extension ExprNode {
 
     func isTokenSupportedKeyword( incrementIndexBy: Int ) -> Bool {
         if notSupported.contains( thisCompiler.currentToken.what ) {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, "**** '\(thisCompiler.currentToken.valueString)' not supported in line \(thisCompiler.currentToken.line+1)" )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, "**** '\(thisCompiler.currentToken.value)' not supported in line \(thisCompiler.currentToken.line+1)" )
+            }
             thisCompiler.rexselErrorList
                 .add( RexselErrorData
                     .init( kind: RexselErrorKind

@@ -225,10 +225,9 @@ class ApplyTemplatesNode: ExprNode  {
                     thisCompiler.nestedLevel += 1
                     continue
 
-                case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) :
-                    // Illegal block elements done now instead of in checkSyntax.
+                case ( _, _, _ ) where !isInBlockTemplateTokens( thisCompiler.currentToken.what ) :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   insteadOf: tokensDescription( ApplyTemplatesNode.blockTokens ),
+                                                   mightBe: ApplyTemplatesNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .outOfBlock )

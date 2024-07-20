@@ -46,7 +46,7 @@ enum TokenEnum {
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 //
-/// Defines the token ran for a particular version.
+/// Defines the token for a particular version.
 ///
 /// The _min_ value is not really needed as it should
 /// always be "1".

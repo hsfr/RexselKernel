@@ -126,7 +126,7 @@ class NumberNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInNumberTokens( thisCompiler.currentToken.what ) :
 #if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.valueString)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.expressionString)" )
 #endif
                     let node: ExprNode
 

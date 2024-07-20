@@ -49,7 +49,7 @@ class ProcNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .proc
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         isInBlock = false
         setSyntax( options: ProcNode.optionTokens, elements: ProcNode.blockTokens )
     }
