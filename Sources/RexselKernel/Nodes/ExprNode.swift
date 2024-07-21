@@ -465,9 +465,6 @@ extension ExprNode {
     /// Does not skip line as it just truncates.
 
     func markExpectedCharacterError() {
-        if isLogging {
-            rLogger.log( self, .debug, "**** Expected character in line \(thisCompiler.currentToken.line+1)" )
-        }
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
                 .expectedCharacterNotString( lineNumber: thisCompiler.currentToken.line+1,
@@ -483,9 +480,6 @@ extension ExprNode {
     /// - Returns: true if successful, false if end of file.
 
     func markExpectedParameterNameErrorAndSkipLine() -> Bool {
-        if isLogging {
-            rLogger.log( self, .debug, "**** Unknown symbol '\(thisCompiler.currentToken.value)' in line \(thisCompiler.currentToken.line+1)" )
-        }
         thisCompiler.rexselErrorList
             .add( RexselErrorData
                 .init( kind: RexselErrorKind
@@ -506,10 +500,6 @@ extension ExprNode {
     //
 
     func parameterCannotAppearHereError() {
-        if isLogging {
-            let errorMessage = RexselErrorKind.parameterCannotAppearHere(lineNumber: thisCompiler.currentToken.line+1).description
-            rLogger.log( self, .debug, "**** \(errorMessage)" )
-        }
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
                 .parameterCannotAppearHere( lineNumber: thisCompiler.currentToken.line+1 ) ) )
@@ -537,9 +527,6 @@ extension ExprNode {
 
     func isTokenSupportedKeyword( incrementIndexBy: Int ) -> Bool {
         if notSupported.contains( thisCompiler.currentToken.what ) {
-            if isLogging {
-                rLogger.log( self, .debug, "**** '\(thisCompiler.currentToken.value)' not supported in line \(thisCompiler.currentToken.line+1)" )
-            }
             thisCompiler.rexselErrorList
                 .add( RexselErrorData
                     .init( kind: RexselErrorKind

@@ -122,7 +122,7 @@ class ApplyTemplatesNode: ExprNode  {
                     continue
 
                 case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                    thisCompiler.nextToken.what != .closeCurlyBracket :
+                                                       thisCompiler.nextToken.what != .closeCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     isInBlock = true

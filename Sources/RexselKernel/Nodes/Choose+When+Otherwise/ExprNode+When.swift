@@ -67,7 +67,6 @@ class WhenNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-            name = "when:\(testExpression)"
             if isLogging {
                 rLogger.log( self, .debug, thisCompiler.currentTokenLog )
                 rLogger.log( self, .debug, thisCompiler.nextTokenLog )
@@ -178,11 +177,10 @@ class WhenNode: ExprNode  {
                         thisCompiler.nestedLevel += 1
                     }
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   insteadOf: tokensDescription( AnalyzeStringNode.blockTokens ),
+                                                   mightBe: WhenNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .absorbBlock )
-                    thisCompiler.tokenizedSourceIndex += 1
                     continue
 
                 default :
@@ -234,7 +232,8 @@ class WhenNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = name
+        variablesDict.title = "when::\(testExpression)"
+
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: WhenNode.blockTokens )

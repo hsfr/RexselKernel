@@ -97,7 +97,13 @@ class CallNode: ExprNode  {
                     name = thisCompiler.currentToken.value
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
-                    
+
+                case ( .qname, .terminal, _ ) where thisCompiler.nextToken.what != .openCurlyBracket :
+                    // Valid proc name + } etc.
+                    name = thisCompiler.currentToken.value
+                    thisCompiler.tokenizedSourceIndex += 1
+                    return
+
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && name.isNotEmpty :
                     isInBlock = true
                     thisCompiler.tokenizedSourceIndex += 1

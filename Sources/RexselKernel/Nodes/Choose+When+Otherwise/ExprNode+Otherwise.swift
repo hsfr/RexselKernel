@@ -141,21 +141,14 @@ class OtherwiseNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Invalid constructions
 
-                case ( .terminal, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
                     // Illegal keyword (proc, match, etc.)
-                    try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                                   inElement: thisExprNodeType,
-                                                   inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
-                    continue
-
-                case ( .qname, _, _ ) where isInBlock :
-                    // Illegal keyword (Misspelled)
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: OtherwiseNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
-                    continue
+       continue
 
                 default :
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,

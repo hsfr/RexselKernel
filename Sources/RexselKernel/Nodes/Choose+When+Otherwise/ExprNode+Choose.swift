@@ -148,6 +148,7 @@ class ChooseNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: ChooseNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )

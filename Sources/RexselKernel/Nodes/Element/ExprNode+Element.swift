@@ -8,47 +8,16 @@
 import Foundation
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// MARK: - Syntax properties
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-///
-/// ```xml
-///   <element> ::= "element" <quote> <element name> <quote>
-///                      ( ( "namespace" <name space> ) | ( "use-attribute-sets" <expression> )?
-///                      ( "{" <contents> "}" )?
-/// ```
-
-extension TerminalSymbolEnum {
-
-    static let elementTokens: Set<TerminalSymbolEnum> = blockTokens
-
-    static let elementAttributeTokens: Set<TerminalSymbolEnum> = [
-        .namespace, .useAttributeSets
-    ]
-
-}
-
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 extension ElementNode {
 
-    func setSyntax() {
-        // Set up the allowed syntax. Everything can occur zero or more.
-        for keyword in TerminalSymbolEnum.elementTokens {
-            let entry = AllowableSyntaxEntryStruct( child: keyword, min: 0, max: Int.max )
-            allowableChildrenDict[ keyword.description ] = entry
-        }
-    }
+    static let blockTokens: TerminalSymbolEnumSetType = TerminalSymbolEnum.blockTokens
 
-    func isInElementTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return TerminalSymbolEnum.elementTokens.contains(token)
-    }
-
-    func isInElementAttributeTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return TerminalSymbolEnum.elementAttributeTokens.contains(token)
-    }
+    static let optionTokens: TerminalSymbolEnumSetType = [
+        .namespace, .useAttributeSets
+    ]
 
 }
 
@@ -87,72 +56,70 @@ class ElementNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .element
-     
-        elementName = ""
-        namespaceString = ""
-        useAttributeSetsString = ""
-    }
+        isInBlock = false
+        isLogging = true  // Adjust as required
+        setSyntax( options: ElementNode.optionTokens, elements: ElementNode.blockTokens )
+  }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Parsing/Generate Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse variable statement.
+    /// Parse source (with tokens).
     ///
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if REXSEL_LOGGING
+        if isLogging {
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        }
 
         // Slide past keyword
         thisCompiler.tokenizedSourceIndex += 1
 
         while !thisCompiler.isEndOfFile {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
 
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-                // Valid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Valid constructions
 
                 case ( .terminal, .expression, _ )  where thisCompiler.currentToken.what == .namespace :
-                    // namespace "expression"
-                    namespaceString = thisCompiler.nextToken.value
-                    if namespaceString.count == 0 {
-                        try markInvalidString( found: "",
-                                               insteadOf: "valid namespace",
-                                               inElement: .element,
-                                               inLine: thisCompiler.currentToken.line )
+                    optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.nextToken.value
+                    if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
+                        optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line
                     }
-                    thisCompiler.tokenizedSourceIndex += 2
-                    continue
-
-                case ( .terminal, .expression, _ )  where thisCompiler.currentToken.what == .useAttributeSets :
-                    // use-attribute-sets "expression"
-                    useAttributeSetsString = thisCompiler.nextToken.value
-                    if useAttributeSetsString.count == 0 {
-                        try markInvalidString( found: "",
-                                               insteadOf: "valid use-attribute-sets",
-                                               inElement: .element,
-                                               inLine: thisCompiler.currentToken.line )
+                    // Update for name of this node
+                    if thisCompiler.currentToken.what == .namespace {
+                        namespaceString = thisCompiler.nextToken.value
                     }
+                    if thisCompiler.currentToken.what == .useAttributeSets {
+                        useAttributeSetsString = thisCompiler.nextToken.value
+                    }
+                    optionsDict[ thisCompiler.currentToken.what ]?.count += 1
                     thisCompiler.tokenizedSourceIndex += 2
                     continue
 
@@ -161,66 +128,153 @@ class ElementNode: ExprNode  {
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket :
+                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                                                       thisCompiler.nextToken.what != .closeCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
-                    isInBlock = true
                     thisCompiler.nestedLevel += 1
+                    isInBlock = true
                     continue
 
-                // Block elements -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Process block
 
-                case ( .terminal, _, _ ) where isInElementTokens( thisCompiler.currentToken.what ) && isInBlock :
-#if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.expressionString)" )
-#endif
-                   let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
+                case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                    if isLogging {
+                        rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    }
+
+                    markIfInvalidKeywordForThisVersion( thisCompiler )
+
+                    let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
                         self.nodeChildren = [ExprNode]()
                     }
                     nodeChildren.append( node )
                     node.parentNode = self
 
+                    // Record this node's details for later analysis.
+                    let nodeLine = thisCompiler.currentToken.line
+
+                    if childrenDict[ thisCompiler.currentToken.what ]!.count == 0 {
+                        childrenDict[ thisCompiler.currentToken.what ]!.defined = nodeLine
+                    }
+                    childrenDict[ thisCompiler.currentToken.what ]!.count += 1
+
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock:
-                    isInBlock = false
-                    thisCompiler.tokenizedSourceIndex += 1
-                    thisCompiler.nestedLevel -= 1
-                    return
+                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // Exit block
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
-                    return
+                    case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                                                           thisCompiler.nextToken.what == .closeCurlyBracket :
+                        checkSyntax()
+                        thisCompiler.tokenizedSourceIndex += 2
+                        return
 
-                // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
+                        // Before exiting we must carry out checks
+                        checkSyntax()
+                        thisCompiler.tokenizedSourceIndex += 1
+                        thisCompiler.nestedLevel -= 1
+                        return
 
-                case ( .expression, _, _ ) where !isInElementAttributeTokens( thisCompiler.nextToken.what ) :
-                    try markUnexpectedSymbolError( found: thisCompiler.nextToken.value,
-                                                   inElement: thisExprNodeType,
-                                                   inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
-                    return
+                    case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && !isInBlock :
+                        // Before exiting we must carry out checks
+                        checkSyntax()
+                        thisCompiler.tokenizedSourceIndex += 1
+                        return
 
-                case ( .terminal, .terminal, _ ) where isInElementAttributeTokens( thisCompiler.currentToken.what )
-                                                    && thisCompiler.nextToken.what == .openCurlyBracket :
-                    try markUnexpectedSymbolError( found: thisCompiler.nextToken.value,
-                                                   insteadOf: "expression",
-                                                   inElement: thisExprNodeType,
-                                                   inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
-                    return
+                    case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && !isInBlock :
+                        // Before exiting we must carry out checks
+                        checkSyntax()
+                        return
 
-                default:
-                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: thisExprNodeType,
-                                                   inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
-                    return
+                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // Early end of file
 
+                    case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
+                        return
+
+                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // Invalid constructions
+
+                    case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
+                                                   thisCompiler.nextToken.what != .expression :
+                        // Missing expression after option
+                        try markMissingItemError( what: .expression,
+                                                  inLine: thisCompiler.currentToken.line,
+                                                  after: thisCompiler.currentToken.value )
+                        thisCompiler.tokenizedSourceIndex += 1
+                        thisCompiler.nestedLevel += 1
+                        continue
+
+                    case ( .terminal, .terminal, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
+                                                           isInOptionTokens( thisCompiler.nextToken.what ):
+                        try markMissingItemError( what: .expression,
+                                                  inLine: thisCompiler.currentToken.line,
+                                                  after: thisCompiler.currentToken.value,
+                                                  skip: .toNextkeyword )
+                        continue
+
+                    case ( _, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) && !isInBlock :
+                        try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                       mightBe: ElementNode.optionTokens,
+                                                       inElement: thisExprNodeType,
+                                                       inLine: thisCompiler.currentToken.line,
+                                                       skip: .toNextkeyword )
+                        continue
+
+                    case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                        try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                       mightBe: ElementNode.blockTokens,
+                                                       inElement: thisExprNodeType,
+                                                       inLine: thisCompiler.currentToken.line,
+                                                       skip: .toNextkeyword )
+                        continue
+
+                    default :
+                        try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                       mightBe: ElementNode.blockTokens,
+                                                       inElement: thisExprNodeType,
+                                                       inLine: thisCompiler.currentToken.line,
+                                                       skip: .toNextkeyword )
+                        return
             }
         }
     }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// ```xml
+    ///   <element> ::= "element" <quote> <element name> <quote>
+    ///                      ( "namespace" <name space> )?
+    ///                      ( "use-attribute-sets" <expression> )?
+    ///                      ( "{" <block templates> "}" )?
+    /// ```
+
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Semantic Checking and Symbol Table Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
@@ -228,10 +282,10 @@ class ElementNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "element:\(name)"
+        variablesDict.title = "element::\(name)"
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.blockTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: ElementNode.blockTokens )
 
         // Set up the symbol table entries
         if let nodes = nodeChildren {
@@ -265,8 +319,6 @@ class ElementNode: ExprNode  {
                 child.buildSymbolTableAndSemanticChecks()
             }
         }
-
-        // Special checks go here
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -323,11 +375,11 @@ class ElementNode: ExprNode  {
         if elementName.isNotEmpty {
             attributes += " name=\"\(elementName)\""
         }
-        if namespaceString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.namespace.xml)=\"\(namespaceString)\""
-        }
-        if useAttributeSetsString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.useAttributeSets.xml)=\"\(useAttributeSetsString)\""
+
+        for ( key, entry ) in optionsDict {
+            if entry.value.isNotEmpty {
+                attributes += " \(key.xml)=\"\(entry.value)\""
+            }
         }
 
         if let children = nodeChildren {

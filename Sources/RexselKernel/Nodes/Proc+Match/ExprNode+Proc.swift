@@ -213,14 +213,6 @@ class ProcNode: ExprNode  {
                     // Exit to continue processing at a higher level
                     return
 
-//                case ( .qname, _, _ ) :
-//                    // Found unexpected qname symbol not covered by the above
-//                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-//                                                   inElement: thisExprNodeType,
-//                                                   inLine: thisCompiler.currentToken.line,
-//                                                   skip: .toNextkeyword )
-//                    return
-
                 case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    mightBe: ProcNode.blockTokens,

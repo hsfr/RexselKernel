@@ -144,13 +144,18 @@ class WithNode: ExprNode  {
                     continue
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Exit block
+                // Exit statement
+
+                case ( _, _, _ ) where name.isNotEmpty &&
+                                       expressionString.isNotEmpty && 
+                                       thisCompiler.currentToken.what != .openCurlyBracket:
+                    // Do not need to check syntax here (not a block)
+                    return
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket
                                             && isInBlock :
                     // End of block encountered but check for empty block.
                     checkSyntax()
-                    isInBlock = false
                     thisCompiler.nestedLevel -= 1
                     thisCompiler.tokenizedSourceIndex += 1
                     return
@@ -189,6 +194,18 @@ class WithNode: ExprNode  {
                     thisCompiler.tokenizedSourceIndex += 1
                     return
 
+                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
+                    if isInBlock {
+                        thisCompiler.nestedLevel += 1
+                    }
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: WithNode.blockTokens,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .absorbBlock )
+                    thisCompiler.tokenizedSourceIndex += 1
+                    continue
+
                 case ( .expression, _, _ ) where name.isEmpty :
                     try markExpectedNameError( after: thisExprNodeType.description,
                                                inLine: thisCompiler.currentToken.line,
@@ -197,6 +214,9 @@ class WithNode: ExprNode  {
 
                 default :
                     // When all else fails throw back to parent.
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line  )
                     return
 
             }
@@ -281,7 +301,7 @@ class WithNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = thisExprNodeType.description
+        variablesDict.title = "\(thisExprNodeType.description)::\(name)"
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: WithNode.blockTokens )
