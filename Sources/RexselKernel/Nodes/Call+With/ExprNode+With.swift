@@ -257,7 +257,7 @@ class WithNode: ExprNode  {
     override func checkSyntax()
     {
         super.checkSyntax()
-        // Check that there are either some block elements or a default value declared.
+
         var blockElementFound = false
         for ( key, entry ) in childrenDict {
             if entry.count > 0 && key.description != TerminalSymbolEnum.parameter.description {

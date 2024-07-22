@@ -327,9 +327,6 @@ class MatchNode: ExprNode {
                 child.buildSymbolTableAndSemanticChecks()
             }
         }
-
-        // Special checks go here
-
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

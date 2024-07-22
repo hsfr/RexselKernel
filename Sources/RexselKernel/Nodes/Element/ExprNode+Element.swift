@@ -56,8 +56,8 @@ class ElementNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .element
+        isLogging = false  // Adjust as required
         isInBlock = false
-        isLogging = true  // Adjust as required
         setSyntax( options: ElementNode.optionTokens, elements: ElementNode.blockTokens )
   }
 
@@ -173,20 +173,17 @@ class ElementNode: ExprNode  {
                         return
 
                     case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
-                        // Before exiting we must carry out checks
                         checkSyntax()
                         thisCompiler.tokenizedSourceIndex += 1
                         thisCompiler.nestedLevel -= 1
                         return
 
                     case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && !isInBlock :
-                        // Before exiting we must carry out checks
                         checkSyntax()
                         thisCompiler.tokenizedSourceIndex += 1
                         return
 
                     case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && !isInBlock :
-                        // Before exiting we must carry out checks
                         checkSyntax()
                         return
 

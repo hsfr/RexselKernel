@@ -519,13 +519,6 @@ extension ExprNode {
                 ()
         }
 
-//        thisCompiler.rexselErrorList
-//            .add( RexselErrorData
-//                .init( kind: RexselErrorKind
-//                    .foundUnexpectedSymbolInsteadOf( lineNumber: inLine+1,
-//                                                     found: foundSymbol,
-//                                                     insteadOf: insteadOf,
-//                                                     inElement: inElement.description ) ) )
         try processSkip( skip )
     }
 
