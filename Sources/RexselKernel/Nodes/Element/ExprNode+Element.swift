@@ -56,7 +56,7 @@ class ElementNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .element
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         isInBlock = false
         setSyntax( options: ElementNode.optionTokens, elements: ElementNode.blockTokens )
   }
@@ -107,7 +107,7 @@ class ElementNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Valid constructions
 
-                case ( .terminal, .expression, _ )  where thisCompiler.currentToken.what == .namespace :
+                case ( .terminal, .expression, _ )  where isInOptionTokens( thisCompiler.currentToken.what ) :
                     optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.nextToken.value
                     if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
                         optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line

@@ -113,7 +113,7 @@ class AttributeNode: ExprNode  {
                 // attribute "name" { block }
                 // attribute "name" namespace "URI" { block }
 
-                case ( .terminal, .expression, _ )  where thisCompiler.currentToken.what == .namespace :
+                case ( .terminal, .expression, _ )  where isInOptionTokens( thisCompiler.currentToken.what ) :
                     optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.nextToken.value
                     if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
                         optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line
@@ -297,18 +297,20 @@ class AttributeNode: ExprNode  {
             try? markDefaultAndBlockMissingError( inLine: sourceLine, skip: .ignore )
         }
 
-        var blockElementsPresent = false
-        // Check that there are some block elements declared.
-        for ( _, entry ) in childrenDict {
-            if entry.count > 0 {
-                blockElementsPresent = true
-                break
+        if valueString.isEmpty {
+            var blockElementsPresent = false
+            // Check that there are some block elements declared.
+            for ( _, entry ) in childrenDict {
+                if entry.count > 0 {
+                    blockElementsPresent = true
+                    break
+                }
             }
-        }
-        if !blockElementsPresent {
-            markSyntaxRequiresOneOrMoreElement( inLine: sourceLine,
-                                                name: tokensDescription( TerminalSymbolEnum.blockTokens ),
-                                                inElement: self.thisExprNodeType.description )
+            if !blockElementsPresent {
+                markSyntaxRequiresOneOrMoreElement( inLine: sourceLine,
+                                                    name: tokensDescription( TerminalSymbolEnum.blockTokens ),
+                                                    inElement: self.thisExprNodeType.description )
+            }
         }
    }
 
