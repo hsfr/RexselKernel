@@ -437,8 +437,17 @@ class ExprNode: NSObject {
     {
         var str = ""
         for entry in tokens {
-            str += "\(entry.description), "
+            // Only output the token if it is within allowed version.
+            let tokenValue = entry.rawValue
+            let version = thisCompiler.xsltVersion
+            let versionRangeMin = rexsel_versionRange[ version ]!.min
+            let versionRangeMax = rexsel_versionRange[ version ]!.max
+            let vRange = versionRangeMin..<versionRangeMax
+            if vRange.contains( tokenValue ) {
+                str += "\(entry.description), "
+            }
         }
+        // Clean up the output.
         if str.isNotEmpty {
             str.removeLast(2)
         }
