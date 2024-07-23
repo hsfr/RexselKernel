@@ -2,7 +2,7 @@
 //  ExprNode+Output.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -26,7 +26,7 @@ import Foundation
 
 extension TerminalSymbolEnum {
 
-    static let outputTokens: Set <TerminalSymbolEnum> = [
+    static let outputTokens: Set<TerminalSymbolEnum> = [
         .method, .version, .encoding,
         .cdataList, .doctypePublic, .standAlone,
         .doctypeSystem, .omitXmlDecl, .indent
@@ -71,7 +71,7 @@ class OutputNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .output
+        thisExprNodeType = .output
 
         setSyntax()
    }
@@ -126,7 +126,7 @@ class OutputNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInOutputTokens( thisCompiler.currentToken.what ) :
 #if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.expressionString)" )
 #endif
                     node = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -136,7 +136,7 @@ class OutputNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    let nodeName = node.thisExprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     // The entry must exist as it was set up in the init using isInOutputTokens
@@ -158,7 +158,7 @@ class OutputNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
@@ -174,7 +174,8 @@ class OutputNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = TerminalSymbolEnum.output.description
+        variablesDict.title = name
+        variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.outputTokens )
@@ -214,7 +215,7 @@ class OutputNode: ExprNode  {
 
         // Only output if there are attributes (chioldren)
         if attributes.isNotEmpty {
-            return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml) \(attributes)/>\n"
+            return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)/>\n"
         }
         return ""
     }

@@ -2,7 +2,7 @@
 //  ExprNode+ProcessingInstruction.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -59,7 +59,7 @@ class ProcessingInstructionNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .processingInstruction
+        thisExprNodeType = .processingInstruction
 
         isInBlock = false
         setSyntax()
@@ -123,7 +123,7 @@ class ProcessingInstructionNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.expressionString)" )
 #endif
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -133,7 +133,7 @@ class ProcessingInstructionNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    let nodeName = node.thisExprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     // The entry must exist as it was set up in the init using isInOutputTokens
@@ -167,14 +167,14 @@ class ProcessingInstructionNode: ExprNode  {
                      thisCompiler.tokenizedSourceIndex += 1
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    insteadOf: TerminalSymbolEnum.openCurlyBracket.description,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                      continue
 
               case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && name.isEmpty :
                     try markMissingItemError( what: .name,
                                               inLine: thisCompiler.currentToken.line,
-                                              after: exprNodeType.description )
+                                              after: thisExprNodeType.description )
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     // Assume that we have found name so set up to parse block
@@ -188,14 +188,14 @@ class ProcessingInstructionNode: ExprNode  {
                         thisCompiler.nestedLevel += 1
                     }
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     // Exit to continue processing at a higher level
                     return
 
                 default :
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
@@ -215,27 +215,31 @@ class ProcessingInstructionNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = exprNodeType.description
+        variablesDict.title = ""
+        variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.otherwiseTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.blockTokens )
 
         // Set up the symbol table entries
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
-                        } catch let err as RexselErrorData {
+                        } catch let err as SymbolTableError {
                             // Already in list so mark duplicate error
-                            thisCompiler.rexselErrorList.add( err )
+                            try? markDuplicateError( symbol: err.name,
+                                                     declaredIn: err.declaredLine,
+                                                     preciouslDelaredIn: err.previouslyDeclaredIn,
+                                                     skip: .ignore )
                         } catch {
                             thisCompiler.rexselErrorList.add(
                                 RexselErrorData.init( kind: RexselErrorKind
@@ -291,7 +295,7 @@ class ProcessingInstructionNode: ExprNode  {
             }
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {

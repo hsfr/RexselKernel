@@ -52,7 +52,7 @@ class DecimalFormatNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .decimalFormat
+        thisExprNodeType = .decimalFormat
         name = ""
     }
 
@@ -110,7 +110,7 @@ class DecimalFormatNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInDecimalFormatTokens( thisCompiler.currentToken.what ) :
 #if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.expressionString)" )
 #endif
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -132,7 +132,7 @@ class DecimalFormatNode: ExprNode  {
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && name.isEmpty :
                     try markMissingItemError( what: .name,
                                               inLine: thisCompiler.currentToken.line,
-                                              after: exprNodeType.description,
+                                              after: thisExprNodeType.description,
                                               skip: .toNextkeyword )
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
@@ -140,7 +140,7 @@ class DecimalFormatNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     return
@@ -188,9 +188,9 @@ class DecimalFormatNode: ExprNode  {
         }
 
         if attributes.isNotEmpty {
-            return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml) \(attributes)/>"
+            return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)/>"
         }
-        return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml) \(attributes)/>"
+        return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)/>"
     }
 
 

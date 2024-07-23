@@ -46,7 +46,7 @@ enum TokenEnum {
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 //
-/// Defines the token ran for a particular version.
+/// Defines the token for a particular version.
 ///
 /// The _min_ value is not really needed as it should
 /// always be "1".
@@ -187,6 +187,46 @@ enum TerminalSymbolEnum: Int {
     case language
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // Version 2.0 keywords/tokens
+    case analyzeString = 400
+    case regex
+    case flags
+    case matchingSubstring
+    case nonMatchingSubstring
+    case nextMatch
+    case performSort
+
+    case characterMap
+    case useCharacterMaps
+    case outputCharacter
+    case character
+    case characterString
+
+    case function
+    case fAs
+    case fOverride
+    
+    case importSchema
+    case location
+
+    case document
+    case resultDocument
+    case strict
+    case lax
+    case preserve
+    case strip
+
+    case forEachGroup
+    case groupBy
+    case groupAdjacent
+    case groupStartingWith
+    case groupEndingWith
+    case collation
+
+    case omit
+    case sequence
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // Not source tokens but general types
     case expression = 10000
     case string
@@ -288,6 +328,11 @@ enum TerminalSymbolEnum: Int {
             case .namespaceAlias : return NamespaceAliasNode()
 
             case .script : return ScriptNode()
+
+            case .analyzeString : return AnalyzeStringNode()
+            case .matchingSubstring : return MatchingSubstringNode()
+            case .nonMatchingSubstring : return NonMatchingSubstringNode()
+
 
             default:
                 // Anything else returns nil
@@ -428,11 +473,23 @@ enum TerminalSymbolEnum: Int {
             case .textSort : return "text-sort"
             case .numberSort : return "number-sort"
 
+            // Version 1.1
+
             case .script : return "script"
             case .src : return "src"
             case .prefix : return "prefix"
             case .language : return "language"
             case .archive : return "archive"
+
+            // Version 2.0
+
+            case .analyzeString : return "analyze-string"
+            case .regex : return "regex"
+            case .flags : return "flags"
+            case .matchingSubstring : return "matching-substring"
+            case .nonMatchingSubstring : return "non-matching-substring"
+
+            // Non XSLT version
 
             case .expression : return "expression"
             case .string : return "string"
@@ -595,11 +652,21 @@ enum TerminalSymbolEnum: Int {
             case .processingInstruction : return "processing-instruction"
             case .number : return "number"
 
+            // Version 1.1
+
             case .script : return "script"
             case .src : return "src"
             case .prefix : return "implements-prefix"
             case .language : return "language"
             case .archive : return "archive"
+
+            // Version 2.0
+
+            case .analyzeString : return "analyze-string"
+            case .regex : return "regex"
+            case .flags : return "flags"
+            case .matchingSubstring : return "matching-substring"
+            case .nonMatchingSubstring : return "non-matching-substring"
 
             case .qname : return "name"
 
@@ -749,11 +816,21 @@ enum TerminalSymbolEnum: Int {
             case "processing-instruction" : return .processingInstruction
             case "number" : return .number
 
+            // Version 1.1
+
             case "script" : return .script
             case "src" : return .src
             case "prefix" : return .prefix
             case "language" : return .language
             case "archive" : return .archive
+
+            // Version 2.0
+
+            case "analyze-string" : return .analyzeString
+            case "regex" : return .regex
+            case "flags" : return .flags
+            case "matching-substring" : return .matchingSubstring
+            case "non-matching-substring" : return .nonMatchingSubstring
 
             default : return .unknownToken
         }
@@ -763,5 +840,6 @@ enum TerminalSymbolEnum: Int {
     static func isTerminalSymbol( _ token: String ) -> Bool {
         return TerminalSymbolEnum.translate( token ) != .unknownToken
     }
+
 }
 

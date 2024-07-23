@@ -2,7 +2,7 @@
 //  ExprNode+NamespaceAlias.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -68,7 +68,7 @@ class NamespaceAliasNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .namespaceAlias
+        thisExprNodeType = .namespaceAlias
         mapFromString = ""
         mapToString = ""
     }
@@ -172,7 +172,7 @@ class NamespaceAliasNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
 
@@ -191,19 +191,20 @@ class NamespaceAliasNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "\(exprNodeType.description):\(mapFromString)"
-        variablesDict.blockLine = sourceLine
+        variablesDict.title = mapFromString
+        variablesDict.tableType = thisExprNodeType
+       variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.matchTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.namespaceAliasAttributeTokens )
 
         // Check for parameter having to be first
         if let nodes = nodeChildren {
             var nonParameterFound = false
             for child in nodes {
-                if child.exprNodeType != .parameter {
+                if child.thisExprNodeType != .parameter {
                     nonParameterFound = true
                 }
-                if nonParameterFound && child.exprNodeType == .parameter {
+                if nonParameterFound && child.thisExprNodeType == .parameter {
                     markParameterMustBeAtStartOfBlock( name: child.name,
                                                        within: "\(variablesDict.title)",
                                                        at: child.sourceLine )
@@ -215,18 +216,21 @@ class NamespaceAliasNode: ExprNode  {
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
                     case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
-                        } catch let err as RexselErrorData {
+                        } catch let err as SymbolTableError {
                             // Already in list so mark duplicate error
-                            thisCompiler.rexselErrorList.add( err )
+                            try? markDuplicateError( symbol: err.name,
+                                                     declaredIn: err.declaredLine,
+                                                     preciouslDelaredIn: err.previouslyDeclaredIn,
+                                                     skip: .ignore )
                         } catch {
                             thisCompiler.rexselErrorList.add(
                                 RexselErrorData.init( kind: RexselErrorKind
@@ -299,7 +303,7 @@ class NamespaceAliasNode: ExprNode  {
             attributes += " \(TerminalSymbolEnum.mapTo.xml)=\"\(mapToString)\""
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
     }
 }

@@ -2,7 +2,7 @@
 //  ExprNode+DocTypePublic.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -26,7 +26,7 @@ class DocTypePublicNode: ExprNode  {
     
     override init() {
         super.init()
-        self.exprNodeType = .doctypePublic
+        self.thisExprNodeType = .doctypePublic
     }
     
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -48,10 +48,10 @@ class DocTypePublicNode: ExprNode  {
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-            case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == self.exprNodeType :
+            case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == self.thisExprNodeType :
                 value = thisCompiler.nextToken.value
 #if REXSEL_LOGGING
-                rLogger.log( self, .debug, "Found output '\(exprNodeType.xml)':'\(value)' in line \(sourceLine)" )
+                rLogger.log( self, .debug, "Found output '\(thisExprNodeType.xml)':'\(expressionString)' in line \(sourceLine)" )
 #endif
                 thisCompiler.tokenizedSourceIndex += 2
 
@@ -62,7 +62,7 @@ class DocTypePublicNode: ExprNode  {
                 return
 
             default :
-                try markUnexpectedSymbolError( what: thisCompiler.currentToken.what, inElement: exprNodeType, inLine: sourceLine )
+                try markUnexpectedSymbolError( what: thisCompiler.currentToken.what, inElement: thisExprNodeType, inLine: sourceLine )
                 return
         }
     }
@@ -81,7 +81,7 @@ class DocTypePublicNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(value)\""
+        return "\(thisExprNodeType.xml)=\"\(value)\""
     }
 
 }

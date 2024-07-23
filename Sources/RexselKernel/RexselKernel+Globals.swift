@@ -2,7 +2,7 @@
 //  RexselKernel+Globals.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -26,6 +26,3 @@ var showFullMessages: Bool = false
 /// the "-noXmlnsPrefix".
 var useDefaultXSLNamespace: Bool = false
 
-#if REXSEL_LOGGING
-    var rLogger = RexselLogger()
-#endif

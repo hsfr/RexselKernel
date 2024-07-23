@@ -1,45 +1,21 @@
 //
-//  ExprNode+Variables.swift
+//  ExprNode+Parameters.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// MARK: - Syntax properties
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-//
-/// ```xml
-///   <variable> ::= "variable" <variable name>
-///                      <default value>?
-///                      ( "{" <contents> "}" )?
-/// ```
-
-extension TerminalSymbolEnum {
-
-    static let variableTokens: Set<TerminalSymbolEnum> = blockTokens
-
-}
-
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 extension VariableNode {
 
-    func setSyntax() {
-        // Set up the allowed syntax. Everything can occur zero or more.
-        for keyword in TerminalSymbolEnum.parameterTokens {
-            let entry = AllowableSyntaxEntryStruct( child: keyword, min: 0, max: Int.max )
-            allowableChildrenDict[ keyword.description ] = entry
-        }
-    }
+    static let blockTokens: TerminalSymbolEnumSetType = TerminalSymbolEnum.parameterTokens
 
-    func isInVariableTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return TerminalSymbolEnum.variableTokens.contains(token)
-    }
+    static let optionTokens: TerminalSymbolEnumSetType = [ ]
+
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -57,15 +33,7 @@ class VariableNode: ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     ///  Value (when not derived from block)
-    fileprivate var value: String = ""
-
-    // Convenience variable
-    fileprivate var isValueDefined: Bool {
-        return value.isNotEmpty
-    }
-
-    /// Variables must always have a value
-    fileprivate var isBlockEmpty = true
+    fileprivate var expressionString: String = ""
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -73,85 +41,85 @@ class VariableNode: ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    override init()
-    {
+    override init() {
         super.init()
-        exprNodeType = .variable
-        value = ""
+        thisExprNodeType = .variable
         isInBlock = false
-        isBlockEmpty = true
+        isLogging = true  // Adjust as required
+        setSyntax( options: WithNode.optionTokens, elements: WithNode.blockTokens )
+   }
 
-        setSyntax()
-    }
-
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Parsing/Generate Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse variable statement.
+    /// Parse source (with tokens).
+    ///
+    /// - Parameters:
+    ///   - compiler: the current instance of the compiler.
+    /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
+
+        isInBlock = false
 
         // Slide past keyword
         thisCompiler.tokenizedSourceIndex += 1
 
         while !thisCompiler.isEndOfFile {
 
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
 
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Process valid material
 
-                case ( .qname, .expression, _ ) where name.isEmpty :
+                case ( .qname, .expression, _ ) where name.isEmpty &&
+                                                      expressionString.isEmpty :
+                    // Simple expression only. There may be an illegal block so
+                    // do not exit yet.
                     name = thisCompiler.currentToken.value
-                    thisCompiler.tokenizedSourceIndex += 1
-                    continue
-
-                case ( .qname, .terminal, _ ) where name.isEmpty && thisCompiler.nextToken.what == .openCurlyBracket :
-                    name = thisCompiler.currentToken.value
-                    thisCompiler.nestedLevel += 1
-                    isInBlock = true
+                    expressionString = thisCompiler.nextToken.value
                     thisCompiler.tokenizedSourceIndex += 2
                     continue
 
-                case ( .expression, .terminal, _ ) where name.isNotEmpty && thisCompiler.nextToken.what != .openCurlyBracket :
-                    value = thisCompiler.currentToken.value
-                    thisCompiler.tokenizedSourceIndex += 1
-                    return
+                case ( .qname, .terminal, _ ) where name.isEmpty &&
+                                                    thisCompiler.nextToken.what == .openCurlyBracket :
+                    // Block start found (no simple expression).
+                    name = thisCompiler.currentToken.value
+                    isInBlock = true
+                    thisCompiler.nestedLevel += 1
+                    thisCompiler.tokenizedSourceIndex += 2
+                    continue
+                    
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Process block material
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
-                    isInBlock = false
-                    thisCompiler.nestedLevel -= 1
-                    thisCompiler.tokenizedSourceIndex += 1
-                    if isBlockEmpty {
-                        try markExpectedVariableValueError( where: sourceLine, symbol: name )
+                case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                    if isLogging {
+                        rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
                     }
-                    isBlockEmpty = true
-                    return
 
-                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                    // Process block material
+                    markIfInvalidKeywordForThisVersion( thisCompiler )
 
-                case ( .terminal, _, _ ) where isInVariableTokens( thisCompiler.currentToken.what ) && isInBlock :
-#if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
-#endif
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
                         self.nodeChildren = [ExprNode]()
@@ -160,85 +128,156 @@ class VariableNode: ExprNode {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
-                    // The entry must exist as it was set up in the init using isInOutputTokens
-                    if allowableChildrenDict[ nodeName ]!.count == 0 {
-                        allowableChildrenDict[ nodeName ]!.defined = nodeLine
+                    if childrenDict[ thisCompiler.currentToken.what ]!.count == 0 {
+                        childrenDict[ thisCompiler.currentToken.what ]!.defined = nodeLine
                     }
-                    allowableChildrenDict[ nodeName ]!.count += 1
+                    childrenDict[ thisCompiler.currentToken.what ]!.count += 1
 
                     try node.parseSyntaxUsingCompiler( thisCompiler )
-                    isBlockEmpty = false
                     continue
 
-                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                    // Error conditions
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Exit statement
 
+                case ( _, _, _ ) where name.isNotEmpty &&
+                    expressionString.isNotEmpty &&
+                    thisCompiler.currentToken.what != .openCurlyBracket:
+                    // Do not need to check syntax here (not a block)
+                    return
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket
+                    && isInBlock :
+                    // End of block encountered but check for empty block.
+                    checkSyntax()
+                    thisCompiler.nestedLevel -= 1
+                    thisCompiler.tokenizedSourceIndex += 1
+                    return
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
+                    // Found end of call with block.
+                    return
+
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Early end of file
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
+                    // Don't bother to check. End of file here is an error anyway which
+                    // will be picked up above this node. Almost certainly a brackets problem.
+                    return
+
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Invalid constructions
+
+                    // No parameter name but following block
                 case ( .terminal, _, _ ) where name.isEmpty && thisCompiler.currentToken.what == .openCurlyBracket :
-                    isInBlock = false
+                    isInBlock = true
                     thisCompiler.nestedLevel += 1
-                    try markMissingItemError( what: .name, inLine: thisCompiler.currentToken.line, after: exprNodeType.description )
+                    try markMissingItemError( what: .name,
+                                              inLine: thisCompiler.currentToken.line,
+                                              after: thisExprNodeType.description )
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .terminal, _, _ ) where name.isEmpty && thisCompiler.currentToken.what != .openCurlyBracket :
-                    isInBlock = false
-                    try markMissingItemError( what: .name, inLine: thisCompiler.currentToken.line, after: exprNodeType.description )
-                    return
-
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
-                    // Empty block (quasi valid)
-                    try markExpectedVariableValueError( where: sourceLine, symbol: name )
-                    thisCompiler.tokenizedSourceIndex += 2
-                    return
-
-                case ( .expression, .terminal, _ ) where thisCompiler.nextToken.what == .openCurlyBracket :
-                    value = thisCompiler.currentToken.value
+                    // Found expression and block
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && expressionString.isNotEmpty :
+                    expressionString = thisCompiler.currentToken.value
                     isInBlock = true
                     thisCompiler.nestedLevel += 1
-                    try markCannotHaveBothDefaultAndBlockError( where: sourceLine )
-                    thisCompiler.tokenizedSourceIndex += 2
-                   continue
+                    try markCannotHaveBothDefaultAndBlockError( inLine: sourceLine, skip: .absorbBlock )
+                    thisCompiler.tokenizedSourceIndex += 1
+                    return
 
-                case ( .expression, _, _ ) :
-                    try markExpectedNameError( after: exprNodeType.description,
+                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
+                    if isInBlock {
+                        thisCompiler.nestedLevel += 1
+                    }
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: WithNode.blockTokens,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .absorbBlock )
+                    thisCompiler.tokenizedSourceIndex += 1
+                    continue
+
+                case ( .expression, _, _ ) where name.isEmpty :
+                    try markExpectedNameError( after: thisExprNodeType.description,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword)
                     return
 
-
-
-                case ( .qname, .terminal, _ ) where thisCompiler.nextToken.what == .openCurlyBracket :
-                    // Valid so process block
-                    name = thisCompiler.currentToken.value
-                    isInBlock = true
-                    thisCompiler.nestedLevel += 1
-                    thisCompiler.tokenizedSourceIndex += 2
-                    continue
-
-                case ( .qname, _, _ ) :
-                    // variable name ( no expression or open bracket)
-                    name = thisCompiler.currentToken.value
-                    try markExpectedVariableValueError( where: sourceLine, symbol: name )
-                    thisCompiler.tokenizedSourceIndex += 1
-                    return
-
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
-                    return
-
-                case ( .terminal, _, _ ) :
-                    // terminal other than above
-                    try markExpectedVariableValueError( where: sourceLine, symbol: name )
-                    thisCompiler.tokenizedSourceIndex += 1
-                    continue
-
                 default :
-                    try markUnexpectedSymbolError( what: thisCompiler.currentToken.what, inElement: exprNodeType, inLine: sourceLine )
+                    // When all else fails throw back to parent.
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line  )
                     return
             }
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///   <variable> ::= ( "variable" | "constant" ) <qname>
+    ///              (
+    ///                 <default expression> |
+    ///                 (
+    ///                    "{"
+    ///                       <block templates>+
+    ///                    "}"
+    ///                 )
+    ///              )
+    /// ```
+
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special reuirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax()
+    {
+        super.checkSyntax()
+
+        var blockElementFound = false
+        for ( key, entry ) in childrenDict {
+            if entry.count > 0 && key.description != TerminalSymbolEnum.parameter.description {
+                blockElementFound = true
+                break
+            }
+        }
+        if blockElementFound && expressionString.isNotEmpty {
+            try? markCannotHaveBothDefaultAndBlockError( inLine: sourceLine, skip: .ignore )
+        }
+        if !blockElementFound && expressionString.isEmpty {
+            try? markDefaultAndBlockMissingError( inLine: sourceLine, skip: .ignore )
+        }
+
+        var blockElementsPresent = false
+        // Check that there are some block elements (other than parameters) declared.
+        for ( key, entry ) in childrenDict {
+            if entry.count > 0 && key.description != TerminalSymbolEnum.parameter.description {
+                blockElementsPresent = true
+                break
+            }
+        }
+        if !blockElementsPresent {
+            markSyntaxRequiresOneOrMoreElement( inLine: sourceLine,
+                                                name: tokensDescription( TerminalSymbolEnum.blockTokens ),
+                                                inElement: self.thisExprNodeType.description )
         }
     }
 
@@ -249,27 +288,31 @@ class VariableNode: ExprNode {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = exprNodeType.description
+        variablesDict.title = name
+        variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.variableTokens )
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.parameterTokens )
 
         // Set up the symbol table entries
         if let nodes = nodeChildren {
             for child in nodes {
 
-                switch child.exprNodeType {
+                switch child.thisExprNodeType {
 
-                    case .parameter, .variable, .proc, .match:
+                    case .variable, .proc, .match:
                         do {
                             try variablesDict.addSymbol( name: child.name,
-                                                         type: child.exprNodeType,
+                                                         type: child.thisExprNodeType,
                                                          declaredInLine: child.sourceLine,
                                                          scope: variablesDict.title )
                             currentVariableContextList += [variablesDict]
-                        } catch let err as RexselErrorData {
+                        } catch let err as SymbolTableError {
                             // Already in list so mark duplicate error
-                            thisCompiler.rexselErrorList.add( err )
+                            try? markDuplicateError( symbol: err.name,
+                                                     declaredIn: err.declaredLine,
+                                                     preciouslDelaredIn: err.previouslyDeclaredIn,
+                                                     skip: .ignore )
                         } catch {
                             thisCompiler.rexselErrorList.add(
                                 RexselErrorData.init( kind: RexselErrorKind
@@ -282,8 +325,6 @@ class VariableNode: ExprNode {
                 child.buildSymbolTableAndSemanticChecks()
             }
         }
-
-        // Special checks go here
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -293,23 +334,16 @@ class VariableNode: ExprNode {
     ///
     /// At this stage the check for duplicates will have been run
     /// so the tables, _variableDict_ should be populated for this node.
+    ///
+    /// This table (the root node) will be used throughout the
+    /// stylesheet for checking within each local scope.
 
     override func checkVariableScope( _ compiler: RexselKernel ) {
+        scanVariablesInNodeValue( expressionString, inLine: sourceLine )
+
         if let nodes = nodeChildren {
             scanForVariablesInBlock( compiler, nodes )
-        } else {
-            // In cases where there is no block only a value
-            scanVariablesInNodeValue( value, inLine: sourceLine )
         }
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Generate a list of symbols for this node.
-
-    override func symbolListing() -> String {
-        return super.symbolListing()
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -322,7 +356,7 @@ class VariableNode: ExprNode {
     /// ```xml
     ///     <xsl:variable name="variableName" select="optional default XPath value">
     ///        contents
-    ///     </xsl:variable>
+    ///     </xsl:param>
     /// ```
 
     override func generate() -> String {
@@ -330,23 +364,23 @@ class VariableNode: ExprNode {
         let lineComment = super.generate()
 
         var attributes = " \(TerminalSymbolEnum.name.xml)=\"\(name)\""
-        if value.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.select.xml)=\"\(value)\""
+        if expressionString.isNotEmpty {
+            attributes += " \(TerminalSymbolEnum.select.xml)=\"\(expressionString)\""
         }
 
         var contents = ""
-
         if let children = nodeChildren {
             for child in children {
                 contents += " \(child.generate())\n"
             }
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
             return "\(lineComment)<\(thisElementName) \(attributes)/>\n"
         } else {
             return "\(lineComment)<\(thisElementName) \(attributes)>\n\(contents)\n</\(thisElementName)>"
         }
     }
+
 }

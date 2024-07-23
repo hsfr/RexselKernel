@@ -2,7 +2,7 @@
 //  RexselError.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -15,8 +15,7 @@ import Foundation
 /// RexselError is the means to record an error in the
 /// compiler source.
 
-class RexselError: NSObject
-{
+class RexselError: NSObject {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

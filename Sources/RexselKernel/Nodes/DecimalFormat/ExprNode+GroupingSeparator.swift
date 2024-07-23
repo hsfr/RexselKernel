@@ -29,7 +29,7 @@ class GroupingSeparatorNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .groupingSeparator
+        thisExprNodeType = .groupingSeparator
         groupingSeparatorValue = ""
     }
 
@@ -102,7 +102,7 @@ class GroupingSeparatorNode: ExprNode  {
 
            default :
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line )
                 return
 
@@ -123,7 +123,7 @@ class GroupingSeparatorNode: ExprNode  {
 
         _ = super.generate()
 
-       return "\(exprNodeType.xml)=\"\(groupingSeparatorValue)\""
+       return "\(thisExprNodeType.xml)=\"\(groupingSeparatorValue)\""
     }
 
 }

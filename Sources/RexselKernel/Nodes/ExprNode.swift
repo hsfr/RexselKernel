@@ -2,7 +2,7 @@
 //  ExprNode.swift
 //
 //  Created by Hugh Field-Richards on 10/01/2024.
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -10,11 +10,25 @@ class ExprNode: NSObject {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Logging Properties
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Is logging required for this node?
+    ///
+    /// This is the base of a slightky crude logging system.
+    /// I would prefer to use something like Hestia but the
+    /// overheads were too great.
+
+    var isLogging = false
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Common instance properties
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    var exprNodeType = TerminalSymbolEnum.unknownToken
+    var thisExprNodeType = TerminalSymbolEnum.unknownToken
 
     var isRootNode: Bool = false
 
@@ -71,6 +85,12 @@ class ExprNode: NSObject {
     /// contexts are traversed (down).
     var currentVariableContextList = [SymbolTable]()
 
+    /// A list of children that are present in the BNF syntax
+    var childrenDict = [ TerminalSymbolEnum: AllowableSyntaxEntryStruct ]()
+
+    /// A list of options (attributes) that are present in the BNF syntax
+    var optionsDict = [ TerminalSymbolEnum: AllowableSyntaxEntryStruct ]()
+
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Initialisation Methods
@@ -85,12 +105,19 @@ class ExprNode: NSObject {
         notSupported = []
         isRootNode = false
         thisCompiler = RexselKernel()
+
+        isInBlock = false
         name = ""
 
         xmlnsDict = XmlnsSymbolTableType()
-        variablesDict = SymbolTable( thisCompiler )
-        procDict = SymbolTable( thisCompiler )
+        variablesDict = SymbolTable( thisCompiler, type: .variable )
+        procDict = SymbolTable( thisCompiler, type: .proc )
         allowableChildrenDict = AllowableSyntaxDictType()
+
+        childrenDict = [:]
+        optionsDict = [:]
+
+        isLogging = false
 
         super.init()
     }
@@ -114,9 +141,9 @@ class ExprNode: NSObject {
         sourceLine = thisCompiler.currentToken.line
 
         sourceLine = thisCompiler.tokenizedSource[ thisCompiler.tokenizedSourceIndex ].line
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, "Parsing \(thisCompiler.currentToken.what) statement in line \(sourceLine)")
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, "Parsing \(thisCompiler.currentToken.what) statement in line \(sourceLine)")
+        }
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -129,9 +156,9 @@ class ExprNode: NSObject {
     /// - Returns: Line number XML comment.
 
     func generate( ) -> String {
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, "Generating \(exprNodeType.description) node" )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, "Generating \(thisExprNodeType.description) node" )
+        }
         // Remember lines start at 0
         if showLineNumbers {
             return "<!-- Line: \(sourceLine+1) -->\n"
@@ -155,17 +182,16 @@ class ExprNode: NSObject {
             // Grab context list(s) from parent which conntains
             // all the scoping from higher contexts.
             currentVariableContextList = parentNode.currentVariableContextList
-            // currentVariableContextList.append( SymbolTable() )
         }
 
         // Concentrate, this bit is a little tricky. Check for
         // allowed children.
         if let nodes = nodeChildren {
             for child in nodes {
-                let childName = child.exprNodeType.description
+                let childName = child.thisExprNodeType.description
                 if let entry = allowableChildrenDict[ childName ] {
                     if !entry.duplicatesAllowed && entry.count > 1 && child.sourceLine != entry.defined {
-                        try? markAlreadyDefined( what: child.exprNodeType,
+                        try? markAlreadyDefined( what: child.thisExprNodeType,
                                                  this: child.sourceLine,
                                                  where: entry.defined )
                     }
@@ -181,7 +207,7 @@ class ExprNode: NSObject {
                     if entry.required && entry.count == 0 {
                         // Raise an error
                         try? markExpectedKeywordError( expected: child,
-                                                       inElement: exprNodeType,
+                                                       inElement: thisExprNodeType,
                                                        inLine: sourceLine )
                     }
                 }
@@ -304,6 +330,130 @@ class ExprNode: NSObject {
         return "\(separator)\(thisSymbolListing)\(childrenSymbols)"
     }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+
+    func setSyntax( options optionsList: TerminalSymbolEnumSetType, 
+                    elements elementsList: TerminalSymbolEnumSetType ) {
+        for keyword in optionsList {
+            optionsDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+        }
+
+        for keyword in elementsList {
+            childrenDict[ keyword ] = AllowableSyntaxEntryStruct( min: 0, max: Int.max )
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    func checkSyntax()
+    {
+        for ( keyword, entry ) in optionsDict {
+            checkOccurances( entry.count,
+                             min: entry.min, max: entry.max,
+                             name: keyword.description,
+                             inKeyword: self )
+        }
+        for ( keyword, entry ) in childrenDict {
+            checkOccurances( entry.count,
+                             min: entry.min, max: entry.max,
+                             name: keyword.description,
+                             inKeyword: self )
+        }
+    }
+    
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check actual occurance against syntax.
+    ///
+    /// No return because only job is to report errors.
+
+    func checkOccurances( _ actual: Int,
+                          min minimum: Int, max maximum: Int,
+                          name inName: String,
+                          inKeyword: ExprNode )
+    {
+         switch ( minimum, maximum ) {
+
+            // <x> x is required
+            case ( 1, 1 ) where actual == 0 :
+                markSyntaxRequiresElement( inLine: inKeyword.sourceLine,
+                                           name: inName,
+                                           inElement: inKeyword.thisExprNodeType.description )
+
+            // (x)? zero or one instance of x
+            case ( 0, 1 ) where actual >= 2 :
+                markSyntaxRequiresZeroOrOneElement( inLine: inKeyword.sourceLine,
+                                                    name: inName,
+                                                    inElement: inKeyword.thisExprNodeType.description )
+
+            // (x)* zero or more instances of x
+            case ( 0, Int.max ) :
+                ()
+
+            // (x)+ one or more instances of x
+            case ( 1, Int.max ) where actual == 0 :
+                markSyntaxRequiresOneOrMoreElement( inLine: inKeyword.sourceLine,
+                                                    name: inName,
+                                                    inElement: inKeyword.thisExprNodeType.description )
+
+            default :
+                ()
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Helper function to detect valid block tokens.
+
+    func isInChildrenTokens( _ token: TerminalSymbolEnum ) -> Bool {
+        return childrenDict.keys.contains(token)
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Helper function to detect valid option tokens.
+
+    func isInOptionTokens( _ token: TerminalSymbolEnum ) -> Bool {
+        return optionsDict.keys.contains(token)
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Return a description of selected tokens for error report.
+
+    func tokensDescription( _ tokens: TerminalSymbolEnumSetType ) -> String
+    {
+        var str = ""
+        for entry in tokens {
+            // Only output the token if it is within allowed version.
+            let tokenValue = entry.rawValue
+            let version = thisCompiler.xsltVersion
+            let versionRangeMin = rexsel_versionRange[ version ]!.min
+            let versionRangeMax = rexsel_versionRange[ version ]!.max
+            let vRange = versionRangeMin..<versionRangeMax
+            if vRange.contains( tokenValue ) {
+                str += "\(entry.description), "
+            }
+        }
+        // Clean up the output.
+        if str.isNotEmpty {
+            str.removeLast(2)
+        }
+        return str
+    }
+
 }
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -319,31 +469,11 @@ extension ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Mark error for unknown symbol.
-
-    func markUnexpectedExpressionError() {
-#if REXSEL_LOGGING
-        let errorMessage = RexselErrorKind.foundUnexpectedExpression(lineNumber: sourceLine, found: thisCompiler.currentToken.value ).description
-        rLogger.log( self, .debug, "**** \(errorMessage)." )
-#endif
-        thisCompiler.rexselErrorList
-            .add( RexselErrorData
-                .init( kind: RexselErrorKind
-                    .foundUnexpectedExpression( lineNumber: sourceLine,
-                                                found: thisCompiler.currentToken.value ) ) )
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
     /// Mark error for string instead of character.
     ///
     /// Does not skip line as it just truncates.
 
     func markExpectedCharacterError() {
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, "**** Expected character in line \(thisCompiler.currentToken.line+1)" )
-#endif
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
                 .expectedCharacterNotString( lineNumber: thisCompiler.currentToken.line+1,
@@ -359,9 +489,6 @@ extension ExprNode {
     /// - Returns: true if successful, false if end of file.
 
     func markExpectedParameterNameErrorAndSkipLine() -> Bool {
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, "**** Unknown symbol '\(thisCompiler.currentToken.value)' in line \(thisCompiler.currentToken.line+1)" )
-#endif
         thisCompiler.rexselErrorList
             .add( RexselErrorData
                 .init( kind: RexselErrorKind
@@ -382,10 +509,6 @@ extension ExprNode {
     //
 
     func parameterCannotAppearHereError() {
-#if REXSEL_LOGGING
-        let errorMessage = RexselErrorKind.parameterCannotAppearHere(lineNumber: thisCompiler.currentToken.line+1).description
-        rLogger.log( self, .debug, "**** \(errorMessage)" )
-#endif
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
                 .parameterCannotAppearHere( lineNumber: thisCompiler.currentToken.line+1 ) ) )
@@ -413,9 +536,6 @@ extension ExprNode {
 
     func isTokenSupportedKeyword( incrementIndexBy: Int ) -> Bool {
         if notSupported.contains( thisCompiler.currentToken.what ) {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, "**** '\(thisCompiler.currentToken.value)' not supported in line \(thisCompiler.currentToken.line+1)" )
-#endif
             thisCompiler.rexselErrorList
                 .add( RexselErrorData
                     .init( kind: RexselErrorKind
@@ -429,5 +549,26 @@ extension ExprNode {
         return true
     }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Mark error if current keyword not supported.
+    ///
+    /// - Parameters:
+    ///   - compiler: the compiler instance being used.
+
+    func markIfInvalidKeywordForThisVersion( _ thisCompiler: RexselKernel ) {
+        let tokenValue = thisCompiler.currentToken.what.rawValue
+        let version = thisCompiler.xsltVersion
+        let versionRangeMin = rexsel_versionRange[ version ]!.min
+        let versionRangeMax = rexsel_versionRange[ version ]!.max
+        let vRange = versionRangeMin..<versionRangeMax
+        guard vRange.contains( tokenValue ) else {
+            markInvalidKeywordForVersion( thisCompiler.currentToken.value,
+                                          version: thisCompiler.xsltVersion,
+                                          at: thisCompiler.currentToken.line)
+            return
+        }
+    }
 }
 

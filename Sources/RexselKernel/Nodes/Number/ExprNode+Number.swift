@@ -2,7 +2,7 @@
 //  ExprNode+Number.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -73,7 +73,7 @@ class NumberNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .number
+        thisExprNodeType = .number
 
         setSyntax()
    }
@@ -126,7 +126,7 @@ class NumberNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInNumberTokens( thisCompiler.currentToken.what ) :
 #if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.expressionString)" )
 #endif
                     let node: ExprNode
 
@@ -144,7 +144,7 @@ class NumberNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.exprNodeType.description
+                    let nodeName = node.thisExprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
                     // The entry must exist as it was set up in the init using isInOutputTokens
@@ -166,7 +166,7 @@ class NumberNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextkeyword )
                     // There maybe more to process in this block
@@ -183,7 +183,8 @@ class NumberNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = TerminalSymbolEnum.output.description
+        variablesDict.title = ""
+        variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.outputTokens )
@@ -209,7 +210,7 @@ class NumberNode: ExprNode  {
 
         // Only output if there are attributes (children)
         if attributes.isNotEmpty {
-            return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml) \(attributes)/>\n"
+            return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)/>\n"
         }
         return ""
     }

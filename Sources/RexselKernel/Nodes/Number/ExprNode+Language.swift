@@ -2,7 +2,7 @@
 //  ExprNode+Language.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -26,7 +26,7 @@ class LanguageNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .language
+        thisExprNodeType = .language
         languageValue = ""
    }
 
@@ -79,7 +79,7 @@ class LanguageNode: ExprNode  {
 
             default :
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return
@@ -100,7 +100,7 @@ class LanguageNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(languageValue)\""
+        return "\(thisExprNodeType.xml)=\"\(languageValue)\""
     }
 
 }

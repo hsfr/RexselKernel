@@ -4,7 +4,7 @@
 //  RexselKernel Package
 //
 //  Created by Hugh Field-Richards on 10/01/2024.
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 //
 
 import Foundation
@@ -24,7 +24,7 @@ public class RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     // Make sure that this uses the Package scheme for tagged repository.
-    public var version = "1.0.37"
+    public var version = "1.0.38"
 
     /// The XSLT version being used (set to initial minimum)
     public var xsltVersion = "1.0"
@@ -209,6 +209,8 @@ public class RexselKernel {
     /// Where the compiled XSLT will be placed
     public var compiledXSL: String = ""
 
+    let rexselLogger = RexselLogger()
+
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Initialisation
@@ -238,11 +240,11 @@ public class RexselKernel {
                                                   errorListing: String,
                                                   symbolTable: String )
     {
-#if REXSEL_LOGGING
+//#if REXSEL_LOGGING
         if debugOn {
             rLogger.loggingRequired = .debug
         }
-#endif
+//#endif
 
         showUndefinedErrors = showUndefined
         showLineNumbers = lineNumbers
@@ -290,16 +292,18 @@ public class RexselKernel {
         if showFullMessages {
             print( "Semantic checks finished" )
         }
+
         rootNode.checkVariableScope( self )
         if showFullMessages {
             print( "Variable scope checks finished" )
         }
+
         let symbolTable = rootNode.symbolListing()
 
         // Finally generate the actual code
         compiledXSL = rootNode.generate()
 
-        // The code is returned so that command line and app can deal with
+        // The code is returned so that the command line and app can deal with
         // the errors and symbol table differently.
         return( compiledXSL, rexselErrorList.description, symbolTable )
     }

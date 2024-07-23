@@ -1,8 +1,8 @@
 //
-//  Compiler+SymbolTableEntry.swift
+//  RexselKernel+SymbolTableEntry.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -28,7 +28,7 @@ struct SymbolTableEntry {
     ///
     /// - Parameters:
     ///   - maxLength: Maximum line length
-    /// - returns: Symbol table string
+    /// - Returns: Symbol table string
 
     func description( maxLength inMaximumLength: Int ) -> String
     {
@@ -36,13 +36,17 @@ struct SymbolTableEntry {
 
         var padding = ""
 
-        // Small bodge to even columns!
+        // Nasty bodge to even columns! I must do this properly some time.
         if entryType == .proc {
-            padding = " "
+            padding = "     "
         }
 
         if entryType == .match {
             padding = "    "
+        }
+
+        if entryType == .variable {
+            padding = " "
         }
 
         func padSpaces( _ totalSpaces: Int ) {

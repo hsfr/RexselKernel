@@ -2,7 +2,7 @@
 //  ExprNode+From.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -26,7 +26,7 @@ class FromNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .from
+        thisExprNodeType = .from
         value = ""
    }
 
@@ -80,7 +80,7 @@ class FromNode: ExprNode  {
 
             default :
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return
@@ -101,7 +101,7 @@ class FromNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(value)\""
+        return "\(thisExprNodeType.xml)=\"\(value)\""
     }
 
 }

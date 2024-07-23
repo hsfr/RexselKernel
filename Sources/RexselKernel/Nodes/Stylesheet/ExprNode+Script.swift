@@ -2,7 +2,7 @@
 //  ExprNode+Text.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -77,7 +77,7 @@ class ScriptNode: ExprNode  {
     override init()
     {
         super.init()
-        exprNodeType = .script
+        thisExprNodeType = .script
 
         srcString = ""
         archiveString = ""
@@ -192,7 +192,7 @@ class ScriptNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: exprNodeType,
+                                                   inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
 
@@ -238,7 +238,7 @@ class ScriptNode: ExprNode  {
             attributes += " \(TerminalSymbolEnum.archive.xml)=\"\(archiveString)\""
         }
 
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if scriptString.isEmpty {
             return "\(lineComment)<\(thisElementName)\(attributes)/>\n"
         } else {

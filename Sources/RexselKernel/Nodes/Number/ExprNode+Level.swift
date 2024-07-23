@@ -2,7 +2,7 @@
 //  ExprNode+Level.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -58,7 +58,7 @@ class LevelNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .level
+        thisExprNodeType = .level
         numberLevel = .singleLevel
     }
 
@@ -112,7 +112,7 @@ class LevelNode: ExprNode  {
                 return
 
             default :
-                try? markUnknownValue( inElement: exprNodeType,
+                try? markUnknownValue( inElement: thisExprNodeType,
                                        found: thisCompiler.currentToken.value,
                                        insteadOf: "\"single\", \"multiple\" or \"any\"",
                                        inLine: thisCompiler.currentToken.line,
@@ -135,7 +135,7 @@ class LevelNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(numberLevel.xml)\""
+        return "\(thisExprNodeType.xml)=\"\(numberLevel.xml)\""
     }
 
 }

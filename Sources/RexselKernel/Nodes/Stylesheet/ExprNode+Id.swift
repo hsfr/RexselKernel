@@ -2,7 +2,7 @@
 //  ExprNode+Id.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -26,7 +26,7 @@ class IdNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .id
+        thisExprNodeType = .id
         idValue = ""
     }
 
@@ -75,13 +75,13 @@ class IdNode: ExprNode  {
             case ( .expression, _, _ )  :
                 idValue = thisCompiler.currentToken.value
 #if REXSEL_LOGGING
-                rLogger.log( self, .debug, "Found id '\(exprNodeType.xml)':'\(idValue)' in line \(sourceLine)" )
+                rLogger.log( self, .debug, "Found id '\(thisExprNodeType.xml)':'\(idValue)' in line \(sourceLine)" )
 #endif
                 thisCompiler.tokenizedSourceIndex += 1
 
             default :
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return
@@ -102,7 +102,7 @@ class IdNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(idValue)\""
+        return "\(thisExprNodeType.xml)=\"\(idValue)\""
     }
 
 }

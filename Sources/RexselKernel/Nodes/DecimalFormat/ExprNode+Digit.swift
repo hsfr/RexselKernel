@@ -29,7 +29,7 @@ class DigitNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .digit
+        thisExprNodeType = .digit
         digitValue = ""
     }
 
@@ -102,7 +102,7 @@ class DigitNode: ExprNode  {
 
            default :
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line )
                 return
 
@@ -123,7 +123,7 @@ class DigitNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(digitValue)\""
+        return "\(thisExprNodeType.xml)=\"\(digitValue)\""
     }
 
 }

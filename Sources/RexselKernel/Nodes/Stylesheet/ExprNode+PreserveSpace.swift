@@ -2,7 +2,7 @@
 //  ExprNode+PreserveSpace.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -26,7 +26,7 @@ class PreserveSpaceNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .preserveSpace
+        thisExprNodeType = .preserveSpace
         preserveSpaceList = ""
     }
 
@@ -92,7 +92,7 @@ class PreserveSpaceNode: ExprNode  {
 
             default :
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line )
                 return
         }
@@ -108,7 +108,7 @@ class PreserveSpaceNode: ExprNode  {
         let lineComment = super.generate()
 
         let attributes = " elements=\"\(preserveSpaceList)\""
-        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(exprNodeType.xml)"
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         guard preserveSpaceList.isNotEmpty else {
             return ""
         }

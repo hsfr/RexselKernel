@@ -2,7 +2,7 @@
 //  RexelError+Kind.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -32,7 +32,7 @@ enum RexselErrorKind {
     case foundUnexpectedExpression( lineNumber: Int, found: String )
     case unknownValue( lineNumber: Int, inElement: String, found: String, insteadOf: String )
     case alreadyDeclaredIn( lineNumber: Int, name: String, atLine: Int )
-    case duplicateSymbol( lineNumber: Int, name: String, where: Int )
+    case duplicateSymbol( lineNumber: Int, name: String, originalLine: Int )
     case duplicateNamespace( lineNumber: Int, name: String, where: Int )
 
     case duplicateParameter( lineNumber: Int, name: String, where: Int )
@@ -45,8 +45,8 @@ enum RexselErrorKind {
     case missingParameterName( lineNumber: Int )
     case missingVariableValue( lineNumber: Int, name: String )
     case missingTest( lineNumber: Int )
-    case missingExpression( lineNumber: Int )
- 
+    case missingExpression( lineNumber: Int, after: String )
+
     case missingNamespace( lineNumber: Int )
     case missingURI( lineNumber: Int, symbol: String )
     case missingElementName( lineNumber: Int, position: Int, found: String )
@@ -79,6 +79,14 @@ enum RexselErrorKind {
 
     case missingScriptOption( lineNumber: Int, symbol: String )
     case prefixNotDeclared( lineNumber: Int, prefix: String )
+    case syntaxRequiresElement( lineNumber: Int, name: String, inElement: String )
+    case syntaxRequiresZeroOrOneElement( lineNumber: Int, name: String, inElement: String )
+    case syntaxRequiresZeroOrMoreElement( lineNumber: Int, name: String, inElement: String )
+
+    case syntaxRequiresOneOrMoreElement( lineNumber: Int, name: String, inElement: String )
+    case syntaxCannotHaveBothElements( lineNumber: Int, names: [String], inElement: String )
+    case syntaxMustHaveAtLeastOneOfElements( lineNumber: Int, names: [String], inElement: String )
+    case cannotHaveBothOptions( lineNumber: Int, inElement: String, option1: String, option2: String )
 
     case endOfFile
 
@@ -121,7 +129,7 @@ enum RexselErrorKind {
             case .missingList( _, _ ) : return 127
             case .cannotHaveBothDefaultAndBlock( _ ) : return 128
             case .defaultAndBlockMissing( _ ) : return 129
-            case .missingExpression( _ ) : return 130
+            case .missingExpression( _, _ ) : return 130
 
             case .parameterMustBeFirst( _, _, _ ) : return 131
             case .parameterCannotAppearHere( _ ) : return 132
@@ -143,6 +151,14 @@ enum RexselErrorKind {
 
             case .missingScriptOption( _, _ ) : return 146
             case .prefixNotDeclared( _, _ ) : return 147
+            case .syntaxRequiresElement( _, _, _ ) : return 148
+            case .syntaxRequiresZeroOrOneElement( _, _, _ ) : return 149
+            case .syntaxRequiresZeroOrMoreElement( _, _, _ ) : return 150
+
+            case .syntaxRequiresOneOrMoreElement( _, _, _ ) : return 151
+            case .syntaxCannotHaveBothElements( _, _, _ ) : return 152
+            case .syntaxMustHaveAtLeastOneOfElements( _, _, _ ) : return 153
+            case .cannotHaveBothOptions( _, _, _, _ ) : return 154
 
             case .endOfFile : return 1001
 
@@ -172,16 +188,16 @@ enum RexselErrorKind {
                     return "Unexpected symbol in \"\(inElement)\" in line \(lineNumber)"
                 }
 
-            case .foundUnexpectedSymbolInsteadOf( let lineNumber, let found, let insteadOf, let inElement ) :
+            case .foundUnexpectedSymbolInsteadOf( let lineNumber, let found, _, let inElement ) :
                 switch ( found.isNotEmpty, inElement.isNotEmpty ) {
                     case ( true, true ) :
-                        return "Unexpected symbol \"\(found)\" instead of \"\(insteadOf)\" in \"\(inElement)\" in line \(lineNumber)"
+                        return "Unexpected symbol \"\(found)\" in \"\(inElement)\" in line \(lineNumber)"
                     case ( true, false ) :
-                        return "Unexpected symbol \"\(found)\" instead of \"\(insteadOf)\" in line \(lineNumber)"
+                        return "Unexpected symbol \"\(found)\" in line \(lineNumber)"
                     case ( false, true ) :
-                        return "Unexpected symbol found instead of \"\(insteadOf)\" in \"\(inElement)\" in line \(lineNumber)"
+                        return "Unexpected symbol in \"\(inElement)\" in line \(lineNumber)"
                     case ( false, false ) :
-                        return "Unexpected symbol found instead of \"\(insteadOf)\" in line \(lineNumber)"
+                        return "Unexpected symbol in line \(lineNumber)"
                 }
 
             case .foundUnexpectedExpression( let lineNumber, let found ) :
@@ -232,10 +248,10 @@ enum RexselErrorKind {
             case .missingTest( let lineNumber ) : 
                 return "Missing test expression in line \(lineNumber)"
 
-            case .missingExpression( let lineNumber ) : 
-                return "Missing using/scope/priority expression in line \(lineNumber)"
+            case .missingExpression( let lineNumber, let after ) :
+                return "Missing expression after \"\(after)\" in line \(lineNumber)"
 
-            case .missingURI( let lineNumber, let symbol ) : 
+            case .missingURI( let lineNumber, let symbol ) :
                 return "Missing URI, found \"\(symbol)\" in line \(lineNumber)"
 
             case .missingList( let lineNumber, let symbol ) :
@@ -311,6 +327,35 @@ enum RexselErrorKind {
             case .prefixNotDeclared( let lineNumber, let prefix ) :
                 return "Namespace prefix \"\(prefix)\" not declared in script declaration in line \(lineNumber)"
 
+            case .syntaxRequiresElement( let lineNumber, let name, let inElement ) : 
+                return "\"\(inElement)\" requires \"\(name)\" in line \(lineNumber)"
+
+            case .syntaxRequiresZeroOrOneElement( let lineNumber, let name, let inElement ) :
+                return "\"\(inElement)\" requires zero or one \"\(name)\" in line \(lineNumber)"
+
+            case .syntaxRequiresZeroOrMoreElement( let lineNumber, let name, let inElement ) :
+                return "\"\(inElement)\" requires zero or more \"\(name)\" in line \(lineNumber)"
+
+            case .syntaxRequiresOneOrMoreElement( let lineNumber, let name, let inElement ) :
+                return "\"\(inElement)\" requires one or more \"\(name)\" in line \(lineNumber)"
+
+            case .syntaxCannotHaveBothElements( let lineNumber, let names, let inElement ) :
+                var namesString = ""
+                for entry in names {
+                    namesString += "\"\(entry)\" "
+                }
+                return "Cannot have \(namesString)together in \"\(inElement)\" in line \(lineNumber)"
+
+            case .syntaxMustHaveAtLeastOneOfElements( let lineNumber, let names, let inElement ) :
+                var namesString = ""
+                for entry in names {
+                    namesString += "\"\(entry)\" "
+                }
+                return "Must have at least one of \(namesString)present in \"\(inElement)\" in line \(lineNumber)"
+
+            case .cannotHaveBothOptions( let lineNumber, let inElement, let option1, let option2 ) :
+                return "Cannot have both \"\(option1)\" and \"\(option2)\" present in \"\(inElement)\" in line \(lineNumber)"
+
             case .endOfFile : return "Early end of file"
 
             case .unknownError( let lineNumber, _ ) : return "Unknown error in line \(lineNumber)"
@@ -330,8 +375,12 @@ enum RexselErrorKind {
             case .foundUnexpectedSymbol( _, _, _ ) :
                 return "Check spelling, missing expression, bracket or quote?"
 
-            case .foundUnexpectedSymbolInsteadOf( _, _, _, _ ) :
-                return "Check spelling, missing expression, bracket or quote?"
+            case .foundUnexpectedSymbolInsteadOf( _, _, let insteadOf, _ ) :
+                if insteadOf.isNotEmpty {
+                    return "Check spelling, did you mean \(insteadOf)?"
+                } else {
+                    return "Check spelling, no suggestion."
+                }
 
             case .foundUnexpectedExpression( _, _ ) : return "Check missing keyword."
 
@@ -366,8 +415,8 @@ enum RexselErrorKind {
             
             case .missingTest( _ ) : return "Insert test."
             
-            case .missingExpression( _ ) : return "Insert expression."
-            
+            case .missingExpression( _, _ ) : return "Insert expression."
+
             case .missingElementName( _, _, _ ) : return "Supply valid element name."
             
             case .missingName( _, _ ) : return "Insert name"
@@ -428,6 +477,27 @@ enum RexselErrorKind {
 
             case .prefixNotDeclared( _, let prefix ) :
                 return "Insert namespace pair declaration for \"\(prefix)\""
+
+            case .syntaxRequiresElement( _, _, let inElement ) :
+                return "Check syntax requirements for \"\(inElement)\""
+
+            case .syntaxRequiresZeroOrOneElement( _, _, let inElement ) :
+                return "Check syntax requirements for \"\(inElement)\""
+
+            case .syntaxRequiresZeroOrMoreElement( _, _, let inElement ) :
+                return "Check syntax requirements for \"\(inElement)\""
+
+            case .syntaxRequiresOneOrMoreElement( _, _, let inElement ) :
+                return "Check syntax requirements for \"\(inElement)\""
+
+            case .syntaxCannotHaveBothElements( _, _, _ ) :
+                return "Remove one of the keywords"
+
+            case .syntaxMustHaveAtLeastOneOfElements( _, _, _ ) :
+                return "Insert one of the keywords"
+
+            case .cannotHaveBothOptions( _, _, _, _ ) :
+                return "Remove one."
 
             case .endOfFile : return "Check mismatched brackets?"
 

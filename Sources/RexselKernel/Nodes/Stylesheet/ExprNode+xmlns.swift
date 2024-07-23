@@ -2,7 +2,7 @@
 //  ExprNode+xmlns.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -26,7 +26,7 @@ class XmlnsNode: ExprNode {
 
     override init() {
         super.init()
-        exprNodeType = .xmlns
+        thisExprNodeType = .xmlns
 
         self.name = ""
         self.url = ""
@@ -96,7 +96,7 @@ class XmlnsNode: ExprNode {
                 // Error so slide past the two expressions
                 //  thisCompiler.tokenizedSourceIndex += 2
                 try markUnexpectedSymbolError( what: thisCompiler.nextNextToken.what,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return
@@ -104,7 +104,7 @@ class XmlnsNode: ExprNode {
             case ( .expression, _, _ ) :
                 try markUnexpectedSymbolError( what: thisCompiler.nextToken.what,
                                                insteadOf: "Namespace pair [prefix] [ref]",
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return

@@ -29,7 +29,7 @@ class PercentNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .percent
+        thisExprNodeType = .percent
         percentValue = ""
     }
 
@@ -102,7 +102,7 @@ class PercentNode: ExprNode  {
 
            default :
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line )
                 return
 
@@ -123,7 +123,7 @@ class PercentNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(percentValue)\""
+        return "\(thisExprNodeType.xml)=\"\(percentValue)\""
     }
 
 }

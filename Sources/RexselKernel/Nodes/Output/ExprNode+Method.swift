@@ -2,7 +2,7 @@
 //  ExprNode+Method.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -57,7 +57,7 @@ class MethodNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .method
+        thisExprNodeType = .method
         method = .xmlMethod
     }
 
@@ -116,7 +116,7 @@ class MethodNode: ExprNode  {
                 return
 
             default :
-                try? markUnknownValue( inElement: exprNodeType,
+                try? markUnknownValue( inElement: thisExprNodeType,
                                        found: thisCompiler.currentToken.value,
                                        insteadOf: "'xml', 'html' or 'text'",
                                        inLine: sourceLine )
@@ -139,7 +139,7 @@ class MethodNode: ExprNode  {
   
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(method.xml)\""
+        return "\(thisExprNodeType.xml)=\"\(method.xml)\""
     }
 
 }

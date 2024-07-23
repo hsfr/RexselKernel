@@ -1,8 +1,8 @@
 //
-//  ExprNode+ForEachNode.swift
-//  Rexsel
+//  ExprNode+AnalyzeString.swift
+//  RexselKernel
 //
-//  Created by Hugh Field-Richards on 07/02/2024.
+//  Created by Hugh Field-Richards on 03/07/2024.
 //
 
 import Foundation
@@ -11,11 +11,15 @@ import Foundation
 // -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-extension ForeachNode {
+extension AnalyzeStringNode {
 
-    static let blockTokens: TerminalSymbolEnumSetType = TerminalSymbolEnum.blockTokens.union( TerminalSymbolEnum.sortToken )
+    static let blockTokens: TerminalSymbolEnumSetType = [
+        .matchingSubstring, .nonMatchingSubstring, .fallback
+    ]
 
-    static let optionTokens: TerminalSymbolEnumSetType = []
+    static let optionTokens: TerminalSymbolEnumSetType = [
+        .regex, .flags
+    ]
 
 }
 
@@ -23,9 +27,10 @@ extension ForeachNode {
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // MARK: -
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Version 2.0 and above *-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-class ForeachNode: ExprNode  {
+class AnalyzeStringNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -33,8 +38,7 @@ class ForeachNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    /// The XPath that defines the loop
-    fileprivate var loopExpression: String = ""
+    fileprivate var string: String = ""
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -47,10 +51,10 @@ class ForeachNode: ExprNode  {
     override init()
     {
         super.init()
-        thisExprNodeType = .foreach
         isLogging = false  // Adjust as required
-        loopExpression = ""
-        setSyntax( options: ForeachNode.optionTokens, elements: ForeachNode.blockTokens )
+        thisExprNodeType = .analyzeString
+        string = ""
+        setSyntax( options: AnalyzeStringNode.optionTokens, elements: AnalyzeStringNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -68,6 +72,7 @@ class ForeachNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
+            name = "\(thisExprNodeType.description)[\(thisCompiler.currentToken.line)]"
             if isLogging {
                 rLogger.log( self, .debug, thisCompiler.currentTokenLog )
                 rLogger.log( self, .debug, thisCompiler.nextTokenLog )
@@ -84,10 +89,10 @@ class ForeachNode: ExprNode  {
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
         }
 
-        // Slide past keyword
         thisCompiler.tokenizedSourceIndex += 1
 
         while !thisCompiler.isEndOfFile {
+
             if isLogging {
                 rLogger.log( self, .debug, thisCompiler.currentTokenLog )
                 rLogger.log( self, .debug, thisCompiler.nextTokenLog )
@@ -99,10 +104,19 @@ class ForeachNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Valid constructions
 
-                case ( .expression, .terminal, _ ) where loopExpression.isEmpty &&
-                                                         thisCompiler.nextToken.what == .openCurlyBracket :
-                    loopExpression = thisCompiler.currentToken.value
+                case ( .expression, .terminal, _ ) where string.isEmpty &&
+                                                         isInOptionTokens( thisCompiler.nextToken.what ) :
+                    string = thisCompiler.currentToken.value
                     thisCompiler.tokenizedSourceIndex += 1
+                    continue
+
+                case ( .terminal, .expression, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) :
+                    optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.nextToken.value
+                    if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
+                        optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line
+                    }
+                    optionsDict[ thisCompiler.currentToken.what ]?.count += 1
+                    thisCompiler.tokenizedSourceIndex += 2
                     continue
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
@@ -170,7 +184,7 @@ class ForeachNode: ExprNode  {
                         thisCompiler.nestedLevel += 1
                     }
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   insteadOf: tokensDescription( ForeachNode.blockTokens ),
+                                                   mightBe: AnalyzeStringNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .absorbBlock )
@@ -182,6 +196,7 @@ class ForeachNode: ExprNode  {
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line )
                     return
+
             }
         }
     }
@@ -195,15 +210,23 @@ class ForeachNode: ExprNode  {
     /// Set up the syntax based on the BNF.
     ///
     /// ```xml
-    ///   <foreach> ::= "foreach" <quote> <xpath expression> <quote>
-    ///                 "{"
-    ///                    <sort>?
-    ///                    <block elements>+
-    ///                 "}"
+    ///   <analyzeString> ::= "analyze-string" <quote> <expression> <quote>
+    ///                         "regex" <quote> <string> <quote>
+    ///                         ( "flags" <quote> <string> <quote> )?
+    ///                       "{"
+    ///                            (
+    ///                               ( <matching-substring> <non-matching-substring>? ) |
+    ///                               ( <matching-substring>? <non-matching-substring> )
+    ///                            )
+    ///                            <fallback>*
+    ///                       "}"
     /// ```
 
     override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
         super.setSyntax( options: optionsList, elements: elementsList )
+        optionsDict[ .regex ] = AllowableSyntaxEntryStruct( min: 1, max: 1 )
+        childrenDict[ .matchingSubstring ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
+        childrenDict[ .nonMatchingSubstring ] = AllowableSyntaxEntryStruct( min: 0, max: 1 )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -215,31 +238,11 @@ class ForeachNode: ExprNode  {
 
     override func checkSyntax() {
         super.checkSyntax()
-        // Check for sort having to be first
-        if let nodes = nodeChildren {
-            var nonSortFound = false
-            for child in nodes {
-                if child.thisExprNodeType != .sort {
-                    nonSortFound = true
-                }
-                if nonSortFound && child.thisExprNodeType == .parameter {
-                    markSortMustBeAtStartOfBlock( within: thisExprNodeType.description,
-                                                  at: child.sourceLine )
-                }
-            }
-        }
-        // Check that there are some block elements (other than parameters) declared.
-        var blockElementFound = false
-        for ( key, entry ) in childrenDict {
-            if entry.count > 0 && key.description != TerminalSymbolEnum.sort.description {
-                blockElementFound = true
-                break
-            }
-        }
-        if !blockElementFound {
-            markSyntaxRequiresOneOrMoreElement( inLine: sourceLine,
-                                                name: tokensDescription( TerminalSymbolEnum.blockTokens ),
-                                                inElement: thisExprNodeType.description )
+        if childrenDict[ .matchingSubstring ]!.count == 0 && childrenDict[ .nonMatchingSubstring ]!.count == 0 {
+            markMustHaveAtLeastOneOfElements( inLine: sourceLine,
+                                              names: [ TerminalSymbolEnum.matchingSubstring.description,
+                                                       TerminalSymbolEnum.nonMatchingSubstring.description ],
+                                              inElement: thisExprNodeType.description )
         }
     }
 
@@ -248,8 +251,6 @@ class ForeachNode: ExprNode  {
     // MARK: - Semantic Checking and Symbol Table Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Check duplicates.
     ///
     /// Only variable names are checked here. The variables
     /// list (_VariablesDict_) has already been formed, but no
@@ -257,25 +258,11 @@ class ForeachNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = loopExpression
+        variablesDict.title = name
         variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: ForeachNode.blockTokens )
-
-        // Check for sort having to be first
-        if let nodes = nodeChildren {
-            var nonSortFound = false
-            for child in nodes {
-                if child.thisExprNodeType != .sort {
-                    nonSortFound = true
-                }
-                if nonSortFound && child.thisExprNodeType == .sort {
-                    markSortMustBeAtStartOfBlock( within: "\(variablesDict.title)",
-                                                  at: child.sourceLine )
-                }
-            }
-        }
+        super.buildSymbolTableAndSemanticChecks( allowedTokens: AnalyzeStringNode.blockTokens )
 
         // Set up the symbol table entries
         if let nodes = nodeChildren {
@@ -283,7 +270,7 @@ class ForeachNode: ExprNode  {
 
                 switch child.thisExprNodeType {
 
-                    case .variable :
+                    case .parameter, .variable :
                         do {
                             try variablesDict.addSymbol( name: child.name,
                                                          type: child.thisExprNodeType,
@@ -299,8 +286,8 @@ class ForeachNode: ExprNode  {
                         } catch {
                             thisCompiler.rexselErrorList.add(
                                 RexselErrorData.init( kind: RexselErrorKind
-                                    .unknownError(lineNumber: child.sourceLine+1,
-                                                  message: "Unknown error with adding \"\(child.name)\" to symbol table") ) )
+                                    .unknownError( lineNumber: child.sourceLine+1,
+                                                   message: "Unknown error with adding \"\(child.name)\" to symbol table") ) )
                         }
 
                     default :
@@ -319,37 +306,61 @@ class ForeachNode: ExprNode  {
     /// At this stage the check for duplicates will have been run
     /// so the tables, _variableDict_ should be populated for this node.
     ///
-    /// This table (the root node) will be used throughout the
-    /// stylesheet for checking within each local scope.
+    /// - Parameters:
+    ///   - compiler: the current compiler for this stylesheet.
 
     override func checkVariableScope( _ compiler: RexselKernel ) {
-        scanVariablesInNodeValue( loopExpression, inLine: sourceLine )
-
         if let nodes = nodeChildren {
             scanForVariablesInBlock( compiler, nodes )
         }
     }
 
-   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Generate stylesheet tag.
+    /// Generate a list of symbols for this node.
     ///
-    /// Output is of the form, but note that having a default value
-    /// and a contents is ambiguous but not forbidden.
+    /// - Returns: Symbol table for this node as string.
+
+    override func symbolListing() -> String {
+        var childrenSymbols = ""
+        if let nodes = nodeChildren {
+            for child in nodes {
+                childrenSymbols += child.symbolListing()
+            }
+        }
+
+        let thisSymbolListing = variablesDict.description
+
+        let separator = thisSymbolListing.isNotEmpty ? "\n" : ""
+        return "\(separator)\(thisSymbolListing)\(childrenSymbols)"
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Generation Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Generate tag.
     ///
-    /// ```xml
-    ///     <xsl:foreach select="...">
-    ///        contents
-    ///     </xsl:when>
-    /// ```
+    /// - Returns: XSLT equivalent of node.
 
     override func generate() -> String {
 
         let lineComment = super.generate()
 
-        let attributes = "\(TerminalSymbolEnum.select.xml)=\"\(loopExpression)\""
         var contents = ""
+        var attributes = ""
+
+        if string.isNotEmpty {
+            attributes += " \(TerminalSymbolEnum.select.xml)=\"\(string)\""
+        }
+        for ( key, entry ) in optionsDict {
+            if entry.value.isNotEmpty {
+                attributes += " \(key.xml)=\"\(entry.value)\""
+            }
+        }
 
         if let children = nodeChildren {
             for child in children {
@@ -364,6 +375,4 @@ class ForeachNode: ExprNode  {
             return "\(lineComment)<\(thisElementName) \(attributes)>\n\(contents)\n</\(thisElementName)>"
         }
     }
-
 }
-

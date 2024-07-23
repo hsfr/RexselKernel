@@ -2,11 +2,13 @@
 //  RexselLogger.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 //
-//  A very simplistic logger that would need expanding.
+//  A _very_ simplistic logger that would need expanding.
 
 import Foundation
+
+    var rLogger = RexselLogger()
 
 class RexselLogger: NSObject {
 
@@ -14,11 +16,9 @@ class RexselLogger: NSObject {
         case trace, debug, info, warn, error, fatal, off
     }
 
-#if REXSEL_LOGGING
     fileprivate var loggerList = [String:NSObject]()
-#endif
 
-    var loggingRequired: RexselLoggerLevelEnum = .off
+    var loggingRequired: RexselLoggerLevelEnum = .debug
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -28,10 +28,7 @@ class RexselLogger: NSObject {
 
     override init() {
         super.init()
-
-#if REXSEL_LOGGING
-       loggerList = [:]
-#endif
+        loggerList = [:]
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

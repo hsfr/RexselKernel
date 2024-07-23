@@ -2,7 +2,7 @@
 //  ExprNode+Encoding.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -26,7 +26,7 @@ class EncodingNode: ExprNode  {
 
     override init() {
         super.init()
-        self.exprNodeType = .encoding
+        self.thisExprNodeType = .encoding
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -80,7 +80,7 @@ class EncodingNode: ExprNode  {
             default :
                 thisCompiler.tokenizedSourceIndex += 1
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
                                                skip: .toNextkeyword )
                 return
@@ -101,7 +101,7 @@ class EncodingNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(value)\""
+        return "\(thisExprNodeType.xml)=\"\(value)\""
     }
 
 }

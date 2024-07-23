@@ -2,7 +2,7 @@
 //  ExprNode+OmitXMLDeclaration.swift
 //  RexselKernel
 //
-//  Copyright (c) 2024 Hugh Field-Richards. All rights reserved.
+//  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
 
@@ -26,7 +26,7 @@ class OmitXMLDeclarationNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .omitXmlDecl
+        thisExprNodeType = .omitXmlDecl
         yesNoValue = .no
     }
 
@@ -66,7 +66,7 @@ class OmitXMLDeclarationNode: ExprNode  {
             case ( .terminal, _, _ ) :
                 yesNoValue = YesNoEnum.translate( thisCompiler.currentToken.value )
                 if !( yesNoValue == .yes || yesNoValue == .no ) {
-                    try? markUnknownValue( inElement: exprNodeType,
+                    try? markUnknownValue( inElement: thisExprNodeType,
                                            found: thisCompiler.currentToken.value,
                                            insteadOf: "'yes' or 'no'",
                                            inLine: sourceLine )
@@ -81,7 +81,7 @@ class OmitXMLDeclarationNode: ExprNode  {
                 return
 
             default :
-                try markUnexpectedSymbolError( what: thisCompiler.currentToken.what, inElement: exprNodeType, inLine: sourceLine )
+                try markUnexpectedSymbolError( what: thisCompiler.currentToken.what, inElement: thisExprNodeType, inLine: sourceLine )
                 return
 
         }
@@ -105,7 +105,7 @@ class OmitXMLDeclarationNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(yesNoValue.description)\""
+        return "\(thisExprNodeType.xml)=\"\(yesNoValue.description)\""
     }
 
 }

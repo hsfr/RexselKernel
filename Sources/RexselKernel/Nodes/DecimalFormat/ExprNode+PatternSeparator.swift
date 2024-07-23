@@ -29,7 +29,7 @@ class PatternSeparatorNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .patternSeparator
+        thisExprNodeType = .patternSeparator
         separatorValue = ""
     }
 
@@ -102,7 +102,7 @@ class PatternSeparatorNode: ExprNode  {
 
            default :
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line )
                 return
 
@@ -124,9 +124,9 @@ class PatternSeparatorNode: ExprNode  {
         _ = super.generate()
 
 #if REXSEL_LOGGING
-       rLogger.log( self, .debug, "Generate \(exprNodeType.xml)=\"\(separatorValue)\"" )
+       rLogger.log( self, .debug, "Generate \(thisExprNodeType.xml)=\"\(separatorValue)\"" )
 #endif
-        return "\(exprNodeType.xml)=\"\(separatorValue)\""
+        return "\(thisExprNodeType.xml)=\"\(separatorValue)\""
     }
 
 }

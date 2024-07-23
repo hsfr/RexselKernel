@@ -29,7 +29,7 @@ class ZeroDigitNode: ExprNode  {
 
     override init() {
         super.init()
-        exprNodeType = .zeroDigit
+        thisExprNodeType = .zeroDigit
         zeroDigitValue = ""    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -101,7 +101,7 @@ class ZeroDigitNode: ExprNode  {
 
            default :
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                               inElement: exprNodeType,
+                                               inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line )
                 return
 
@@ -122,7 +122,7 @@ class ZeroDigitNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(exprNodeType.xml)=\"\(zeroDigitValue)\""
+        return "\(thisExprNodeType.xml)=\"\(zeroDigitValue)\""
     }
 
 }
