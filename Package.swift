@@ -14,10 +14,8 @@ let package = Package(
     targets: [
         .target(
             name: "RexselKernel",
-            dependencies: [],
-            swiftSettings: [
-                .define("REXSEL_LOGGING"),
-            ] ),
+            dependencies: []
+         ),
 
         .testTarget(
             name: "RexselKernelTests",
