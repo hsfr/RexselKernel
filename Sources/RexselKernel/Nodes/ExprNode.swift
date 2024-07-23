@@ -110,8 +110,8 @@ class ExprNode: NSObject {
         name = ""
 
         xmlnsDict = XmlnsSymbolTableType()
-        variablesDict = SymbolTable( thisCompiler )
-        procDict = SymbolTable( thisCompiler )
+        variablesDict = SymbolTable( thisCompiler, type: .variable )
+        procDict = SymbolTable( thisCompiler, type: .proc )
         allowableChildrenDict = AllowableSyntaxDictType()
 
         childrenDict = [:]

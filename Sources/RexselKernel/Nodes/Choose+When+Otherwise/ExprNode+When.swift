@@ -232,7 +232,9 @@ class WhenNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "when::\(testExpression)"
+        variablesDict.title = testExpression
+        variablesDict.tableType = thisExprNodeType
+        variablesDict.tableType = thisExprNodeType
 
         variablesDict.blockLine = sourceLine
 

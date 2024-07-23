@@ -187,7 +187,8 @@ class FallbackNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "\(thisExprNodeType.description)[\(thisCompiler.currentToken.line)]"
+        variablesDict.title = ""
+        variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: FallbackNode.blockTokens )

@@ -297,7 +297,8 @@ class ApplyTemplatesNode: ExprNode  {
     
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> = [] ) {
         
-        variablesDict.title = "applyTemplates:\(name)"
+        variablesDict.title = name
+        variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: ApplyTemplatesNode.blockTokens )

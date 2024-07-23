@@ -223,7 +223,8 @@ class NonMatchingSubstringNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "\(thisExprNodeType.description)[\(thisCompiler.currentToken.line)]"
+        variablesDict.title = name
+        variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: NonMatchingSubstringNode.blockTokens )

@@ -259,7 +259,8 @@ class IfNode: ExprNode  {
     
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
         
-        variablesDict.title = "if:\(testExpression)"
+        variablesDict.title = name
+        variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: IfNode.blockTokens )

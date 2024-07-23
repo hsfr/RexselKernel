@@ -191,8 +191,9 @@ class NamespaceAliasNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "\(thisExprNodeType.description):\(mapFromString)"
-        variablesDict.blockLine = sourceLine
+        variablesDict.title = mapFromString
+        variablesDict.tableType = thisExprNodeType
+       variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.namespaceAliasAttributeTokens )
 

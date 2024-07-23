@@ -279,7 +279,8 @@ class AttributeSetNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "attributeSet:\(name)"
+        variablesDict.title = name
+        variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
 
       super.buildSymbolTableAndSemanticChecks( allowedTokens: AttributeSetNode.blockTokens )

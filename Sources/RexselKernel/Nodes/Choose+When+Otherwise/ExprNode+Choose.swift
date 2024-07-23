@@ -40,7 +40,7 @@ class ChooseNode: ExprNode  {
     override init()
     {
         super.init()
-        self.thisExprNodeType = .choose
+        thisExprNodeType = .choose
         isLogging = false  // Adjust as required
         isInBlock = false
         setSyntax( options: ChooseNode.optionTokens, elements: ChooseNode.blockTokens )
@@ -199,7 +199,8 @@ class ChooseNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = thisExprNodeType.description
+        variablesDict.title = name
+        variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.blockTokens )

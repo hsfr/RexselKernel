@@ -295,6 +295,7 @@ class MatchNode: ExprNode {
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
         
         variablesDict.title = name
+        variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
         
         super.buildSymbolTableAndSemanticChecks( allowedTokens: MatchNode.blockTokens )

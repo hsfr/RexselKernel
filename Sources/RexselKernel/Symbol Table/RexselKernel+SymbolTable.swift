@@ -29,6 +29,9 @@ struct SymbolTable {
     /// The title is formed from the name + the type of the symbol
     var title: String = ""
 
+    /// The type of block etc
+    var tableType: TerminalSymbolEnum
+
     /// The line number where this block is declared.
     var blockLine: Int = -1
 
@@ -41,9 +44,10 @@ struct SymbolTable {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    init( _ compiler: RexselKernel ) {
+    init( _ compiler: RexselKernel, type inType: TerminalSymbolEnum ) {
         symbolTableDict = [:]
         title = ""
+        tableType = inType
         blockLine = 0
         thisCompiler = compiler
     }
@@ -113,11 +117,14 @@ struct SymbolTable {
         }
 
         let maxLen = maxSymbolLength
-        // First get a list of symbol names since we are going to sort them
+    
         var keys: [String] = []
-        var message = "Symbols in context \"\(title)\" in line \(blockLine+1), found: \(symbolTableDict.count)"
-        if title == "::" {
-            message = "Symbols in \"apply-template etc\" in line \(blockLine+1) context, found: \(symbolTableDict.count)"
+        var message = ""
+
+        if title.isNotEmpty {
+            message = "Symbols in \(tableType.description) context \(title) in line \(blockLine+1), found: \(symbolTableDict.count)"
+        } else {
+            message = "Symbols in \(tableType.description) context in line \(blockLine+1), found: \(symbolTableDict.count)"
         }
 
         message += " \( symbolTableDict.count > 1 ? "symbols" : "symbol")\n"
@@ -130,7 +137,6 @@ struct SymbolTable {
         }
 
         keys.sort( by: < )
-
         for name in keys {
             if let entry = sortedSymbolTableDict[name] {
                 if entry.name.isNotEmpty {

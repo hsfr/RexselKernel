@@ -257,7 +257,8 @@ class ForeachNode: ExprNode  {
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
 
-        variablesDict.title = "foreach:\(loopExpression)"
+        variablesDict.title = loopExpression
+        variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: ForeachNode.blockTokens )
