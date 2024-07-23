@@ -91,7 +91,7 @@ class FallbackNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
 #if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.expressionString)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
                     markIfInvalidKeywordForThisVersion( thisCompiler )
 

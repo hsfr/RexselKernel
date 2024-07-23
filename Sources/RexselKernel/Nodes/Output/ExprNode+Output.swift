@@ -126,7 +126,7 @@ class OutputNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInOutputTokens( thisCompiler.currentToken.what ) :
 #if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.expressionString)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
                     node = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {

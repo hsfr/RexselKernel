@@ -110,7 +110,7 @@ class DecimalFormatNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where isInDecimalFormatTokens( thisCompiler.currentToken.what ) :
 #if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.expressionString)" )
+                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
 #endif
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
