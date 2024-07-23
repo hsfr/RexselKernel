@@ -72,7 +72,11 @@ class MatchNode: ExprNode {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-            name = "\"\(usingString)\"::\(scopeString)"
+            if scopeString.isNotEmpty {
+                name = "\"\(usingString)\"::\(scopeString)"
+            } else {
+                name = "\"\(usingString)\""
+            }
             if isLogging {
                 rLogger.log( self, .debug, thisCompiler.currentTokenLog )
                 rLogger.log( self, .debug, thisCompiler.nextTokenLog )

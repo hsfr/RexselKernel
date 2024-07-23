@@ -36,13 +36,17 @@ struct SymbolTableEntry {
 
         var padding = ""
 
-        // Small bodge to even columns!
+        // Nasty bodge to even columns! I must do this properly some time.
         if entryType == .proc {
-            padding = " "
+            padding = "     "
         }
 
         if entryType == .match {
             padding = "    "
+        }
+
+        if entryType == .variable {
+            padding = " "
         }
 
         func padSpaces( _ totalSpaces: Int ) {
