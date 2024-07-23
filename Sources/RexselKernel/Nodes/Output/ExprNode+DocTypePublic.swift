@@ -14,7 +14,7 @@ class DocTypePublicNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    var value: String = ""
+    var expressionString: String = ""
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -49,7 +49,7 @@ class DocTypePublicNode: ExprNode  {
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
             case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == self.thisExprNodeType :
-                value = thisCompiler.nextToken.value
+                expressionString = thisCompiler.nextToken.value
 #if REXSEL_LOGGING
                 rLogger.log( self, .debug, "Found output '\(thisExprNodeType.xml)':'\(expressionString)' in line \(sourceLine)" )
 #endif
@@ -81,7 +81,7 @@ class DocTypePublicNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(thisExprNodeType.xml)=\"\(value)\""
+        return "\(thisExprNodeType.xml)=\"\(expressionString)\""
     }
 
 }
