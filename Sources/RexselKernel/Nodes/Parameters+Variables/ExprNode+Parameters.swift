@@ -45,7 +45,7 @@ class ParameterNode: ExprNode {
         super.init()
         thisExprNodeType = .parameter
         isInBlock = false
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: WithNode.optionTokens, elements: WithNode.blockTokens )
     }
 
