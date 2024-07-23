@@ -74,7 +74,7 @@ class ApplyTemplatesNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
         
         defer {
-            name = "\(usingString)::\(scopeString)"
+            name = "\"\(usingString)\"::\(scopeString)"
             if isLogging {
                 rLogger.log( self, .debug, thisCompiler.currentTokenLog )
                 rLogger.log( self, .debug, thisCompiler.nextTokenLog )

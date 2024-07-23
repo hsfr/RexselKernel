@@ -72,7 +72,7 @@ class MatchNode: ExprNode {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-            name = "\(usingString)::\(scopeString)"
+            name = "\"\(usingString)\"::\(scopeString)"
             if isLogging {
                 rLogger.log( self, .debug, thisCompiler.currentTokenLog )
                 rLogger.log( self, .debug, thisCompiler.nextTokenLog )
@@ -289,12 +289,12 @@ class MatchNode: ExprNode {
     /// where used yet.
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
-
-        variablesDict.title = "match:\(usingString)::\(scopeString)"
+        
+        variablesDict.title = name
         variablesDict.blockLine = sourceLine
-
+        
         super.buildSymbolTableAndSemanticChecks( allowedTokens: MatchNode.blockTokens )
-
+        
         // Set up the symbol table entries
         if let nodes = nodeChildren {
             for child in nodes {

@@ -43,13 +43,28 @@ extension TerminalSymbolEnum {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     /// These are the set of keywords that can occur in
+    /// parameter blocks (element, variable etc.)
+    /// The list includes all versions. Detection and restrictions
+    /// between versions is done in appropriate node.
+    static let parameterTokens: TerminalSymbolEnumSetType = [
+        .variable, .applyImports,
+        .applyTemplates, .attrib, .call,
+        .choose,.copy, .copyOf, .element,
+        .foreach, .ifCondition, .message,
+        .processingInstruction, .number,
+        .valueOf, .text, .comment,
+        .attributeSet, .fallback, .analyzeString
+    ]
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    /// These are the set of keywords that can occur in
     /// attribute blocks.
     /// The list includes all versions. Detection and restrictions
     /// between versions is done in appropriate node.
     static let attributeBlockTokens: TerminalSymbolEnumSetType = [
         .variable,
         .applyTemplates, .call,
-        .choose,.copy, .copyOf,
+        .choose, .copy, .copyOf,
         .foreach, .ifCondition, .number,
         .valueOf, .text
     ]

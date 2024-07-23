@@ -381,8 +381,8 @@ class WithNode: ExprNode  {
         if expressionString.isNotEmpty {
             attributes += " \(TerminalSymbolEnum.select.xml)=\"\(expressionString)\""
         }
-        var contents = ""
 
+        var contents = ""
         if let children = nodeChildren {
             for child in children {
                 contents += " \(child.generate())\n"
