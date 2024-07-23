@@ -41,7 +41,7 @@ class CallNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .call
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         isInBlock = false
         setSyntax( options: CallNode.optionTokens, elements: CallNode.blockTokens )
     }

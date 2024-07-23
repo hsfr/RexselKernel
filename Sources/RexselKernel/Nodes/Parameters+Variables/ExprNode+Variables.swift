@@ -45,7 +45,7 @@ class VariableNode: ExprNode {
         super.init()
         thisExprNodeType = .variable
         isInBlock = false
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: WithNode.optionTokens, elements: WithNode.blockTokens )
    }
 
