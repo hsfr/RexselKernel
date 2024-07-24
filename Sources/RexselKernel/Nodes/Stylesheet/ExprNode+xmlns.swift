@@ -98,7 +98,7 @@ class XmlnsNode: ExprNode {
                 try markUnexpectedSymbolError( what: thisCompiler.nextNextToken.what,
                                                inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword )
+                                               skip: .toNextKeyword )
                 return
 
             case ( .expression, _, _ ) :
@@ -106,7 +106,7 @@ class XmlnsNode: ExprNode {
                                                insteadOf: "Namespace pair [prefix] [ref]",
                                                inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword )
+                                               skip: .toNextKeyword )
                 return
 
 

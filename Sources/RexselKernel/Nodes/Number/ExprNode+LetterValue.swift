@@ -109,7 +109,7 @@ class LetterValueNode: ExprNode  {
                                        found: thisCompiler.currentToken.value,
                                        insteadOf: "\"alphabetic\", \"traditional\"",
                                        inLine: thisCompiler.currentToken.line,
-                                       skip: .toNextkeyword )
+                                       skip: .toNextKeyword )
                 return
         }
     }

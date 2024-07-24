@@ -88,7 +88,7 @@ class NaNNode: ExprNode  {
                                            insteadOf: "valid NaN string",
                                            inElement: .notNumber,
                                            inLine: thisCompiler.currentToken.line,
-                                           skip: .toNextkeyword )
+                                           skip: .toNextKeyword )
                     nanValue = "NaN"
                     return
                 }

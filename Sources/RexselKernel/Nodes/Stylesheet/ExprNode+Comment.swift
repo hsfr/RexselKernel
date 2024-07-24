@@ -6,6 +6,24 @@
 
 import Foundation
 
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+extension CommentNode {
+
+    static let blockTokens: TerminalSymbolEnumSetType = []
+
+    static let optionTokens: TerminalSymbolEnumSetType = []
+
+}
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// MARK: -
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
 class CommentNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -29,16 +47,17 @@ class CommentNode: ExprNode  {
     {
         super.init()
         self.thisExprNodeType = .comment
-        textString = ""  
+        isLogging = false  // Adjust as required
+        setSyntax( options: CommentNode.optionTokens, elements: CommentNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // MARK: - Instance Methods
+    // MARK: - Parsing/Generate Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse comment statement.
+    /// Parse source (with tokens).
     ///
     /// - Parameters:
     ///   - compiler: the current instance of the compiler.
@@ -47,27 +66,28 @@ class CommentNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-        // Slide past "text". It should just be a simple expression here
-        // which contains the text string.
         thisCompiler.tokenizedSourceIndex += 1
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
+
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Valid constructions
 
             case ( .expression, _, _ ) :
                 textString = thisCompiler.currentToken.value
@@ -78,8 +98,6 @@ class CommentNode: ExprNode  {
             // Early end of file
 
             case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
-                // Don't bother to check. End of file here is an error anyway which
-                // will be picked up above this node. Almost certainly a brackets problem.
                 return
 
             default:
@@ -87,10 +105,38 @@ class CommentNode: ExprNode  {
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword )
+                                               skip: .toNextKeyword )
                 return
 
         }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///   <comment> ::= "comment" <quote> <alphanumeric text> <quote>
+    /// ```
+
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, 
+                             elements elementsList: TerminalSymbolEnumSetType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

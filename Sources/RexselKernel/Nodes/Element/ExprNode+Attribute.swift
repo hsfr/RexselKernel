@@ -223,7 +223,7 @@ class AttributeNode: ExprNode  {
                     try markMissingItemError( what: .expression,
                                               inLine: thisCompiler.currentToken.line,
                                               after: thisCompiler.currentToken.value,
-                                              skip: .toNextkeyword )
+                                              skip: .toNextKeyword )
                     continue
 
                 case ( _, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) && !isInBlock :
@@ -231,7 +231,7 @@ class AttributeNode: ExprNode  {
                                                    mightBe: AttributeNode.optionTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
                 case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
@@ -239,7 +239,7 @@ class AttributeNode: ExprNode  {
                                                    mightBe: AttributeNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
                 default :
@@ -247,7 +247,7 @@ class AttributeNode: ExprNode  {
                                                    mightBe: AttributeNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     return
 
             }

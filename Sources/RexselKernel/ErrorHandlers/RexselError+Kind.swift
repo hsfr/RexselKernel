@@ -398,8 +398,7 @@ enum RexselErrorKind {
           
             case .duplicateVariable( _, _, _ ) : return "Remove duplicate from current block or check spelling."
           
-            case .expectedName( _, let name ) :
-                return "Syntax: \(name) <qname> \( (name == "variable" || name == "parameter" ) ? "<expression> or" : "" ) <block>."
+            case .expectedName( _, _ ) : return "Insert name."
 
             case .couldNotFindVariable( _, let name ) : return "Check \"\(name)\" is defined in current block/context."
 

@@ -89,7 +89,7 @@ class PatternSeparatorNode: ExprNode  {
                                            insteadOf: "valid separator",
                                            inElement: .patternSeparator,
                                            inLine: thisCompiler.currentToken.line,
-                                           skip: .toNextkeyword )
+                                           skip: .toNextKeyword )
                     separatorValue = ";"
                     return
                 }

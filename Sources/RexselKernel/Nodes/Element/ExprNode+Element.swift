@@ -212,7 +212,7 @@ class ElementNode: ExprNode  {
                         try markMissingItemError( what: .expression,
                                                   inLine: thisCompiler.currentToken.line,
                                                   after: thisCompiler.currentToken.value,
-                                                  skip: .toNextkeyword )
+                                                  skip: .toNextKeyword )
                         continue
 
                     case ( _, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) && !isInBlock :
@@ -220,7 +220,7 @@ class ElementNode: ExprNode  {
                                                        mightBe: ElementNode.optionTokens,
                                                        inElement: thisExprNodeType,
                                                        inLine: thisCompiler.currentToken.line,
-                                                       skip: .toNextkeyword )
+                                                       skip: .toNextKeyword )
                         continue
 
                     case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
@@ -228,7 +228,7 @@ class ElementNode: ExprNode  {
                                                        mightBe: ElementNode.blockTokens,
                                                        inElement: thisExprNodeType,
                                                        inLine: thisCompiler.currentToken.line,
-                                                       skip: .toNextkeyword )
+                                                       skip: .toNextKeyword )
                         continue
 
                     default :
@@ -236,7 +236,7 @@ class ElementNode: ExprNode  {
                                                        mightBe: ElementNode.blockTokens,
                                                        inElement: thisExprNodeType,
                                                        inLine: thisCompiler.currentToken.line,
-                                                       skip: .toNextkeyword )
+                                                       skip: .toNextKeyword )
                         return
             }
         }

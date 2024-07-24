@@ -160,7 +160,7 @@ class NamespaceAliasNode: ExprNode  {
                     try markUnexpectedSymbolError( found: thisCompiler.nextToken.value,
                                                    insteadOf: insteadOfString,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
                 case ( .terminal, _, _ ) where isInStyleSheetTokens( thisCompiler.currentToken.what )

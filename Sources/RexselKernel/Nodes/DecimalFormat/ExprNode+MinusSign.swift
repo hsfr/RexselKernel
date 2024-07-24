@@ -87,7 +87,7 @@ class MinusSignNode: ExprNode  {
                                            insteadOf: "valid minus",
                                            inElement: .minusSign,
                                            inLine: thisCompiler.currentToken.line,
-                                           skip: .toNextkeyword )
+                                           skip: .toNextKeyword )
                     minusValue = "-"
                     return
                 }

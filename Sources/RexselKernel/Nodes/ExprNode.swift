@@ -16,7 +16,7 @@ class ExprNode: NSObject {
     //
     /// Is logging required for this node?
     ///
-    /// This is the base of a slightky crude logging system.
+    /// This is the base of a slightly crude logging system.
     /// I would prefer to use something like Hestia but the
     /// overheads were too great.
 

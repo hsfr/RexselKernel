@@ -181,7 +181,7 @@ class StylesheetNode: ExprNode {
                     // Empty block will also flag up version missing.
                     checkSyntax()
                     try makeCannotHaveEmptyBlockError( inLine: thisCompiler.currentToken.line,
-                                                       skip: .toNextkeyword )
+                                                       skip: .toNextKeyword )
                     return
 
                 case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
@@ -201,7 +201,7 @@ class StylesheetNode: ExprNode {
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
             }

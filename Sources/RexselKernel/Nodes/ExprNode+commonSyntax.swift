@@ -130,6 +130,10 @@ extension ExprNode {
     //
     // Used in several places so declared globally.
 
+    func isInStylesheetTemplateTokens( _ token: TerminalSymbolEnum ) -> Bool {
+        return TerminalSymbolEnum.stylesheetTokens.contains(token)
+    }
+
     func isInBlockTemplateTokens( _ token: TerminalSymbolEnum ) -> Bool {
         return TerminalSymbolEnum.blockTokens.contains(token)
     }

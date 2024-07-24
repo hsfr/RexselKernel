@@ -151,7 +151,7 @@ class SortNode: ExprNode  {
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
                 case ( .expression, _, _ ) : // Naked expression

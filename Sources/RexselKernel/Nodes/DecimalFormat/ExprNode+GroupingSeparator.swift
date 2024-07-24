@@ -89,7 +89,7 @@ class GroupingSeparatorNode: ExprNode  {
                                            insteadOf: "valid separator",
                                            inElement: .groupingSeparator,
                                            inLine: thisCompiler.currentToken.line,
-                                           skip: .toNextkeyword )
+                                           skip: .toNextKeyword )
                     groupingSeparatorValue = ","
                     return
                 }

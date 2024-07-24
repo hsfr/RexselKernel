@@ -89,7 +89,7 @@ class DigitNode: ExprNode  {
                                            insteadOf: "valid digit standin",
                                            inElement: .decimalSeparator,
                                            inLine: thisCompiler.currentToken.line,
-                                           skip: .toNextkeyword )
+                                           skip: .toNextKeyword )
                     digitValue = "#"
                     return
                 }

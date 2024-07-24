@@ -88,7 +88,7 @@ class ZeroDigitNode: ExprNode  {
                                            insteadOf: "valid zero",
                                            inElement: .zeroDigit,
                                            inLine: thisCompiler.currentToken.line,
-                                           skip: .toNextkeyword )
+                                           skip: .toNextKeyword )
                     zeroDigitValue = "0"
                     return
                 }

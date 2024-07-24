@@ -204,7 +204,7 @@ class VariableNode: ExprNode {
                 case ( .expression, _, _ ) where name.isEmpty :
                     try markExpectedNameError( after: thisExprNodeType.description,
                                                inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword)
+                                               skip: .toNextKeyword)
                     return
 
                 default :

@@ -208,7 +208,7 @@ class ApplyTemplatesNode: ExprNode  {
                                                    insteadOf: "using or scope",
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
                 case ( .qname, _, _ ) :
@@ -216,7 +216,7 @@ class ApplyTemplatesNode: ExprNode  {
                                                    insteadOf: "using or scope",
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
                 case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&

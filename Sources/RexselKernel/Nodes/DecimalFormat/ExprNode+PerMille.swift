@@ -88,7 +88,7 @@ class PerMilleNode: ExprNode  {
                                            insteadOf: "permille",
                                            inElement: .perMille,
                                            inLine: thisCompiler.currentToken.line,
-                                           skip: .toNextkeyword )
+                                           skip: .toNextKeyword )
                     permilleValue = "‰"
                     return
                 }

@@ -18,7 +18,7 @@ class RexselLogger: NSObject {
 
     fileprivate var loggerList = [String:NSObject]()
 
-    var loggingRequired: RexselLoggerLevelEnum = .debug
+    var loggingLevelRequired: RexselLoggerLevelEnum = .debug
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -40,7 +40,7 @@ class RexselLogger: NSObject {
                      file: StaticString = #file,
                      line: Int = #line,
                      function: StaticString = #function ) {
-        guard loggingRequired != .off && level == .debug else {
+        guard loggingLevelRequired != .off && level == .debug else {
             return
         }
         print( "[\(level)] [\(name):\(function):\(line)] : \(msg)" )
@@ -55,7 +55,7 @@ class RexselLogger: NSObject {
                      file: StaticString = #file,
                      line: Int = #line,
                      function: StaticString = #function ) {
-        guard loggingRequired != .off && level == .debug else {
+        guard loggingLevelRequired != .off && level == .debug else {
             return
         }
 #if os(macOS)

@@ -116,7 +116,7 @@ class LevelNode: ExprNode  {
                                        found: thisCompiler.currentToken.value,
                                        insteadOf: "\"single\", \"multiple\" or \"any\"",
                                        inLine: thisCompiler.currentToken.line,
-                                       skip: .toNextkeyword )
+                                       skip: .toNextKeyword )
                 return
         }
     }

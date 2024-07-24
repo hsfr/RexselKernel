@@ -33,7 +33,7 @@ class IncludeNode: ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    fileprivate var uriString: String!
+    fileprivate var uriString: String = ""
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -48,7 +48,6 @@ class IncludeNode: ExprNode {
         super.init()
         thisExprNodeType = .includeSheet
         isLogging = false  // Adjust as required
-        uriString = ""
         setSyntax( options: ForeachNode.optionTokens, elements: ForeachNode.blockTokens )
     }
 
@@ -186,10 +185,8 @@ class IncludeNode: ExprNode {
 
         var attributes = ""
 
-        if let str = uriString {
-            if str.isNotEmpty {
-                attributes += " \(TerminalSymbolEnum.href.xml)=\"\(str)\""
-            }
+        if uriString.isNotEmpty {
+            attributes += " \(TerminalSymbolEnum.href.xml)=\"\(uriString)\""
         }
 
         return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)/>\n"

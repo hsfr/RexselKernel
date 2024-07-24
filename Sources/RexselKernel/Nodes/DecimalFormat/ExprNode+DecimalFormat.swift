@@ -133,7 +133,7 @@ class DecimalFormatNode: ExprNode  {
                     try markMissingItemError( what: .name,
                                               inLine: thisCompiler.currentToken.line,
                                               after: thisExprNodeType.description,
-                                              skip: .toNextkeyword )
+                                              skip: .toNextKeyword )
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     continue
@@ -142,7 +142,7 @@ class DecimalFormatNode: ExprNode  {
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     return
 
             }

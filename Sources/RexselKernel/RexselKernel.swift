@@ -19,6 +19,20 @@ public class RexselKernel {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Logging Properties
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Is logging required?
+    ///
+    /// This is the base of a slightly crude logging system.
+    /// I would prefer to use something like Hestia but the
+    /// overheads were too great.
+
+    var isLogging = false
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Public Properties
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -240,11 +254,9 @@ public class RexselKernel {
                                                   errorListing: String,
                                                   symbolTable: String )
     {
-//#if REXSEL_LOGGING
-        if debugOn {
-            rLogger.loggingRequired = .debug
+        if isLogging {
+            rLogger.loggingLevelRequired = .debug
         }
-//#endif
 
         showUndefinedErrors = showUndefined
         showLineNumbers = lineNumbers
@@ -265,17 +277,17 @@ public class RexselKernel {
             print( "Tokenizer finished" )
         }
 
-#if REXSEL_LOGGING
-        for ( type, what, numberValue, line, position ) in tokenizedSource {
-            rLogger.log( structName,
-                         .debug,
-                         "[\(line):\(position)][\(type)][\(what)][\(numberValue)]" )
+        if isLogging {
+            for ( type, what, numberValue, line, position ) in tokenizedSource {
+                rLogger.log( structName,
+                             .debug,
+                             "[\(line):\(position)][\(type)][\(what)][\(numberValue)]" )
+            }
         }
-#endif
 
         do {
-            RexselErrorList.undefinedErrorsFlag = false
-            try parse()
+        RexselErrorList.undefinedErrorsFlag = false
+        try parse()
             if showFullMessages {
                 print( "Parse complete" )
             }

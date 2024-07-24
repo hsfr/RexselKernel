@@ -81,7 +81,7 @@ class LangNode: ExprNode  {
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
                                                inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword )
+                                               skip: .toNextKeyword )
                 return
         }
     }

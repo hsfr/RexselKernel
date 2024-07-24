@@ -227,7 +227,7 @@ class MessageNode: ExprNode  {
                                             && nodeChildren == nil :
                     thisCompiler.nestedLevel -= 1
                     try markDefaultAndBlockMissingError( inLine: thisCompiler.currentToken.line,
-                                                         skip: .toNextkeyword )
+                                                         skip: .toNextKeyword )
                     return
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
@@ -246,7 +246,7 @@ class MessageNode: ExprNode  {
                                                    insteadOf: "yes|no value",
                                                    inElement: .attrib,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     return
 
                 case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .terminate :
@@ -254,7 +254,7 @@ class MessageNode: ExprNode  {
                                                    insteadOf: "yes|no value",
                                                    inElement: .attrib,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
                 case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
@@ -268,7 +268,7 @@ class MessageNode: ExprNode  {
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     return
 
             }

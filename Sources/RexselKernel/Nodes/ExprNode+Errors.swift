@@ -14,7 +14,8 @@ import Foundation
 enum SkipEnum {
     case absorbBlock
     case outOfBlock
-    case toNextkeyword
+    case toNextKeyword
+    case toNextToken
     case toNextline
     case ignore
 }
@@ -30,8 +31,10 @@ extension ExprNode {
                 try absordNextBlock()
             case .outOfBlock :
                 try skipOutOfBlock()
-            case .toNextkeyword :
+            case .toNextKeyword :
                 try skipToNextKeyword()
+            case .toNextToken :
+                try skipToNextToken()
             case .toNextline :
                 try skipToNextLine()
             case .ignore :
@@ -118,6 +121,23 @@ extension ExprNode {
             if theToken.type == .terminal {
                 return
             }
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Skip to Next Token.
+    ///
+    /// Equivalent to bumping the token index by 1.
+    ///
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
+
+    func skipToNextToken() throws {
+        thisCompiler.tokenizedSourceIndex += 1
+        let theToken = thisCompiler.tokenizedSource[ thisCompiler.tokenizedSourceIndex ]
+        if theToken.what == .endOfFile {
+            throw RexselErrorData.init( kind: RexselErrorKind.endOfFile )
         }
     }
 

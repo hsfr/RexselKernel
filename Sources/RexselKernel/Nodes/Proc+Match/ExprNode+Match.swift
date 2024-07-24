@@ -201,7 +201,7 @@ class MatchNode: ExprNode {
                     try markMissingItemError( what: .expression,
                                               inLine: thisCompiler.currentToken.line,
                                               after: thisCompiler.currentToken.value,
-                                              skip: .toNextkeyword )
+                                              skip: .toNextKeyword )
                     continue
 
                 case ( _, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) && !isInBlock :
@@ -209,7 +209,7 @@ class MatchNode: ExprNode {
                                                    mightBe: MatchNode.optionTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
                 case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
@@ -217,7 +217,7 @@ class MatchNode: ExprNode {
                                                    mightBe: MatchNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
                 default :
@@ -225,7 +225,7 @@ class MatchNode: ExprNode {
                                                    mightBe: MatchNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     return
 
             }

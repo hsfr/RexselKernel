@@ -89,7 +89,7 @@ class PercentNode: ExprNode  {
                                            insteadOf: "valid percent",
                                            inElement: .percent,
                                            inLine: thisCompiler.currentToken.line,
-                                           skip: .toNextkeyword )
+                                           skip: .toNextKeyword )
                     percentValue = ","
                     return
                 }

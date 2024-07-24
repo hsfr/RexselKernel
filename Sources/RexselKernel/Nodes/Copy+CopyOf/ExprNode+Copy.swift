@@ -189,7 +189,7 @@ class CopyNode: ExprNode  {
                 case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
                                                        thisCompiler.nextToken.what == .closeCurlyBracket :
                     try makeCannotHaveEmptyBlockError( inLine: thisCompiler.currentToken.line,
-                                                       skip: .toNextkeyword )
+                                                       skip: .toNextKeyword )
                     return
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
@@ -214,20 +214,20 @@ class CopyNode: ExprNode  {
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     return
 
                 case ( .expression, _, _ ) :
                     try markExpectedNameError( after: thisExprNodeType.description,
                                                inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword)
+                                               skip: .toNextKeyword)
                     return
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     return
             }
         }

@@ -89,7 +89,7 @@ class InfinityNode: ExprNode  {
                                            insteadOf: "infinity string",
                                            inElement: .infinity,
                                            inLine: thisCompiler.currentToken.line,
-                                           skip: .toNextkeyword )
+                                           skip: .toNextKeyword )
                     infinityValue = "infinity"
                     return
                 }

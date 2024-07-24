@@ -209,7 +209,7 @@ class ProcNode: ExprNode  {
                     // Spurious expression found istead of name
                     try markExpectedNameError( after: thisExprNodeType.description,
                                                inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword)
+                                               skip: .toNextKeyword)
                     // Exit to continue processing at a higher level
                     return
 
@@ -218,7 +218,7 @@ class ProcNode: ExprNode  {
                                                    mightBe: ProcNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
            default :

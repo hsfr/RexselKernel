@@ -88,7 +88,7 @@ class DecimalSeparatorNode: ExprNode  {
                                            insteadOf: "valid separator",
                                            inElement: .decimalSeparator,
                                            inLine: thisCompiler.currentToken.line,
-                                           skip: .toNextkeyword )
+                                           skip: .toNextKeyword )
                     separatorValue = ","
                     return
                 }

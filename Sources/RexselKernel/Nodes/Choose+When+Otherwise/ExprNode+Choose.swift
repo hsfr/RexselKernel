@@ -151,7 +151,7 @@ class ChooseNode: ExprNode  {
                                                    mightBe: ChooseNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     return
             }
         }
