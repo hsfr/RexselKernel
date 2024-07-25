@@ -190,7 +190,9 @@ class WithNode: ExprNode  {
                     expressionString = thisCompiler.currentToken.value
                     isInBlock = true
                     thisCompiler.nestedLevel += 1
-                    try markCannotHaveBothDefaultAndBlockError( inLine: sourceLine, skip: .absorbBlock )
+                    try markCannotHaveBothDefaultAndBlockError( inLine: sourceLine,
+                                                                element: thisExprNodeType,
+                                                                skip: .absorbBlock )
                     thisCompiler.tokenizedSourceIndex += 1
                     return
 
@@ -266,7 +268,9 @@ class WithNode: ExprNode  {
             }
         }
         if blockElementFound && expressionString.isNotEmpty {
-            try? markCannotHaveBothDefaultAndBlockError( inLine: sourceLine, skip: .ignore )
+            try? markCannotHaveBothDefaultAndBlockError( inLine: sourceLine,
+                                                         element: thisExprNodeType,
+                                                         skip: .ignore )
         }
         if !blockElementFound && expressionString.isEmpty {
             try? markDefaultAndBlockMissingError( inLine: sourceLine, skip: .ignore )

@@ -291,7 +291,9 @@ class AttributeNode: ExprNode  {
             }
         }
         if blockElementFound && valueString.isNotEmpty {
-            try? markCannotHaveBothDefaultAndBlockError( inLine: sourceLine, skip: .ignore )
+            try? markCannotHaveBothDefaultAndBlockError( inLine: sourceLine,
+                                                         element: thisExprNodeType,
+                                                         skip: .ignore )
         }
         if !blockElementFound && valueString.isEmpty {
             try? markDefaultAndBlockMissingError( inLine: sourceLine, skip: .ignore )

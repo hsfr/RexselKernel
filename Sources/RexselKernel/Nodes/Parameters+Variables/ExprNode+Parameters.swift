@@ -190,7 +190,9 @@ class ParameterNode: ExprNode {
                     expressionString = thisCompiler.currentToken.value
                     isInBlock = true
                     thisCompiler.nestedLevel += 1
-                    try markCannotHaveBothDefaultAndBlockError( inLine: sourceLine, skip: .absorbBlock )
+                    try markCannotHaveBothDefaultAndBlockError( inLine: sourceLine,
+                                                                element: thisExprNodeType,
+                                                                skip: .absorbBlock )
                     thisCompiler.tokenizedSourceIndex += 1
                     return
 
@@ -232,14 +234,14 @@ class ParameterNode: ExprNode {
     ///
     /// ```xml
     ///   <parameter> ::= "parameter" <qname>
-    ///              (
-    ///                 <default expression> |
-    ///                 (
-    ///                    "{"
-    ///                       <block templates>+
-    ///                    "}"
-    ///                 )
-    ///              )
+    ///                   (
+    ///                      <default expression> |
+    ///                      (
+    ///                         "{"
+    ///                            <block templates>+
+    ///                         "}"
+    ///                      )
+    ///                   )
     /// ```
 
     override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
@@ -265,7 +267,9 @@ class ParameterNode: ExprNode {
             }
         }
         if blockElementFound && expressionString.isNotEmpty {
-            try? markCannotHaveBothDefaultAndBlockError( inLine: sourceLine, skip: .ignore )
+            try? markCannotHaveBothDefaultAndBlockError( inLine: sourceLine,
+                                                         element: thisExprNodeType,
+                                                         skip: .ignore )
         }
         if !blockElementFound && expressionString.isEmpty {
             try? markDefaultAndBlockMissingError( inLine: sourceLine, skip: .ignore )

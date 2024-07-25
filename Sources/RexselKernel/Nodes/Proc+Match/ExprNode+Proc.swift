@@ -60,7 +60,7 @@ class ProcNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse source (with tokens).
+    /// Parse statement.
     ///
     /// - Parameters:
     ///   - compiler: the current instance of the compiler.

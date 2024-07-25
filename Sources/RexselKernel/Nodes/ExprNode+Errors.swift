@@ -279,10 +279,11 @@ extension ExprNode {
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markCannotHaveBothDefaultAndBlockError( inLine: Int,
+                                                 element: TerminalSymbolEnum,
                                                  skip: SkipEnum = .ignore ) throws {
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
-                .cannotHaveBothDefaultAndBlock( lineNumber: inLine+1 ) ) )
+                .cannotHaveBothDefaultAndBlock( lineNumber: inLine+1, inElement: element.description ) ) )
         try processSkip( skip )
     }
 

@@ -55,7 +55,7 @@ enum RexselErrorKind {
 
     case missingSymbol( name: String )
     case requiredElement( lineNumber: Int, name: String, inElement: String )
-    case cannotHaveBothDefaultAndBlock( lineNumber: Int )
+    case cannotHaveBothDefaultAndBlock( lineNumber: Int, inElement: String )
     case defaultAndBlockMissing( lineNumber: Int )
     case parameterMustBeFirst( lineNumber: Int, name: String, within: String )
 
@@ -127,7 +127,7 @@ enum RexselErrorKind {
 
             case .missingURI( _, _ ) : return 126
             case .missingList( _, _ ) : return 127
-            case .cannotHaveBothDefaultAndBlock( _ ) : return 128
+            case .cannotHaveBothDefaultAndBlock( _, _ ) : return 128
             case .defaultAndBlockMissing( _ ) : return 129
             case .missingExpression( _, _ ) : return 130
 
@@ -257,11 +257,11 @@ enum RexselErrorKind {
             case .missingList( let lineNumber, let symbol ) :
                 return "Missing list of elements for \"\(symbol)\" in line \(lineNumber)"
 
-            case .cannotHaveBothDefaultAndBlock( let lineNumber ) : 
-                return "A variable/parameter cannot have default and enclosed templates in line \(lineNumber)"
-       
+            case .cannotHaveBothDefaultAndBlock( let lineNumber, let within ) :
+                return "\"\(within)\" cannot have simple/default value and enclosed templates in line \(lineNumber)"
+
             case .defaultAndBlockMissing( let lineNumber ) :
-                return "There must be either a simple value or enclosed templates in line \(lineNumber)"
+                return "There must be either a simple/default value or enclosed templates in line \(lineNumber)"
 
             case .parameterMustBeFirst( let lineNumber, let name, let within ) :
                 return "Parameter \"\(name)\" in \"\(within)\" in line \(lineNumber) must follow declaration."
@@ -426,9 +426,9 @@ enum RexselErrorKind {
             
             case .missingList( _, _ ) : return "Supply at least  one item."
 
-            case .cannotHaveBothDefaultAndBlock( _ ) : return "Remove either default/select or enclosed templates."
-          
-            case .defaultAndBlockMissing( _ ) : return "Supply either default/select or enclosed templates."
+            case .cannotHaveBothDefaultAndBlock( _, _ ) : return "Remove either default/simple text or enclosed templates."
+
+            case .defaultAndBlockMissing( _ ) : return "Supply either expression/text or enclosed templates."
 
             case .parameterMustBeFirst( _, _, _ ) : return "Check order."
             
@@ -487,7 +487,7 @@ enum RexselErrorKind {
                 return "Check syntax requirements for \"\(inElement)\""
 
             case .syntaxRequiresOneOrMoreElement( _, _, let inElement ) :
-                return "Check syntax requirements for \"\(inElement)\""
+                return "Check syntax requirements for \"\(inElement)\" or insert in block"
 
             case .syntaxCannotHaveBothElements( _, _, _ ) :
                 return "Remove one of the keywords"
