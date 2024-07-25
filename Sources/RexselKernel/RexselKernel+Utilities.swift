@@ -25,7 +25,7 @@ extension RexselKernel {
     func getListOfCloseMatches( _ str: String, with withList: [String] ) -> [String] {
         var returnList = [String]()
         for entry in withList {
-            if jaroWinklerMatch( str, entry ) > 0.9 {
+            if jaroWinklerMatch( str, entry ) > 0.8 {
                 returnList.append(entry)
             }
         }
