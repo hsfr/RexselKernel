@@ -1,10 +1,28 @@
 //
-//  ExprNode+StripSpace.swift
+//  ExprNode+StripSpaceNode.swift
 //  RexselKernel
 //
 //  Copyright 2024 Hugh Field-Richards. All rights reserved.
 
 import Foundation
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+extension StripSpaceNode {
+
+    static let blockTokens: TerminalSymbolEnumSetType = []
+
+    static let optionTokens: TerminalSymbolEnumSetType = []
+
+}
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// MARK: -
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 class StripSpaceNode: ExprNode  {
 
@@ -21,13 +39,12 @@ class StripSpaceNode: ExprNode  {
     // MARK: - Initialisation Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Initialise Node base.
 
     override init() {
         super.init()
         thisExprNodeType = .stripSpace
-        stripSpaceList = ""
+        isLogging = false  // Adjust as required
+        setSyntax( options: StripSpaceNode.optionTokens, elements: StripSpaceNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -45,21 +62,21 @@ class StripSpaceNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
 
         // Slide past keyword It should just be a simple expression here
         // which contains the list string.
@@ -67,11 +84,19 @@ class StripSpaceNode: ExprNode  {
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-            // Valid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Valid constructions
 
             case ( .expression, _, _ ) where stripSpaceList.isEmpty :
                 stripSpaceList = thisCompiler.currentToken.value
                 thisCompiler.tokenizedSourceIndex += 1
+
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Exit
+
+            case ( .terminal, _, _ ) where stripSpaceList.isNotEmpty :
+                checkSyntax()
+                return
 
             // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
             // Early end of file
@@ -81,13 +106,13 @@ class StripSpaceNode: ExprNode  {
                 // will be picked up above this node. Almost certainly a brackets problem.
                 return
 
-            // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Invalid constructions
 
             case ( .terminal, _, _ ) where stripSpaceList.isEmpty :
-                try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                               insteadOf: "namespace list",
-                                               inElement: .stripSpace,
-                                               inLine: thisCompiler.currentToken.line )
+                try markMissingItemError(what: .expression,
+                                         inLine: thisCompiler.currentToken.line,
+                                         after: thisExprNodeType.description )
                 return
 
             default :
@@ -100,8 +125,33 @@ class StripSpaceNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Generate preserve space element.
+    /// ```xml
+    ///   <strip-space> ::= “strip-space” <quote> <name list> <quote>
+    /// ```
+
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Generate strip space element.
 
     override func generate() -> String {
 
