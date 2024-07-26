@@ -7,31 +7,16 @@
 import Foundation
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// MARK: - Syntax properties
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-extension TerminalSymbolEnum {
-
-    static let namespaceAliasAttributeTokens: Set<TerminalSymbolEnum> = [
-        .mapFrom, .mapTo
-    ]
-
-}
-
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 extension NamespaceAliasNode {
 
-    func isInNamespaceAliasAttributeTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return TerminalSymbolEnum.namespaceAliasAttributeTokens.contains(token)
-    }
+    static let blockTokens: TerminalSymbolEnumSetType = []
 
-    func isInStyleSheetTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return TerminalSymbolEnum.stylesheetTokens.contains(token)
-    }
+    static let optionTokens: TerminalSymbolEnumSetType = [
+        .mapFrom, .mapTo
+    ]
 
 }
 
@@ -40,10 +25,6 @@ extension NamespaceAliasNode {
 // MARK: -
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-//
-/// ```xml
-///   <namespace-alias> ::= "namespace-alias" "map-from" <qname> "to" <qname>
-/// ```
 
 class NamespaceAliasNode: ExprNode  {
 
@@ -69,8 +50,8 @@ class NamespaceAliasNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .namespaceAlias
-        mapFromString = ""
-        mapToString = ""
+        isLogging = true  // Adjust as required
+        setSyntax( options: NamespaceAliasNode.optionTokens, elements: NamespaceAliasNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -88,98 +69,143 @@ class NamespaceAliasNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
 
         thisCompiler.tokenizedSourceIndex += 1
 
         while !thisCompiler.isEndOfFile {
 
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
 
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-                    // Valid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Valid constructions
 
-                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .mapFrom && mapFromString.isEmpty :
-                    mapFromString = thisCompiler.nextToken.value
+                case ( .terminal, .expression, _ )  where isInOptionTokens( thisCompiler.currentToken.what ) :
+                    optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.nextToken.value
+                    if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
+                        optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line
+                    }
+                    if thisCompiler.currentToken.what == .mapFrom {
+                        mapFromString = thisCompiler.nextToken.value
+                    }
+                    if thisCompiler.currentToken.what == .mapTo {
+                        mapToString = thisCompiler.nextToken.value
+                    }
+                    optionsDict[ thisCompiler.currentToken.what ]?.count += 1
                     thisCompiler.tokenizedSourceIndex += 2
                     continue
 
-                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .mapTo && mapToString.isEmpty :
-                    mapToString = thisCompiler.nextToken.value
-                    thisCompiler.tokenizedSourceIndex += 2
-                    continue
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Exit block
 
-                case ( .terminal, _, _ ) where isInStyleSheetTokens( thisCompiler.currentToken.what )
-                    && mapToString.isNotEmpty && mapFromString.isNotEmpty :
+                case ( _, _, _ ) where mapFromString.isNotEmpty && mapToString.isNotEmpty :
+                    checkSyntax()
                     return
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket
-                    && mapToString.isNotEmpty && mapFromString.isNotEmpty :
+                case ( .terminal, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) :
+                    checkSyntax()
                     return
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Early end of file
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
-                    // Don't bother to check. End of file here is an error anyway which
-                    // will be picked up above this node. Almost certainly a brackets problem.
                     return
 
-                // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Invalid constructions
 
-                case ( .terminal, .terminal, _ ) where isInNamespaceAliasAttributeTokens( thisCompiler.currentToken.what ) :
-                    let insteadOfString = {
-                        switch self.thisCompiler.currentToken.what {
-                            case .mapFrom :
-                                return "'map-from' name"
-                            case .mapTo :
-                                return "'to' name"
-                            default :
-                                return ""
-                        }
-                    }()
-                    try markUnexpectedSymbolError( found: thisCompiler.nextToken.value,
-                                                   insteadOf: insteadOfString,
-                                                   inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextKeyword )
+                case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
+                                               thisCompiler.nextToken.what != .expression :
+                    // Missing expression after option
+                    try markMissingItemError( what: .expression,
+                                              inLine: thisCompiler.currentToken.line,
+                                              after: thisCompiler.currentToken.value )
+                    thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .terminal, _, _ ) where isInStyleSheetTokens( thisCompiler.currentToken.what )
-                    && ( mapToString.isEmpty || mapFromString.isEmpty ) :
-                    try markMissingItemError( which: "map expression",
-                                              where: sourceLine,
-                                              skip: .ignore )
-                    return
+                case ( .expression, _, _ )  :
+                    // checkSyntax will pick up this error.
+                    thisCompiler.tokenizedSourceIndex += 1
+                    continue
+
+                case ( _, _, _ ) where thisCompiler.currentToken.what == .unknownToken :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: NamespaceAliasNode.optionTokens,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line )
+                    if thisCompiler.nextToken.what == .expression {
+                        thisCompiler.tokenizedSourceIndex += 2
+                        continue
+                    }
+                    if thisCompiler.nextNextToken.what == .mapFrom || thisCompiler.nextNextToken.what == .mapTo {
+                        continue
+                    } else {
+                        return
+                    }
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: NamespaceAliasNode.optionTokens,
                                                    inElement: thisExprNodeType,
-                                                   inLine: thisCompiler.currentToken.line )
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextKeyword )
                     return
 
             }
         }
     }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// ```xml
+    ///   <namespace-alias> ::= “namespace-alias”
+    ///                         “map-from” <quote> <qname> <quote>
+    ///                         “to” <quote> <qname> <quote>
+    /// ```
+
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
+   }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Semantic Checking and Symbol Table Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
@@ -190,62 +216,6 @@ class NamespaceAliasNode: ExprNode  {
     /// where used yet.
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
-
-        variablesDict.title = mapFromString
-        variablesDict.tableType = thisExprNodeType
-       variablesDict.blockLine = sourceLine
-
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.namespaceAliasAttributeTokens )
-
-        // Check for parameter having to be first
-        if let nodes = nodeChildren {
-            var nonParameterFound = false
-            for child in nodes {
-                if child.thisExprNodeType != .parameter {
-                    nonParameterFound = true
-                }
-                if nonParameterFound && child.thisExprNodeType == .parameter {
-                    markParameterMustBeAtStartOfBlock( name: child.name,
-                                                       within: "\(variablesDict.title)",
-                                                       at: child.sourceLine )
-                }
-            }
-        }
-
-        // Set up the symbol table entries
-        if let nodes = nodeChildren {
-            for child in nodes {
-
-                switch child.thisExprNodeType {
-
-                    case .parameter, .variable :
-                        do {
-                            try variablesDict.addSymbol( name: child.name,
-                                                         type: child.thisExprNodeType,
-                                                         declaredInLine: child.sourceLine,
-                                                         scope: variablesDict.title )
-                            currentVariableContextList += [variablesDict]
-                        } catch let err as SymbolTableError {
-                            // Already in list so mark duplicate error
-                            try? markDuplicateError( symbol: err.name,
-                                                     declaredIn: err.declaredLine,
-                                                     preciouslDelaredIn: err.previouslyDeclaredIn,
-                                                     skip: .ignore )
-                        } catch {
-                            thisCompiler.rexselErrorList.add(
-                                RexselErrorData.init( kind: RexselErrorKind
-                                    .unknownError(lineNumber: child.sourceLine+1, message: "Unknown error with adding \"\(child.name)\" to symbol table") ) )
-                        }
-
-                    default :
-                        ()
-                }
-                child.buildSymbolTableAndSemanticChecks()
-            }
-        }
-
-        // Special checks go here
-
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -295,12 +265,10 @@ class NamespaceAliasNode: ExprNode  {
         let lineComment = super.generate()
 
         var attributes = ""
-
-        if mapFromString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.mapFrom.xml)=\"\(mapFromString)\""
-        }
-        if mapToString.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.mapTo.xml)=\"\(mapToString)\""
+        for ( key, entry ) in optionsDict {
+            if entry.value.isNotEmpty {
+                attributes += " \(key.xml)=\"\(entry.value)\""
+            }
         }
 
         let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
