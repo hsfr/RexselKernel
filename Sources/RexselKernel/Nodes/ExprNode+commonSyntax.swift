@@ -11,7 +11,6 @@ import Foundation
 
 typealias TerminalSymbolEnumSetType = Set<TerminalSymbolEnum>
 
-
 extension TerminalSymbolEnum {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

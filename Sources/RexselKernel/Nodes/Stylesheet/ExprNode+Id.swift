@@ -101,7 +101,7 @@ class IdNode: ExprNode  {
                 return
 
             // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-            // Exit block
+            // Exit
 
             case ( .terminal, _, _ ) where idValue.isNotEmpty :
                 checkSyntax()

@@ -177,7 +177,8 @@ enum TerminalSymbolEnum: Int {
     case rcomment // Comments in the Rexsel, not the comment keyword
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // Version 1.1 keywords/tokens
+    // Version 1.1 keywords/tokens. NOte that this keyword is
+    // unsupported in versions 2,0 and above.
     case script = 200
     case src
     case prefix
@@ -366,6 +367,7 @@ enum TerminalSymbolEnum: Int {
 
             case .text : return "text"
             case .textcontent : return "textcontent"
+            case .disableOutputEscaping : return "disable-output-escaping"
 
             case .number : return "number"
             case .output : return "output"

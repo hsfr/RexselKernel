@@ -721,14 +721,18 @@ extension ExprNode {
     /// Mark unknown/illegal keyword for this XSLT version.
     ///
 
-    func markInvalidKeywordForVersion( _ illegalKeyword: String, version: String, at inLine: Int ) {
+    func markInvalidKeywordForVersion( _ illegalKeyword: String,
+                                       version: String,
+                                       at inLine: Int,
+                                       skip: SkipEnum = .ignore ) throws {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
                 .init( kind: RexselErrorKind.invalidKeywordForVersion( lineNumber: inLine+1,
                                                                        keyword: illegalKeyword,
                                                                        version: version ) ) )
+        try processSkip( skip )
     }
-
+    
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //

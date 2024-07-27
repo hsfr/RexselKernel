@@ -554,21 +554,35 @@ extension ExprNode {
     //
     /// Mark error if current keyword not supported.
     ///
+    /// There is a special case where xsl:script is only
+    /// supported in version 1.1.
+    ///
     /// - Parameters:
     ///   - compiler: the compiler instance being used.
 
-    func markIfInvalidKeywordForThisVersion( _ thisCompiler: RexselKernel ) {
+    func markIfInvalidKeywordForThisVersion( _ thisCompiler: RexselKernel ) -> Bool {
         let tokenValue = thisCompiler.currentToken.what.rawValue
         let version = thisCompiler.xsltVersion
+        var illegalKeywordForThisVersion = false
+
+        // Special case!
+        if thisCompiler.currentToken.what == .script && version != rexsel_xsltversion11 {
+            illegalKeywordForThisVersion = true
+        }
+
         let versionRangeMin = rexsel_versionRange[ version ]!.min
         let versionRangeMax = rexsel_versionRange[ version ]!.max
         let vRange = versionRangeMin..<versionRangeMax
-        guard vRange.contains( tokenValue ) else {
-            markInvalidKeywordForVersion( thisCompiler.currentToken.value,
-                                          version: thisCompiler.xsltVersion,
-                                          at: thisCompiler.currentToken.line)
-            return
+        if !vRange.contains( tokenValue ) {
+            illegalKeywordForThisVersion = true
         }
+        if illegalKeywordForThisVersion {
+            try? markInvalidKeywordForVersion( thisCompiler.currentToken.value,
+                                               version: thisCompiler.xsltVersion,
+                                               at: thisCompiler.currentToken.line,
+                                               skip: .toNextKeyword )
+        }
+        return illegalKeywordForThisVersion
     }
 }
 
