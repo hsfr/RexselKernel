@@ -51,7 +51,7 @@ class AttributeNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .attrib
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         isInBlock = false
         setSyntax( options: ElementNode.optionTokens, elements: ElementNode.blockTokens )
     }
@@ -133,9 +133,7 @@ class AttributeNode: ExprNode  {
                     continue
 
                 // Block start found (no simple expression).
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
-                                            && name.isNotEmpty
-                                            && valueString.isEmpty :
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket :
                     isInBlock = true
                     thisCompiler.nestedLevel += 1
                     thisCompiler.tokenizedSourceIndex += 1
@@ -186,7 +184,6 @@ class AttributeNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && !isInBlock :
                     checkSyntax()
-                    // thisCompiler.tokenizedSourceIndex += 1
                     return
 
                 case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && !isInBlock :

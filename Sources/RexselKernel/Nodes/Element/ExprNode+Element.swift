@@ -56,7 +56,7 @@ class ElementNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .element
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         isInBlock = false
         setSyntax( options: ElementNode.optionTokens, elements: ElementNode.blockTokens )
   }
@@ -164,80 +164,80 @@ class ElementNode: ExprNode  {
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
 
-                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                    // Exit block
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Exit block
 
-                    case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                           thisCompiler.nextToken.what == .closeCurlyBracket :
-                        checkSyntax()
-                        thisCompiler.tokenizedSourceIndex += 2
-                        return
+                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
+                    checkSyntax()
+                    thisCompiler.tokenizedSourceIndex += 2
+                    return
 
-                    case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
-                        checkSyntax()
-                        thisCompiler.tokenizedSourceIndex += 1
-                        thisCompiler.nestedLevel -= 1
-                        return
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
+                    checkSyntax()
+                    thisCompiler.tokenizedSourceIndex += 1
+                    thisCompiler.nestedLevel -= 1
+                    return
 
-                    case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && !isInBlock :
-                        checkSyntax()
-                        thisCompiler.tokenizedSourceIndex += 1
-                        return
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && !isInBlock :
+                    checkSyntax()
+                    thisCompiler.tokenizedSourceIndex += 1
+                    return
 
-                    case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && !isInBlock :
-                        checkSyntax()
-                        return
+                case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && !isInBlock :
+                    checkSyntax()
+                    return
 
-                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                    // Early end of file
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Early end of file
 
-                    case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
-                        return
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
+                    return
 
-                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                    // Invalid constructions
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Invalid constructions
 
-                    case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
-                                                   thisCompiler.nextToken.what != .expression :
-                        // Missing expression after option
-                        try markMissingItemError( what: .expression,
-                                                  inLine: thisCompiler.currentToken.line,
-                                                  after: thisCompiler.currentToken.value )
-                        thisCompiler.tokenizedSourceIndex += 1
-                        thisCompiler.nestedLevel += 1
-                        continue
+                case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
+                                               thisCompiler.nextToken.what != .expression :
+                    // Missing expression after option
+                    try markMissingItemError( what: .expression,
+                                              inLine: thisCompiler.currentToken.line,
+                                              after: thisCompiler.currentToken.value )
+                    thisCompiler.tokenizedSourceIndex += 1
+                    thisCompiler.nestedLevel += 1
+                    continue
 
-                    case ( .terminal, .terminal, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
-                                                           isInOptionTokens( thisCompiler.nextToken.what ):
-                        try markMissingItemError( what: .expression,
-                                                  inLine: thisCompiler.currentToken.line,
-                                                  after: thisCompiler.currentToken.value,
-                                                  skip: .toNextKeyword )
-                        continue
+                case ( .terminal, .terminal, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
+                                                       isInOptionTokens( thisCompiler.nextToken.what ):
+                    try markMissingItemError( what: .expression,
+                                              inLine: thisCompiler.currentToken.line,
+                                              after: thisCompiler.currentToken.value,
+                                              skip: .toNextKeyword )
+                    continue
 
-                    case ( _, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) && !isInBlock :
-                        try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                       mightBe: ElementNode.optionTokens,
-                                                       inElement: thisExprNodeType,
-                                                       inLine: thisCompiler.currentToken.line,
-                                                       skip: .toNextKeyword )
-                        continue
+                case ( _, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) && !isInBlock :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: ElementNode.optionTokens,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextKeyword )
+                    continue
 
-                    case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
-                        try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                       mightBe: ElementNode.blockTokens,
-                                                       inElement: thisExprNodeType,
-                                                       inLine: thisCompiler.currentToken.line,
-                                                       skip: .toNextKeyword )
-                        continue
+                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: ElementNode.blockTokens,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextKeyword )
+                    continue
 
-                    default :
-                        try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                       mightBe: ElementNode.blockTokens,
-                                                       inElement: thisExprNodeType,
-                                                       inLine: thisCompiler.currentToken.line,
-                                                       skip: .toNextKeyword )
-                        return
+                default :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: ElementNode.blockTokens,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextKeyword )
+                    return
             }
         }
     }

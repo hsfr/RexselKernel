@@ -54,7 +54,7 @@ class ApplyTemplatesNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .applyTemplates
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         isInBlock = false
         setSyntax( options: ApplyTemplatesNode.optionTokens, elements: ApplyTemplatesNode.blockTokens )
     }
@@ -159,38 +159,37 @@ class ApplyTemplatesNode: ExprNode  {
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
-                    checkSyntax()
-                    if isInBlock {
-                        thisCompiler.tokenizedSourceIndex += 1
-                        thisCompiler.nestedLevel -= 1
-                    }
-                    return
-
+//                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
+//                    checkSyntax()
+//                    if isInBlock {
+//                        thisCompiler.tokenizedSourceIndex += 1
+//                        thisCompiler.nestedLevel -= 1
+//                    }
+//                    return
+//
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Exit block
 
                 case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
                                                        thisCompiler.nextToken.what == .closeCurlyBracket :
+                    // Null block (error picked up in checkSyntax)
                     checkSyntax()
                     thisCompiler.tokenizedSourceIndex += 2
                     return
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
-                    // Before exiting we must carry out checks
+                case ( _, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
                     checkSyntax()
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel -= 1
                     return
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && !isInBlock :
-                    // Before exiting we must carry out checks
+                case ( _, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
                     checkSyntax()
-                    thisCompiler.tokenizedSourceIndex += 1
+                    // Do not bump the index here (bracket belongs to higher block)
                     return
 
-                case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && !isInBlock :
-                    // Before exiting we must carry out checks
+                case ( _, _, _ ) where thisCompiler.currentToken.what == .unknownToken ||
+                                       isInBlockTemplateTokens(thisCompiler.currentToken.what) :
                     checkSyntax()
                     return
 

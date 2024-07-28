@@ -50,9 +50,8 @@ class CopyNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .copy
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         isInBlock = false
-        useAttributeSetsString = ""
         setSyntax( options: CopyNode.optionTokens, elements: CopyNode.blockTokens )
     }
 
@@ -207,11 +206,11 @@ class CopyNode: ExprNode  {
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .absorbBlock )
-                    thisCompiler.tokenizedSourceIndex += 1
                     continue
 
                 case ( .terminal, _, _ ) :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: CopyNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextKeyword )
@@ -225,6 +224,7 @@ class CopyNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: CopyNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextKeyword )
@@ -247,7 +247,6 @@ class CopyNode: ExprNode  {
     ///                  <block elements>+
     ///              "}"
     /// ```
-
 
     override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
         super.setSyntax( options: optionsList, elements: elementsList )
