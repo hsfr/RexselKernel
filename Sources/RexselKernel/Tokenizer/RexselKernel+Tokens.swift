@@ -60,6 +60,14 @@ let rexsel_xsltversion20 = "2.0"
 let rexsel_xsltversion30 = "3.0"
 let rexsel_xsltversion40 = "4.0"
 
+let rexsel_versionList: [String] = [
+    rexsel_xsltversion10,
+    rexsel_xsltversion11,
+    rexsel_xsltversion20,
+    rexsel_xsltversion30,
+    rexsel_xsltversion40
+]
+
 // These are somewhat arbitrary values for the
 // enumeration TerminalSymbolEnum
 let rexsel_versionRange: [String: rexsel_minMaxVersionType ] = [

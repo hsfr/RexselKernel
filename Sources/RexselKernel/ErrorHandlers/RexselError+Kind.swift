@@ -310,7 +310,11 @@ enum RexselErrorKind {
                 return "Sort in \"\(within)\" in line \(lineNumber) must follow declaration."
 
             case .invalidXSLTVersion( let lineNumber, let version ) :
-                return "Illegal XSLT version \"\(version)\" in line \(lineNumber)."
+                if version.isEmpty {
+                    return "Missing XSLT version in line \(lineNumber)."
+                } else {
+                    return "Illegal XSLT version \"\(version)\" in line \(lineNumber)."
+                }
 
             case .invalidKeywordForVersion( let lineNumber, let keyword, let version ) :
                 return "Illegal keyword \"\(keyword)\" for version \"\(version)\" in line \(lineNumber)"
@@ -460,7 +464,12 @@ enum RexselErrorKind {
             case .sortMustBeFirst( _, _ ) : return "Check order."
 
             case .invalidXSLTVersion( _, _ ) :
-                return "Check version number for tis stylesheet."
+                var msg = "Version should be "
+                for version in rexsel_versionList {
+                    msg += "\"\(version)\", "
+                }
+                msg = msg.chopSuffix( count: 2 )
+                return msg
 
             case .invalidKeywordForVersion( _, _, _ ) :
                 return "Update version number or remove keyword."
