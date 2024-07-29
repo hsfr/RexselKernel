@@ -175,8 +175,8 @@ public class RexselKernel {
     var globalNameTable = [String: Int]()
 
     /// List of declared namespaces from 'xmlns "prefix" "uri"'
-    /// statements.
-    public var namespaceList: [ String: String ] = [:]
+    /// statements, togther with the line they were declared in).
+    public var namespaceList: [ String: ( uri: String, inLine: Int ) ] = [:]
 
     /// Table of proc names [name: line number]
     /// within scope of template.
