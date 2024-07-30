@@ -46,7 +46,7 @@ class ProcessingInstructionNode: ExprNode  {
         super.init()
         thisExprNodeType = .processingInstruction
         isInBlock = false
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: ProcessingInstructionNode.optionTokens, elements: ProcessingInstructionNode.blockTokens )
     }
 

@@ -50,7 +50,7 @@ class NamespaceAliasNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .namespaceAlias
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: NamespaceAliasNode.optionTokens, elements: NamespaceAliasNode.blockTokens )
     }
 

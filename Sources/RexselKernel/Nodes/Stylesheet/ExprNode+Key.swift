@@ -53,7 +53,7 @@ class KeyNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .key
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: KeyNode.optionTokens, elements: KeyNode.blockTokens )
     }
 

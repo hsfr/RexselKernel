@@ -41,8 +41,8 @@ class NumberNode: ExprNode  {
         super.init()
         thisExprNodeType = .number
         isInBlock = false
-        isLogging = false  // Adjust as required
-        setSyntax( options: WithNode.optionTokens, elements: WithNode.blockTokens )
+        isLogging = true  // Adjust as required
+        setSyntax( options: NumberNode.optionTokens, elements: NumberNode.blockTokens )
    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -108,7 +108,12 @@ class NumberNode: ExprNode  {
 
                     _ = markIfInvalidKeywordForThisVersion( thisCompiler )
 
-                    let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
+                    // The keyword "value" is overloaded here. It does not mean "valueOf"
+                    // but "value". Nasty but effective...
+                    var node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
+                    if thisCompiler.currentToken.what == .valueOf {
+                        node = ValueNode()
+                    }
                     if self.nodeChildren == nil {
                         self.nodeChildren = [ExprNode]()
                     }
@@ -148,7 +153,7 @@ class NumberNode: ExprNode  {
                 case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
                     // Illegal keyword
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   mightBe: OtherwiseNode.blockTokens,
+                                                   mightBe: NumberNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextKeyword )
@@ -173,18 +178,18 @@ class NumberNode: ExprNode  {
     /// Set up the syntax based on the BNF.
     ///
     /// ```xml
-    /// <number> ::= "number"
-    ///              "{”
-    ///                   ( <count>? |
-    ///                     <level>? |
-    ///                     <from>? |
-    ///                     <value>? |
-    ///                     <format>? |
-    ///                     <lang>? |
-    ///                     <letter-value>? |
-    ///                     <grouping-separator>? |
-    ///                     <grouping-size>? )
-    ///              “}”
+    ///    <number> ::= “number”
+    ///                 “{”
+    ///                     ( “level” ( “single” | “multiple” | “any” ) |
+    ///                       “count” <quote> <pattern> <quote> |
+    ///                       “format” <quote> <pattern> <quote> |
+    ///                       “from” <quote> <pattern> <quote> |
+    ///                       “value” <quote> <number expression> <quote> |
+    ///                       “letter-value” ( “alphabetic” | “traditional” ) |
+    ///                       “lang” <quote> <language identifier> <quote> |
+    ///                       “grouping-separator” <quote> <grouping character> <quote> |
+    ///                       “grouping-size” <quote> <digits> <quote> )*
+    ///                 “}”
     /// ```
 
     override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {

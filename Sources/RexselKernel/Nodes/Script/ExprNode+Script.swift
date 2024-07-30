@@ -52,7 +52,7 @@ class ScriptNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .script
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: ScriptNode.optionTokens, elements: ScriptNode.blockTokens )
     }
 

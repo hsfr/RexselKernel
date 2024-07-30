@@ -56,7 +56,7 @@ class ElementNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .element
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         isInBlock = false
         setSyntax( options: ElementNode.optionTokens, elements: ElementNode.blockTokens )
   }

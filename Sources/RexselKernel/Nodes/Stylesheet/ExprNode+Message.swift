@@ -48,7 +48,7 @@ class MessageNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .message
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         isInBlock = false
         messageString = ""
         setSyntax( options: ProcNode.optionTokens, elements: ProcNode.blockTokens )
