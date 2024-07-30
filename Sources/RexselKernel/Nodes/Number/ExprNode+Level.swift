@@ -47,7 +47,7 @@ class LevelNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .level
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: LevelNode.optionTokens, elements: LevelNode.blockTokens )
     }
 

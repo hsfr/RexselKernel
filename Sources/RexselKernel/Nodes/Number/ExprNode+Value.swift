@@ -45,7 +45,7 @@ class ValueNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .numberValue
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: ValueNode.optionTokens, elements: ValueNode.blockTokens )
    }
 

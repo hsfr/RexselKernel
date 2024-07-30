@@ -34,16 +34,14 @@ class NumberNode: ExprNode  {
     // MARK: - Initialisation Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Initialise.
 
     override init() {
         super.init()
         thisExprNodeType = .number
         isInBlock = false
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: NumberNode.optionTokens, elements: NumberNode.blockTokens )
-   }
+    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -210,7 +208,7 @@ class NumberNode: ExprNode  {
         super.checkSyntax()
     }
 
-   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// Check duplicates.

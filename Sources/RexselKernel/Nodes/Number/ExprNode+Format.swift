@@ -98,6 +98,7 @@ class FormatNode: ExprNode  {
                 case ( .expression, _, _ ) :
                     formatString = thisCompiler.currentToken.value
                     thisCompiler.tokenizedSourceIndex += 1
+                    return
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Exit block

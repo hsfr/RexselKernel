@@ -7,6 +7,24 @@
 
 import Foundation
 
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+extension PatternSeparatorNode {
+
+    static let blockTokens: TerminalSymbolEnumSetType = []
+
+    static let optionTokens: TerminalSymbolEnumSetType = []
+
+}
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// MARK: -
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
 class PatternSeparatorNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -24,13 +42,12 @@ class PatternSeparatorNode: ExprNode  {
     // MARK: - Initialisation Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Initialise Node base.
 
     override init() {
         super.init()
         thisExprNodeType = .patternSeparator
-        separatorValue = ""
+        isLogging = true  // Adjust as required
+        setSyntax( options: PatternSeparatorNode.optionTokens, elements: PatternSeparatorNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -42,70 +59,100 @@ class PatternSeparatorNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if REXSEL_LOGGING
+        if isLogging {
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        }
 
         thisCompiler.tokenizedSourceIndex += 1
 
-#if REXSEL_LOGGING
+        if isLogging {
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        }
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-            case ( .expression, _, _ ) where thisCompiler.currentToken.value.count == 1 :
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Valid constructions
+
+            case ( .expression, _, _ ) :
                 separatorValue = thisCompiler.currentToken.value
-#if REXSEL_LOGGING
-                rLogger.log( self, .debug, "Found \(TerminalSymbolEnum.decimalSeparator.description) \"\(separatorValue)\" in line \(thisCompiler.currentToken.line)" )
-#endif
                 thisCompiler.tokenizedSourceIndex += 1
+                checkSyntax()
                 return
 
-            case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && separatorValue.isNotEmpty :
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Exit block
+
+            case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
+                checkSyntax()
                 return
+
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Early end of file
 
             case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                 return
 
-            case ( .expression, _, _ ) where thisCompiler.currentToken.value.count != 1 :
-                separatorValue = thisCompiler.currentToken.value
-                if separatorValue.count != 1 {
-                    try markInvalidString( found: separatorValue,
-                                           insteadOf: "valid separator",
-                                           inElement: .patternSeparator,
-                                           inLine: thisCompiler.currentToken.line,
-                                           skip: .toNextKeyword )
-                    separatorValue = ";"
-                    return
-                }
-                separatorValue = String( separatorValue.removeFirst() )
-#if REXSEL_LOGGING
-                rLogger.log( self, .debug, "Found \(TerminalSymbolEnum.decimalSeparator.description) \"\(separatorValue)\" in line \(thisCompiler.currentToken.line)" )
-#endif
-                thisCompiler.tokenizedSourceIndex += 1
-                return
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Invalid constructions
 
-           default :
-                try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+            default :
+                try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
                                                inElement: thisExprNodeType,
-                                               inLine: thisCompiler.currentToken.line )
+                                               inLine: thisCompiler.currentToken.line,
+                                               skip: .toNextKeyword )
                 return
 
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///    <minus sign> ::= "minusSign"  <quote> <alphanumeric character> <quote>
+    /// ```
+
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType,
+                             elements elementsList: TerminalSymbolEnumSetType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
+        if separatorValue.count != 1 {
+            try? markInvalidString( found: separatorValue,
+                                    insteadOf: "single character",
+                                    inElement: thisExprNodeType,
+                                    inLine: sourceLine,
+                                    skip: .ignore )
+            separatorValue = ";"
         }
     }
 
@@ -123,9 +170,6 @@ class PatternSeparatorNode: ExprNode  {
 
         _ = super.generate()
 
-#if REXSEL_LOGGING
-       rLogger.log( self, .debug, "Generate \(thisExprNodeType.xml)=\"\(separatorValue)\"" )
-#endif
         return "\(thisExprNodeType.xml)=\"\(separatorValue)\""
     }
 

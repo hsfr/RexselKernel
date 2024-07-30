@@ -663,7 +663,7 @@ extension ExprNode {
                             skip: SkipEnum = .ignore ) throws {
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
-                .invalidExpression( lineNumber: thisCompiler.currentToken.line+1,
+                .invalidExpression( lineNumber: inLine+1,
                                     found: foundSymbol,
                                     insteadOf: insteadOf,
                                     inElement: inElement.description ) ) )
