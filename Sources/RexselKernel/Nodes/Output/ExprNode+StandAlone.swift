@@ -6,6 +6,24 @@
 
 import Foundation
 
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+extension StandAloneNode {
+
+    static let blockTokens: TerminalSymbolEnumSetType = []
+
+    static let optionTokens: TerminalSymbolEnumSetType = []
+
+}
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// MARK: -
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
 class StandAloneNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -14,7 +32,7 @@ class StandAloneNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    var yesNoValue: YesNoEnum!
+    var yesNoValue: YesNoEnum = .no
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -27,7 +45,8 @@ class StandAloneNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .standAlone
-        yesNoValue = .no
+        isLogging = true  // Adjust as required
+        setSyntax( options: StandAloneNode.optionTokens, elements: StandAloneNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -36,61 +55,102 @@ class StandAloneNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
 
-        // Slide past keyword token
         thisCompiler.tokenizedSourceIndex += 1
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-            case ( .terminal, _, _ ) where isInBoolTokens( thisCompiler.currentToken.what ) :
-                yesNoValue = YesNoEnum.translate( thisCompiler.currentToken.value )
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Valid constructions
+
+            case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) :
+                optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.currentToken.value
+                if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
+                    optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line
+                }
+                optionsDict[ thisCompiler.currentToken.what ]?.count += 1
                 thisCompiler.tokenizedSourceIndex += 1
+                checkSyntax()
                 return
 
-            case ( .terminal, _, _ ) where !isInBoolTokens( thisCompiler.currentToken.what ) :
-                try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                               insteadOf: "'yes' or 'no'",
-                                               inElement: thisExprNodeType,
-                                               inLine: sourceLine )
-                return
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Exit block
 
             case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
+                checkSyntax()
                 return
+
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Early end of file
 
             case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                 return
 
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Invalid constructions
+
             default :
-                try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
-                                               insteadOf: "'yes' or 'no'",
+                try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                               mightBe: StandAloneNode.optionTokens,
                                                inElement: thisExprNodeType,
-                                               inLine: sourceLine )
+                                               inLine: thisCompiler.currentToken.line,
+                                               skip: .toNextKeyword )
                 return
 
         }
-
     }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///    <standalone> ::= "standalone" ( “yes” | “no” )
+    /// ```
+
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType,
+                             elements elementsList: TerminalSymbolEnumSetType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+        optionsDict[ .yes ] = AllowableSyntaxEntryStruct( needsExpression: false )
+        optionsDict[ .no ] = AllowableSyntaxEntryStruct( needsExpression: false )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
+    }
+
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -109,7 +169,12 @@ class StandAloneNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(thisExprNodeType.xml)=\"\(yesNoValue.description)\""
+        for ( _, entry ) in optionsDict {
+            if entry.count > 0 {
+                return "\(thisExprNodeType.xml)=\"\(entry.value)\""
+            }
+        }
+        return ""
     }
 
 }

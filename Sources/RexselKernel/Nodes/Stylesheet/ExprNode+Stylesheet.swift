@@ -44,7 +44,7 @@ class StylesheetNode: ExprNode {
 
     override init() {
         super.init()
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         thisExprNodeType = .stylesheet
         isInBlock = false
         setSyntax( options: StylesheetNode.optionTokens, elements: StylesheetNode.blockTokens )
@@ -128,6 +128,7 @@ class StylesheetNode: ExprNode {
                 case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
                     if isLogging {
                         rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                        rLogger.log( self, .debug, "Found \(thisCompiler.nextToken.value)" )
                     }
 
                     if markIfInvalidKeywordForThisVersion( thisCompiler ) {

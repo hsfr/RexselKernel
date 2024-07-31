@@ -50,7 +50,6 @@ class MessageNode: ExprNode  {
         thisExprNodeType = .message
         isLogging = false  // Adjust as required
         isInBlock = false
-        messageString = ""
         setSyntax( options: ProcNode.optionTokens, elements: ProcNode.blockTokens )
     }
 
@@ -292,12 +291,6 @@ class MessageNode: ExprNode  {
                 ()
         }
 
-//        if messageString.isNotEmpty && blockElementFound {
-//        } else if !blockElementFound {
-//            markSyntaxRequiresOneOrMoreElement( inLine: sourceLine,
-//                                                name: tokensDescription( TerminalSymbolEnum.blockTokens ),
-//                                                inElement: thisExprNodeType.description )
-//        }
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

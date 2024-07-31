@@ -206,23 +206,20 @@ class NumberNode: ExprNode  {
 
     override func checkSyntax() {
         super.checkSyntax()
-    }
 
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Check duplicates.
-
-    override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {
-
-        variablesDict.title = ""
-        variablesDict.tableType = thisExprNodeType
-        variablesDict.blockLine = sourceLine
-
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.outputTokens )
-
-        // Perform validation check here for URIs etc.?
-    }
+        var blockElementFound = false
+        for ( _, entry ) in childrenDict {
+            if entry.count > 0 {
+                blockElementFound = true
+                break
+            }
+        }
+        if !blockElementFound {
+            markSyntaxRequiresOneOrMoreElement( inLine: sourceLine,
+                                                name: tokensDescription( NumberNode.blockTokens ),
+                                                inElement: self.thisExprNodeType.description )
+        }
+ }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

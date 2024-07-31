@@ -41,7 +41,7 @@ class VersionNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .version
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         setSyntax( options: TextNode.optionTokens, elements: TextNode.blockTokens )
     }
 
@@ -89,12 +89,14 @@ class VersionNode: ExprNode  {
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Valid constructions
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Valid constructions
 
             case ( .expression, _, _ )  :
                 versionString = thisCompiler.currentToken.value
-                thisCompiler.xsltVersion = versionString
+                if self.parentNode.thisExprNodeType == .stylesheet {
+                    thisCompiler.xsltVersion = versionString
+                }
                 thisCompiler.tokenizedSourceIndex += 1
                 checkSyntax()
                 return
@@ -142,12 +144,15 @@ class VersionNode: ExprNode  {
 
     override func checkSyntax() {
         super.checkSyntax()
-        // Check value is within range
-        if !rexsel_versionRange.keys.contains( thisCompiler.xsltVersion ) {
-            // Mark as error
-            markInvalidXSLTVersion( thisCompiler.xsltVersion, at: thisCompiler.currentToken.line )
-            // Set min valid value
-            thisCompiler.xsltVersion = rexsel_xsltversion10
+        // Version is an overloaded keyword so only check value is
+        // within range in top[ level.
+        if self.parentNode.thisExprNodeType == .stylesheet {
+            if !rexsel_versionRange.keys.contains( thisCompiler.xsltVersion ) {
+                // Mark as error
+                markInvalidXSLTVersion( thisCompiler.xsltVersion, at: thisCompiler.currentToken.line )
+                // Set min valid value
+                thisCompiler.xsltVersion = rexsel_xsltversion10
+            }
         }
     }
 
