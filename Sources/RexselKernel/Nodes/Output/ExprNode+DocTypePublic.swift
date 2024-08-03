@@ -45,7 +45,7 @@ class DocTypePublicNode: ExprNode  {
     override init() {
         super.init()
         self.thisExprNodeType = .doctypePublic
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: DocTypePublicNode.optionTokens, elements: DocTypePublicNode.blockTokens )
     }
     

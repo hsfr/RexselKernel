@@ -39,7 +39,7 @@ class OmitXMLDeclarationNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .omitXmlDecl
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: OmitXMLDeclarationNode.optionTokens, elements: OmitXMLDeclarationNode.blockTokens )
    }
 

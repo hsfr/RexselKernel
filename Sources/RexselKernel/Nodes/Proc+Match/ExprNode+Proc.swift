@@ -316,7 +316,7 @@ class ProcNode: ExprNode  {
 
                 switch child.thisExprNodeType {
 
-                    case .parameter, .variable :
+                    case .parameter, .variable, .key :
                         do {
                             try variablesDict.addSymbol( name: child.name,
                                                          type: child.thisExprNodeType,

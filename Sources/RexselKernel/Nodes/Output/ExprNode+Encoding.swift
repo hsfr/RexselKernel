@@ -45,7 +45,7 @@ class EncodingNode: ExprNode  {
     override init() {
         super.init()
         self.thisExprNodeType = .encoding
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: EncodingNode.optionTokens, elements: EncodingNode.blockTokens )
   }
 

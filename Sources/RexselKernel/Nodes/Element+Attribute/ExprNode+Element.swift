@@ -56,7 +56,7 @@ class ElementNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .element
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         isInBlock = false
         setSyntax( options: ElementNode.optionTokens, elements: ElementNode.blockTokens )
   }
@@ -184,10 +184,6 @@ class ElementNode: ExprNode  {
                     thisCompiler.tokenizedSourceIndex += 1
                     return
 
-                case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && !isInBlock :
-                    checkSyntax()
-                    return
-
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Early end of file
 
@@ -204,7 +200,7 @@ class ElementNode: ExprNode  {
                                               inLine: thisCompiler.currentToken.line,
                                               after: thisCompiler.currentToken.value )
                     thisCompiler.tokenizedSourceIndex += 1
-                    thisCompiler.nestedLevel += 1
+                    // thisCompiler.nestedLevel += 1
                     continue
 
                 case ( .terminal, .terminal, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
@@ -213,6 +209,15 @@ class ElementNode: ExprNode  {
                                               inLine: thisCompiler.currentToken.line,
                                               after: thisCompiler.currentToken.value,
                                               skip: .toNextKeyword )
+                    continue
+
+                case ( _, _, _ ) where !isInBlock :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   insteadOf: "start of block bracket",
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line )
+                    // Assume block start to process potential block
+                    isInBlock = true
                     continue
 
                 case ( _, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) && !isInBlock :

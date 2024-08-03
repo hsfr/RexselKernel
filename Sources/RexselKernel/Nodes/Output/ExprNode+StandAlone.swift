@@ -45,7 +45,7 @@ class StandAloneNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .standAlone
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: StandAloneNode.optionTokens, elements: StandAloneNode.blockTokens )
     }
 

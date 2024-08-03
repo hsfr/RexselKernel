@@ -39,7 +39,7 @@ class MethodNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .method
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: MethodNode.optionTokens, elements: MethodNode.blockTokens )
     }
 

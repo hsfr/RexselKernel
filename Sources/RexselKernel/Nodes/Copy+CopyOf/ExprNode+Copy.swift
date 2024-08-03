@@ -50,7 +50,7 @@ class CopyNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .copy
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         isInBlock = false
         setSyntax( options: CopyNode.optionTokens, elements: CopyNode.blockTokens )
     }
@@ -114,7 +114,7 @@ class CopyNode: ExprNode  {
 
                 case ( .terminal, .terminal, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
                                                        thisCompiler.nextToken.what == .openCurlyBracket :
-                    // Cattches empty (missing) expressions before open bracket.
+                    // Catches empty (missing) expressions before open bracket.
                     optionsDict[ thisCompiler.currentToken.what ]?.value = ""
                     if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
                         optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line
@@ -191,12 +191,15 @@ class CopyNode: ExprNode  {
                                                        skip: .toNextKeyword )
                     return
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
-                    return
-
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Error conditions
-
+                case ( _, _, _ ) where !isInBlock :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   insteadOf: "start of block bracket",
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line )
+                    // Assume block start to process potential block
+                    isInBlock = true
+                    continue
+         
                 case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
                     if isInBlock {
                         thisCompiler.nestedLevel += 1
@@ -205,7 +208,7 @@ class CopyNode: ExprNode  {
                                                    mightBe: CopyNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .absorbBlock )
+                                                   skip: .toNextKeyword )
                     continue
 
                 case ( .terminal, _, _ ) :
@@ -227,7 +230,7 @@ class CopyNode: ExprNode  {
                                                    mightBe: CopyNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextKeyword )
+                                                   skip: .ignore )
                     return
             }
         }
@@ -275,7 +278,7 @@ class CopyNode: ExprNode  {
         }
     }
 
-  // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Semantic Checking and Symbol Table Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

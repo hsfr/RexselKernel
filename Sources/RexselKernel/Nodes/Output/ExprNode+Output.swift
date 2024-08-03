@@ -40,7 +40,7 @@ class OutputNode: ExprNode  {
         super.init()
         thisExprNodeType = .output
         isInBlock = false
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: OutputNode.optionTokens, elements: OutputNode.blockTokens )
    }
 

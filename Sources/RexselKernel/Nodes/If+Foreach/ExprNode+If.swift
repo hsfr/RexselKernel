@@ -25,28 +25,6 @@ extension IfNode {
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-//extension IfNode {
-//    
-//    func setSyntax() {
-//        // Set up the allowed syntax. Everything can occur zero or more.
-//        for keyword in TerminalSymbolEnum.ifConditionTokens {
-//            let entry = AllowableSyntaxEntryStruct( child: keyword, min: 0, max: Int.max )
-//            allowableChildrenDict[ keyword.description ] = entry
-//        }
-//    }
-//    
-//    func isInIfConditionTokens( _ token: TerminalSymbolEnum ) -> Bool {
-//        return TerminalSymbolEnum.ifConditionTokens.contains(token)
-//    }
-//    
-//}
-
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// MARK: -
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
 class IfNode: ExprNode  {
     
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -120,7 +98,8 @@ class IfNode: ExprNode  {
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                case ( .terminal, _, _ ) where testExpression.isNotEmpty &&
+                                               thisCompiler.currentToken.what == .openCurlyBracket &&
                                                thisCompiler.nextToken.what != .closeCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
@@ -174,18 +153,46 @@ class IfNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Invalid constructions
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
-                    try makeCannotHaveEmptyBlockError( inLine: thisCompiler.currentToken.line,
-                                                       skip: .toNextKeyword )
-                    return
+                case ( _, _, _ ) where testExpression.isEmpty && thisCompiler.currentToken.what != .openCurlyBracket :
+                    // No expression or start of block, assume block start to process potential block
+                    try markMissingItemError( what: .test,
+                                              inLine: sourceLine,
+                                              after: thisExprNodeType.description )
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   insteadOf: "start of block bracket",
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line )
+                    // thisCompiler.tokenizedSourceIndex += 1
+                    thisCompiler.nestedLevel += 1
+                    isInBlock = true
+                    continue
 
-                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
+                case ( .terminal, _, _ ) where testExpression.isEmpty && thisCompiler.currentToken.what == .openCurlyBracket :
+                    // No expression
+                    try markMissingItemError( what: .test,
+                                              inLine: sourceLine,
+                                              after: thisExprNodeType.description )
+                    thisCompiler.tokenizedSourceIndex += 1
+                    thisCompiler.nestedLevel += 1
+                    isInBlock = true
+                    continue
+
+                case ( _, _, _ ) where testExpression.isNotEmpty && !isInBlock :
+                    // No open block bracket
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   insteadOf: "start of block bracket",
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line )
+                    // Assume block start to process potential block
+                    isInBlock = true
+                    continue
+
+               case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
                     if isInBlock {
                         thisCompiler.nestedLevel += 1
                     }
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   insteadOf: tokensDescription( IfNode.blockTokens ),
+                                                   insteadOf: tokensDescription( ForeachNode.blockTokens ),
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .absorbBlock )

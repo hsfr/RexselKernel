@@ -48,7 +48,7 @@ class PercentNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .percent
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: PercentNode.optionTokens, elements: PercentNode.blockTokens )
     }
 

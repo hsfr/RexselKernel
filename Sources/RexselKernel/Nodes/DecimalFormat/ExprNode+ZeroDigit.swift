@@ -48,7 +48,7 @@ class ZeroDigitNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .zeroDigit
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: ZeroDigitNode.optionTokens, elements: ZeroDigitNode.blockTokens )
     }
 

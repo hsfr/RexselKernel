@@ -32,7 +32,7 @@ class StylesheetNode: ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    public var xsltVersion: String = ""
+    public var xsltVersion: String = "1.0"
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -44,12 +44,11 @@ class StylesheetNode: ExprNode {
 
     override init() {
         super.init()
-        isLogging = true  // Adjust as required
         thisExprNodeType = .stylesheet
+        isLogging = true  // Adjust as required
         isInBlock = false
-        setSyntax( options: StylesheetNode.optionTokens, elements: StylesheetNode.blockTokens )
         isRootNode = true
-        xsltVersion = "1.0"
+        setSyntax( options: StylesheetNode.optionTokens, elements: StylesheetNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -188,10 +187,6 @@ class StylesheetNode: ExprNode {
                     return
 
                 case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
-                    // Reset nesting counter if leaving from within a block.
-                    if isInBlock {
-                        thisCompiler.nestedLevel += 1
-                    }
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    mightBe: StylesheetNode.blockTokens,
                                                    inElement: thisExprNodeType,
@@ -201,10 +196,11 @@ class StylesheetNode: ExprNode {
                     continue
 
                 default :
-                    try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: StylesheetNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextKeyword )
+                                                   skip: .absorbBlock )
                     continue
 
             }

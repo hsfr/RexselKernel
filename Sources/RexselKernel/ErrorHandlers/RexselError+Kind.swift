@@ -307,7 +307,7 @@ enum RexselErrorKind {
                 }
 
             case .sortMustBeFirst( let lineNumber, let within ) :
-                return "Sort in \"\(within)\" in line \(lineNumber) must follow declaration."
+                return "Sort in \"\(within)\" in line \(lineNumber) must be at start of block."
 
             case .invalidXSLTVersion( let lineNumber, let version ) :
                 if version.isEmpty {

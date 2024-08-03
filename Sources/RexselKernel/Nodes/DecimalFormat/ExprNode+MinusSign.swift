@@ -48,7 +48,7 @@ class MinusSignNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .minusSign
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: MinusSignNode.optionTokens, elements: MinusSignNode.blockTokens )
     }
 

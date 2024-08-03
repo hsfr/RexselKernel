@@ -48,7 +48,7 @@ class NaNNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .notNumber
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: NaNNode.optionTokens, elements: NaNNode.blockTokens )
     }
 

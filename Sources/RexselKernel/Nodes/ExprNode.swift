@@ -81,6 +81,9 @@ class ExprNode: NSObject {
     /// A dictionary of declared procs with this node's scope
     var procDict: SymbolTable
 
+    /// A dictionary of declared keys with this node's scope
+    var keyDict: SymbolTable
+
     /// This is a list of symbol tables that is added to as internal
     /// contexts are traversed (down).
     var currentVariableContextList = [SymbolTable]()
@@ -112,6 +115,7 @@ class ExprNode: NSObject {
         xmlnsDict = XmlnsSymbolTableType()
         variablesDict = SymbolTable( thisCompiler, type: .variable )
         procDict = SymbolTable( thisCompiler, type: .proc )
+        keyDict = SymbolTable( thisCompiler, type: .key )
         allowableChildrenDict = AllowableSyntaxDictType()
 
         childrenDict = [:]

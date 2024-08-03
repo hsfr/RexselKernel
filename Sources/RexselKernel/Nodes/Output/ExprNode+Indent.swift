@@ -39,7 +39,7 @@ class IndentNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .indent
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: IndentNode.optionTokens, elements: IndentNode.blockTokens )
     }
 

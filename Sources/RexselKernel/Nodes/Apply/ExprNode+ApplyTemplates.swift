@@ -54,7 +54,7 @@ class ApplyTemplatesNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .applyTemplates
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         isInBlock = false
         setSyntax( options: ApplyTemplatesNode.optionTokens, elements: ApplyTemplatesNode.blockTokens )
     }
@@ -125,7 +125,7 @@ class ApplyTemplatesNode: ExprNode  {
                     thisCompiler.tokenizedSourceIndex += 2
                     continue
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
                                                        thisCompiler.nextToken.what != .closeCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
@@ -159,14 +159,6 @@ class ApplyTemplatesNode: ExprNode  {
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
 
-//                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
-//                    checkSyntax()
-//                    if isInBlock {
-//                        thisCompiler.tokenizedSourceIndex += 1
-//                        thisCompiler.nestedLevel -= 1
-//                    }
-//                    return
-//
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Exit block
 
@@ -188,9 +180,9 @@ class ApplyTemplatesNode: ExprNode  {
                     // Do not bump the index here (bracket belongs to higher block)
                     return
 
-                case ( _, _, _ ) where thisCompiler.currentToken.what == .unknownToken ||
-                                       isInBlockTemplateTokens(thisCompiler.currentToken.what) :
+                case ( _, _, _ ) where !isInBlock && !isInOptionTokens( thisCompiler.currentToken.what ):
                     checkSyntax()
+                    // Do not bump the index here (bracket belongs to higher block)
                     return
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -208,11 +200,14 @@ class ApplyTemplatesNode: ExprNode  {
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextKeyword )
-                    continue
+                    return
 
                 case ( .qname, _, _ ) :
+                    // The "mightBe" is a little more extensive here to catch potential possibilities.
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   insteadOf: "using or scope",
+                                                   mightBe: TerminalSymbolEnum.blockTokens
+                                                                .union(ApplyTemplatesNode.optionTokens)
+                                                                .union(ApplyTemplatesNode.blockTokens),
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextKeyword )
@@ -240,8 +235,10 @@ class ApplyTemplatesNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: ApplyTemplatesNode.optionTokens,
                                                    inElement: thisExprNodeType,
-                                                   inLine: thisCompiler.currentToken.line )
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextToken )
                     return
 
             }

@@ -45,7 +45,7 @@ class DocTypeSystemNode: ExprNode  {
     override init() {
         super.init()
         self.thisExprNodeType = .doctypeSystem  
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: DocTypeSystemNode.optionTokens, elements: DocTypeSystemNode.blockTokens )
     }
 

@@ -45,7 +45,7 @@ class DecimalSeparatorNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .decimalSeparator
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: FormatNode.optionTokens, elements: FormatNode.blockTokens )
     }
     

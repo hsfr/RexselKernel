@@ -46,7 +46,7 @@ class InfinityNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .infinity
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: InfinityNode.optionTokens, elements: InfinityNode.blockTokens )
     }
 

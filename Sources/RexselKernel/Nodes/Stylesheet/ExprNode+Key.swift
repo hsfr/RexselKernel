@@ -36,8 +36,6 @@ class KeyNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    fileprivate var keyName: String = ""
-
     fileprivate var usingString: String = ""
 
     fileprivate var keyNodesString: String = ""
@@ -53,7 +51,7 @@ class KeyNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .key
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         setSyntax( options: KeyNode.optionTokens, elements: KeyNode.blockTokens )
     }
 
@@ -119,12 +117,12 @@ class KeyNode: ExprNode  {
                   thisCompiler.tokenizedSourceIndex += 2
                   continue
 
-              case ( .expression, _, _ ) where keyName.isEmpty :
-                  keyName = thisCompiler.currentToken.value
+              case ( .expression, _, _ ) where name.isEmpty :
+                  name = thisCompiler.currentToken.value
                   thisCompiler.tokenizedSourceIndex += 1
                   continue
 
-              case ( .expression, _, _ ) where keyName.isNotEmpty :
+              case ( .expression, _, _ ) where name.isNotEmpty :
                   // Found isolated expression due to error.
                   thisCompiler.tokenizedSourceIndex += 1
                   continue
@@ -136,7 +134,7 @@ class KeyNode: ExprNode  {
                   checkSyntax()
                   return
 
-              case ( _, _, _ ) where keyName.isNotEmpty && usingString.isNotEmpty && keyNodesString.isNotEmpty :
+              case ( _, _, _ ) where name.isNotEmpty && usingString.isNotEmpty && keyNodesString.isNotEmpty :
                   checkSyntax()
                   return
 
@@ -219,9 +217,9 @@ class KeyNode: ExprNode  {
 
     override func checkSyntax() {
         super.checkSyntax()
-        if keyName.isEmpty {
+        if name.isEmpty {
             try? markMissingItemError( what: .name,
-                                       inLine: thisCompiler.currentToken.line,
+                                       inLine: sourceLine,
                                        after: thisExprNodeType.description )
         }
     }
@@ -237,8 +235,8 @@ class KeyNode: ExprNode  {
 
         var attributes = ""
 
-        if keyName.isNotEmpty {
-            attributes += " \(TerminalSymbolEnum.name.xml)=\"\(keyName)\""
+        if name.isNotEmpty {
+            attributes += " \(TerminalSymbolEnum.name.xml)=\"\(name)\""
         }
         for ( key, entry ) in optionsDict {
             if entry.value.isNotEmpty {

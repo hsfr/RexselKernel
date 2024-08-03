@@ -55,7 +55,7 @@ class AttributeSetNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .attributeSet
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         isInBlock = false
         setSyntax( options: ElementNode.optionTokens, elements: ElementNode.blockTokens )
     }
@@ -103,8 +103,8 @@ class AttributeSetNode: ExprNode  {
 
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                    // Valid constructions
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Valid constructions
 
                 case ( .terminal, .expression, _ )  where isInOptionTokens( thisCompiler.currentToken.what ) :
                     optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.nextToken.value
@@ -127,15 +127,16 @@ class AttributeSetNode: ExprNode  {
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                    thisCompiler.nextToken.what != .closeCurlyBracket :
+                case ( .terminal, .terminal, _ ) where name.isNotEmpty &&
+                                                       thisCompiler.currentToken.what == .openCurlyBracket &&
+                                                       thisCompiler.nextToken.what != .closeCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     isInBlock = true
                     continue
 
-                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                    // Process block
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Process block
 
                 case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
                     if isLogging {
@@ -162,8 +163,8 @@ class AttributeSetNode: ExprNode  {
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
 
-                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                    // Exit block
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Exit block
 
                 case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
                                                        thisCompiler.nextToken.what == .closeCurlyBracket :
@@ -192,11 +193,22 @@ class AttributeSetNode: ExprNode  {
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                     return
 
-                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                    // Invalid constructions
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Invalid constructions
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && name.isEmpty :
+                    // No name
+                    try markMissingItemError( what: .name,
+                                              inLine: thisCompiler.currentToken.line,
+                                              after: thisExprNodeType.description )
+                    // Process block anyway
+                    thisCompiler.tokenizedSourceIndex += 1
+                    thisCompiler.nestedLevel += 1
+                    isInBlock = true
+                    continue
 
                 case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
-                    thisCompiler.nextToken.what != .expression :
+                                               thisCompiler.nextToken.what != .expression :
                     // Missing expression after option
                     try markMissingItemError( what: .expression,
                                               inLine: thisCompiler.currentToken.line,
@@ -206,7 +218,7 @@ class AttributeSetNode: ExprNode  {
                     continue
 
                 case ( .terminal, .terminal, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
-                    isInOptionTokens( thisCompiler.nextToken.what ):
+                                                       isInOptionTokens( thisCompiler.nextToken.what ):
                     try markMissingItemError( what: .expression,
                                               inLine: thisCompiler.currentToken.line,
                                               after: thisCompiler.currentToken.value,
@@ -215,7 +227,7 @@ class AttributeSetNode: ExprNode  {
 
                 case ( _, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) && !isInBlock :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   mightBe: ElementNode.optionTokens,
+                                                   mightBe: AttributeSetNode.optionTokens.union( AttributeSetNode.blockTokens ),
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextKeyword )
@@ -223,7 +235,7 @@ class AttributeSetNode: ExprNode  {
 
                 case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   mightBe: ElementNode.blockTokens,
+                                                   mightBe: AttributeSetNode.optionTokens.union( AttributeSetNode.blockTokens ),
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextKeyword )
@@ -231,7 +243,7 @@ class AttributeSetNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   mightBe: ElementNode.blockTokens,
+                                                   mightBe: AttributeSetNode.optionTokens.union( AttributeSetNode.blockTokens ),
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextKeyword )
@@ -247,7 +259,7 @@ class AttributeSetNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// ```xml
-    /// <attribute-set> ::= “attribute-set” <quote> <name> <quote>
+    /// <attribute-set> ::= “attribute-set” <quote> <qname> <quote>
     ///                     ( “use-attribute-sets” <name list> )?
     ///                     “{”
     ///                        ( <attribute> )+

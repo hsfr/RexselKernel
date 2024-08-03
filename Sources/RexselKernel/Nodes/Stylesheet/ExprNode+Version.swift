@@ -41,7 +41,7 @@ class VersionNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .version
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: TextNode.optionTokens, elements: TextNode.blockTokens )
     }
 

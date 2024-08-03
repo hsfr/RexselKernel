@@ -83,12 +83,14 @@ public class RexselKernel {
     var tokenizedSourceIndex = 0
 
     var isEndOfFile: Bool {
-        guard tokenizedSourceIndex < tokenizedSource.count else { return true }
+        guard let tokenizedSrc = tokenizedSource else { return true }
+        guard tokenizedSourceIndex < tokenizedSrc.count else { return true }
         return ( tokenizedSource[ tokenizedSourceIndex ].what == .endOfFile )
     }
 
     var totalNumberOfTokens: Int {
-        return tokenizedSource.count
+        guard let tokenizedSrc = tokenizedSource else { return 0 }
+        return tokenizedSrc.count
     }
 
     /// Is this the last token in the line?
@@ -110,29 +112,38 @@ public class RexselKernel {
     ///
     /// Note that index starts at zero so if outputting line add 1.
     var sourcePosition: Int {
-        guard tokenizedSourceIndex < tokenizedSource.count - 1 else {
+        guard let tokenizedSrc = tokenizedSource else {
             return 0
         }
-        return tokenizedSource[ tokenizedSourceIndex ].position
+        guard tokenizedSourceIndex < tokenizedSrc.count - 1 else {
+            return 0
+        }
+        return tokenizedSrc[ tokenizedSourceIndex ].position
     }
 
     /// The current token based on the thisCompiler.tokenizedSourceIndex.
     /// If beyond end of buffer mark as end of file.
     var currentToken: TokenType {
-        guard !isEndOfFile else {
-            return ( type: TokenEnum.unknown, what: .endOfFile, value: "", line: tokenizedSource.count, position: 0 )
+        guard let tokenizedSrc = tokenizedSource else {
+            return ( type: TokenEnum.unknown, what: .endOfFile, value: "", line: 0, position: 0 )
         }
-        return tokenizedSource[ tokenizedSourceIndex ]
+        guard !isEndOfFile else {
+            return ( type: TokenEnum.unknown, what: .endOfFile, value: "", line: tokenizedSrc.count, position: 0 )
+        }
+        return tokenizedSrc[ tokenizedSourceIndex ]
     }
 
     /// The next token based on the thisCompiler.tokenizedSourceIndex + 1.
     /// If beyond end of buffer mark as end of file.
     var nextToken: TokenType {
         let nextIndex = tokenizedSourceIndex + 1
-        guard !isEndOfFile && tokenizedSource.count > nextIndex else {
-            return ( type: TokenEnum.unknown, what: .endOfFile, value: "", line: tokenizedSource.count, position: 0 )
+        guard let tokenizedSrc = tokenizedSource else {
+            return ( type: TokenEnum.unknown, what: .endOfFile, value: "", line: 0, position: 0 )
         }
-        let token = tokenizedSource[ nextIndex ]
+       guard !isEndOfFile && tokenizedSrc.count > nextIndex else {
+            return ( type: TokenEnum.unknown, what: .endOfFile, value: "", line: tokenizedSrc.count, position: 0 )
+        }
+        let token = tokenizedSrc[ nextIndex ]
         return token
     }
 
@@ -140,10 +151,13 @@ public class RexselKernel {
     /// If beyond end of buffer mark as end of file.
     var nextNextToken: TokenType {
         let nextNextIndex = tokenizedSourceIndex + 2
-        guard !isEndOfFile && tokenizedSource.count > nextNextIndex else {
-            return ( type: TokenEnum.unknown, what: .endOfFile, value: "", line: tokenizedSource.count, position: 0 )
+        guard let tokenizedSrc = tokenizedSource else {
+            return ( type: TokenEnum.unknown, what: .endOfFile, value: "", line: 0, position: 0 )
         }
-        return tokenizedSource[ nextNextIndex ]
+       guard !isEndOfFile && tokenizedSrc.count > nextNextIndex else {
+            return ( type: TokenEnum.unknown, what: .endOfFile, value: "", line: tokenizedSrc.count, position: 0 )
+        }
+        return tokenizedSrc[ nextNextIndex ]
     }
 
     /// The line number of the current token.

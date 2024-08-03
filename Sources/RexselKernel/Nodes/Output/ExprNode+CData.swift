@@ -47,7 +47,7 @@ class CDataNode: ExprNode  {
     override init() {
         super.init()
         self.thisExprNodeType = .cdataList
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: CDataNode.optionTokens, elements: CDataNode.blockTokens )
     }
 

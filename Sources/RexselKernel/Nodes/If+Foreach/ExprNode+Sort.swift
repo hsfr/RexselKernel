@@ -76,7 +76,7 @@ class SortNode: ExprNode  {
     override init() {
         super.init()
         self.thisExprNodeType = .sort
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         setSyntax( options: SortNode.optionTokens, elements: SortNode.blockTokens )
    }
 
@@ -147,8 +147,9 @@ class SortNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Invalid constructions
 
-                case ( _, .terminal, _ ) where thisCompiler.currentToken.type == .qname :
+                case ( .qname, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: TerminalSymbolEnum.blockTokens.union(SortNode.optionTokens),
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextKeyword )

@@ -48,7 +48,7 @@ class GroupingSeparatorNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .groupingSeparator
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: GroupingSeparatorNode.optionTokens, elements: GroupingSeparatorNode.blockTokens )
     }
 

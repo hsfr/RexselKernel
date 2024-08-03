@@ -51,7 +51,7 @@ class AttributeNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .attrib
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         isInBlock = false
         setSyntax( options: ElementNode.optionTokens, elements: ElementNode.blockTokens )
     }

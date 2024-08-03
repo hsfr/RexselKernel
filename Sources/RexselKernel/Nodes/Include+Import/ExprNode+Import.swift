@@ -121,9 +121,7 @@ class ImportNode: ExprNode {
             // Invalid constructions
 
             case ( .terminal, _, _ ) where uriString.isEmpty :
-                try markMissingItemError( what: .uri,
-                                          inLine: thisCompiler.currentToken.line,
-                                          found: thisCompiler.currentToken.what.description )
+                checkSyntax()
                 return
 
             default :
@@ -162,7 +160,7 @@ class ImportNode: ExprNode {
         super.checkSyntax()
         if uriString.isEmpty {
             try? markMissingItemError( what: .uri,
-                                       inLine: thisCompiler.currentToken.line,
+                                       inLine: sourceLine,
                                        found: thisCompiler.currentToken.what.description )
         }
         // Eventual check here for a valid uri expression.

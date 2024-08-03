@@ -42,7 +42,7 @@ class DecimalFormatNode: ExprNode  {
         super.init()
         thisExprNodeType = .decimalFormat
         isInBlock = false
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: DecimalFormatNode.optionTokens, elements: DecimalFormatNode.blockTokens )
     }
 
@@ -224,6 +224,9 @@ class DecimalFormatNode: ExprNode  {
     override func checkSyntax() {
         super.checkSyntax()
 
+        if name.isEmpty {
+            try? markMissingItemError( what: .name, inLine: sourceLine, after: thisExprNodeType.description )
+        }
         var blockElementFound = false
         for ( _, entry ) in childrenDict {
             if entry.count > 0 {
@@ -234,7 +237,7 @@ class DecimalFormatNode: ExprNode  {
         if !blockElementFound {
             markSyntaxRequiresOneOrMoreElement( inLine: sourceLine,
                                                 name: tokensDescription( DecimalFormatNode.blockTokens ),
-                                                inElement: self.thisExprNodeType.description )
+                                                inElement: thisExprNodeType.description )
         }
    }
 
@@ -266,6 +269,9 @@ class DecimalFormatNode: ExprNode  {
         let lineComment = super.generate()
 
         var attributes = ""
+        if name.isNotEmpty {
+            attributes += " name=\"\(name)\""
+        }
         if let children = nodeChildren {
             for child in children {
                 attributes += " \(child.generate())"

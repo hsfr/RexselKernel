@@ -48,7 +48,7 @@ class PerMilleNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .perMille
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: PerMilleNode.optionTokens, elements: PerMilleNode.blockTokens )
     }
 

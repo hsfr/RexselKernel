@@ -46,7 +46,7 @@ class PatternSeparatorNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .patternSeparator
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: PatternSeparatorNode.optionTokens, elements: PatternSeparatorNode.blockTokens )
     }
 

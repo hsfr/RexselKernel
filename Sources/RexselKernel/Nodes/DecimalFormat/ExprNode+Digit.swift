@@ -46,7 +46,7 @@ class DigitNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .digit
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: DigitNode.optionTokens, elements: DigitNode.blockTokens )
     }
 
