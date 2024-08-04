@@ -522,12 +522,13 @@ enum TerminalSymbolEnum: Int {
     /// output.
     var symbolType: String {
         switch self {
-            case .with : return "P"
+            case .with : return "W"
             case .parameter : return "P"
             case .attributeSet : return "A"
             case .variable : return "V"
             case .proc : return "F"  // This may be changed later
             case .match : return "M"
+            case .key : return "K"
             default : return "?"
         }
     }
