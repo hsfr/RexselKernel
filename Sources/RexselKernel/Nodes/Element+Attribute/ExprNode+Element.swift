@@ -129,7 +129,7 @@ class ElementNode: ExprNode  {
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
                                                        thisCompiler.nextToken.what != .closeCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
@@ -192,6 +192,15 @@ class ElementNode: ExprNode  {
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Invalid constructions
+
+                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                    // Illegal keyword
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: ElementNode.blockTokens,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextKeyword )
+                    continue
 
                 case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
                                                thisCompiler.nextToken.what != .expression :

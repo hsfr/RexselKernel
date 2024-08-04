@@ -176,18 +176,18 @@ class NumberNode: ExprNode  {
     /// Set up the syntax based on the BNF.
     ///
     /// ```xml
-    ///    <number> ::= “number”
-    ///                 “{”
-    ///                     ( “level” ( “single” | “multiple” | “any” ) |
-    ///                       “count” <quote> <pattern> <quote> |
-    ///                       “format” <quote> <pattern> <quote> |
-    ///                       “from” <quote> <pattern> <quote> |
-    ///                       “value” <quote> <number expression> <quote> |
-    ///                       “letter-value” ( “alphabetic” | “traditional” ) |
-    ///                       “lang” <quote> <language identifier> <quote> |
-    ///                       “grouping-separator” <quote> <grouping character> <quote> |
-    ///                       “grouping-size” <quote> <digits> <quote> )*
-    ///                 “}”
+    /// <number> ::= “number”
+    ///              “{”
+    ///                  ( “level” ( “single” | “multiple” | “any” ) |
+    ///                    “count” <quote> <pattern> <quote> |
+    ///                    “format” <quote> <pattern> <quote> |
+    ///                    “from” <quote> <pattern> <quote> |
+    ///                    “value” <quote> <number expression> <quote> |
+    ///                    “letter-value” ( “alphabetic” | “traditional” ) |
+    ///                    “lang” <quote> <language identifier> <quote> |
+    ///                    “grouping-separator” <quote> <grouping character> <quote> |
+    ///                    “grouping-size” <quote> <digits> <quote> )*
+    ///              “}”
     /// ```
 
     override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
