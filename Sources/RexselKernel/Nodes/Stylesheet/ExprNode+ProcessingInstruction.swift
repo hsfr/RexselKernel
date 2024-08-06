@@ -156,9 +156,9 @@ class ProcessingInstructionNode: ExprNode  {
                     thisCompiler.tokenizedSourceIndex += 1
                     return
 
-                case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && !isInBlock :
-                    checkSyntax()
-                    return
+                //case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && !isInBlock :
+                //    checkSyntax()
+                //    return
 
                     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                     // Early end of file
@@ -168,6 +168,16 @@ class ProcessingInstructionNode: ExprNode  {
 
                     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                     // Invalid constructions
+
+                case ( _, _, _ ) where !isInBlock && thisCompiler.currentToken.what != .openCurlyBracket :
+                    try markMissingItemError( what: .openCurlyBracket,
+                                              inLine: thisCompiler.currentToken.line,
+                                              after: thisExprNodeType.description,
+                                              skip: .ignore )
+                    // Assume we are in block — slightly dangerous.
+                    thisCompiler.nestedLevel += 1
+                    isInBlock = true
+                    continue
 
                 case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,

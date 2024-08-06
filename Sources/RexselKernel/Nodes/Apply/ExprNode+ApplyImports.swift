@@ -39,7 +39,7 @@ class ApplyImportsNode: ExprNode  {
     {
         super.init()
         self.thisExprNodeType = .applyImports
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: ApplyImportsNode.optionTokens, elements: ApplyImportsNode.blockTokens )
     }
 

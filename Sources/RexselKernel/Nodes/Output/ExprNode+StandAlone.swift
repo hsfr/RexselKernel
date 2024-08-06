@@ -14,7 +14,9 @@ extension StandAloneNode {
 
     static let blockTokens: TerminalSymbolEnumSetType = []
 
-    static let optionTokens: TerminalSymbolEnumSetType = []
+    static let optionTokens: TerminalSymbolEnumSetType = [
+        .yes, .no
+    ]
 
 }
 
@@ -25,14 +27,6 @@ extension StandAloneNode {
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 class StandAloneNode: ExprNode  {
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // MARK: - Instance properties
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-    var yesNoValue: YesNoEnum = .no
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

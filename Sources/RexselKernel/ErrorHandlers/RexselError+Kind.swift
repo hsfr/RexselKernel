@@ -41,7 +41,7 @@ enum RexselErrorKind {
     case couldNotFindVariable( lineNumber: Int, name: String )
     case notSupported( lineNumber: Int, name: String, inElement: String )
 
-    case missingItem( lineNumber: Int, what: String )
+    case missingItem( lineNumber: Int, what: String, after: String )
     case missingParameterName( lineNumber: Int )
     case missingVariableValue( lineNumber: Int, name: String )
     case missingTest( lineNumber: Int )
@@ -116,7 +116,7 @@ enum RexselErrorKind {
             case .couldNotFindVariable( _, _ ) : return 116
             case .notSupported( _, _, _ ) : return 117
             case .requiredElement( _, _, _ ) : return 118
-            case .missingItem( _, _ ) : return 119
+            case .missingItem( _, _, _ ) : return 119
             case .missingParameterName( _ ) : return 120
 
             case .missingVariableValue( _, _ ) : return 121
@@ -236,8 +236,8 @@ enum RexselErrorKind {
             case .requiredElement( let lineNumber, let name, let inElement ) :
                 return "\"\(name)\" required in element \"\(inElement)\" in line \(lineNumber)"
 
-            case .missingItem( let lineNumber, let what ) :
-                return "Missing item \(what) in line \(lineNumber)"
+            case .missingItem( let lineNumber, let what, let after ) :
+                return "Missing item \(what) after \(after) in line \(lineNumber)"
 
             case .missingParameterName( let lineNumber ) : 
                 return "Missing parameter name in line \(lineNumber)"
@@ -410,7 +410,7 @@ enum RexselErrorKind {
           
             case .requiredElement( _, _, _ ) : return "Insert element."
             
-            case .missingItem( _, _ ) : return "Insert item."
+            case .missingItem( _, _, _ ) : return "Insert item."
 
             case .missingParameterName( _ ) : return "Insert parameter name."
             

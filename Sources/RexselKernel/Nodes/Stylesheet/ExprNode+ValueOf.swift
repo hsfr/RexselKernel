@@ -37,8 +37,6 @@ class ValueOfNode: ExprNode {
 
     var expresssionString = ""
 
-    fileprivate var disableOutputEscaping = false
-
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Initialisation Methods

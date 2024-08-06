@@ -151,7 +151,7 @@ class OutputNode: ExprNode  {
                 case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
                     // Illegal keyword
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   mightBe: NumberNode.blockTokens,
+                                                   mightBe: OutputNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextKeyword )
@@ -159,7 +159,7 @@ class OutputNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   mightBe: NumberNode.blockTokens,
+                                                   mightBe: OutputNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .toNextKeyword )

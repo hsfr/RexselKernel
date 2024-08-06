@@ -46,7 +46,7 @@ class ParameterNode: ExprNode {
         thisExprNodeType = .parameter
         isInBlock = false
         isLogging = false  // Adjust as required
-        setSyntax( options: WithNode.optionTokens, elements: WithNode.blockTokens )
+        setSyntax( options: ParameterNode.optionTokens, elements: ParameterNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -175,8 +175,23 @@ class ParameterNode: ExprNode {
                     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                     // Invalid constructions
 
-                    // No parameter name but following block
+                case ( _, _, _ ) where thisCompiler.currentToken.what != .openCurlyBracket &&
+                                       name.isEmpty &&
+                                       expressionString.isEmpty :
+                    // No name, expression and no block
+                    try markMissingItemError( what: .name,
+                                              inLine: sourceLine,
+                                              after: thisExprNodeType.description,
+                                              skip: { if thisCompiler.currentToken.type == .expression {
+                                                  return .toNextKeyword
+                                                  } else {
+                                                      return .ignore
+                                                  }
+                                                }() )
+                    return
+
                 case ( .terminal, _, _ ) where name.isEmpty && thisCompiler.currentToken.what == .openCurlyBracket :
+                    // No parameter name but following block
                     isInBlock = true
                     thisCompiler.nestedLevel += 1
                     try markMissingItemError( what: .name,
@@ -185,23 +200,20 @@ class ParameterNode: ExprNode {
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                    // Found expression and block
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && expressionString.isNotEmpty :
-                    expressionString = thisCompiler.currentToken.value
-                    isInBlock = true
-                    thisCompiler.nestedLevel += 1
-                    try markCannotHaveBothDefaultAndBlockError( inLine: sourceLine,
-                                                                element: thisExprNodeType,
-                                                                skip: .absorbBlock )
-                    thisCompiler.tokenizedSourceIndex += 1
-                    return
+                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: ProcNode.blockTokens,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextKeyword )
+                    continue
 
-                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
+                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && name.isEmpty :
                     if isInBlock {
                         thisCompiler.nestedLevel += 1
                     }
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   mightBe: WithNode.blockTokens,
+                                                   mightBe: ParameterNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
                                                    skip: .absorbBlock )
@@ -241,7 +253,7 @@ class ParameterNode: ExprNode {
     ///                            <block templates>+
     ///                         "}"
     ///                      )
-    ///                   )
+    ///                   )?
     /// ```
 
     override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {

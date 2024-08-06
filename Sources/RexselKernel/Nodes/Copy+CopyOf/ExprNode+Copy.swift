@@ -50,7 +50,7 @@ class CopyNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .copy
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         isInBlock = false
         setSyntax( options: CopyNode.optionTokens, elements: CopyNode.blockTokens )
     }

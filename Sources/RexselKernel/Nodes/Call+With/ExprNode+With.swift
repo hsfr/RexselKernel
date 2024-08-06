@@ -48,7 +48,7 @@ class WithNode: ExprNode  {
         super.init()
         thisExprNodeType = .with
         isInBlock = false
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         setSyntax( options: WithNode.optionTokens, elements: WithNode.blockTokens )
    }
 

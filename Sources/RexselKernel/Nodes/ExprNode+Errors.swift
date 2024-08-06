@@ -216,6 +216,9 @@ extension ExprNode {
             case .uri :
                 theError = .missingURI( lineNumber: inLine+1, symbol: found )
 
+            case .text :
+                theError = .missingItem(lineNumber: inLine+1, what: what.description, after: afterName )
+
             default :
                 theError = .unknownError( lineNumber: inLine+1, message: "Can't help!" )
 
@@ -339,16 +342,18 @@ extension ExprNode {
     /// - Parameters:
     ///   - which: Which item is missing.
     ///   - where: the line in which the element was declared first.
+    ///   - after: the associated keyword
     ///   - skip: Skip to next keyword/line (defaults to _.ignore_)
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markMissingItemError( which inWhich: String,
                                where inLine: Int,
+                               after afterName: String,
                                skip: SkipEnum = .ignore ) throws {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
                 .init( kind: RexselErrorKind
-                    .missingItem( lineNumber: inLine+1, what: inWhich ) ) )
+                    .missingItem( lineNumber: inLine+1, what: inWhich, after: afterName ) ) )
         try processSkip( skip )
     }
 

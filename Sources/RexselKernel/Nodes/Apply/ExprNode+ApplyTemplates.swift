@@ -54,7 +54,7 @@ class ApplyTemplatesNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .applyTemplates
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         isInBlock = false
         setSyntax( options: ApplyTemplatesNode.optionTokens, elements: ApplyTemplatesNode.blockTokens )
     }

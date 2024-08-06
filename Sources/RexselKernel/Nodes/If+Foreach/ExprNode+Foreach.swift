@@ -48,7 +48,7 @@ class ForeachNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .foreach
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         loopExpression = ""
         setSyntax( options: ForeachNode.optionTokens, elements: ForeachNode.blockTokens )
     }

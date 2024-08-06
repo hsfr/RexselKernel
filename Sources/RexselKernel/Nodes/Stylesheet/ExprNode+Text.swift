@@ -133,6 +133,14 @@ class TextNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Invalid constructions
 
+                case ( _, _, _ ) where textString.isEmpty :
+                    checkSyntax()
+//                    try markMissingItemError( which: "string",
+//                                              where: sourceLine,
+//                                              after: thisExprNodeType.description,
+//                                              skip: .ignore )
+                    return
+
                 default:
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    mightBe: TextNode.optionTokens,
@@ -172,9 +180,10 @@ class TextNode: ExprNode  {
     override func checkSyntax() {
         super.checkSyntax()
         if textString.isEmpty {
-            try? markMissingItemError( what: .text,
-                                       inLine: thisCompiler.currentToken.line,
-                                       after: thisCompiler.currentToken.what.description )
+            try? markMissingItemError( which: "string",
+                                      where: sourceLine,
+                                      after: thisExprNodeType.description,
+                                      skip: .ignore )
         }
     }
 

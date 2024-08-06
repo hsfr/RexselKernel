@@ -123,7 +123,7 @@ class ProcNode: ExprNode  {
                     continue
 
                 case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                       thisCompiler.nextToken.what != .closeCurlyBracket :
+                                                       thisCompiler.nextToken.what != .closeCurlyBracket && name.isNotEmpty :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     isInBlock = true
@@ -221,6 +221,16 @@ class ProcNode: ExprNode  {
                                                    skip: .toNextKeyword )
                     continue
 
+                case ( _, _, _ ) where !isInBlock && thisCompiler.currentToken.what != .openCurlyBracket :
+                    try markMissingItemError( what: .openCurlyBracket,
+                                              inLine: thisCompiler.currentToken.line,
+                                              after: thisExprNodeType.description,
+                                              skip: .ignore )
+                    // Assume we are in block — slightly dangerous.
+                    thisCompiler.nestedLevel += 1
+                    isInBlock = true
+                    continue
+
            default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                    mightBe: ProcNode.blockTokens,
@@ -274,7 +284,7 @@ class ProcNode: ExprNode  {
                 }
                 if nonParameterFound && child.thisExprNodeType == .parameter {
                     markParameterMustBeAtStartOfBlock( name: child.name,
-                                                       within: self.thisExprNodeType.description,
+                                                       within: "\(thisExprNodeType.description):\(name)",
                                                        at: child.sourceLine )
                 }
             }
