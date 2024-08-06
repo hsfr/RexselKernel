@@ -6,15 +6,27 @@
 
 import Foundation
 
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+extension OmitXMLDeclarationNode {
+
+    static let blockTokens: TerminalSymbolEnumSetType = []
+
+    static let optionTokens: TerminalSymbolEnumSetType = [
+        .yes, .no
+    ]
+
+}
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// MARK: -
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
 class OmitXMLDeclarationNode: ExprNode  {
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // MARK: - Instance properties
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-    var yesNoValue: YesNoEnum!
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -27,8 +39,9 @@ class OmitXMLDeclarationNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .omitXmlDecl
-        yesNoValue = .no
-    }
+        isLogging = false  // Adjust as required
+        setSyntax( options: OmitXMLDeclarationNode.optionTokens, elements: OmitXMLDeclarationNode.blockTokens )
+   }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -36,56 +49,100 @@ class OmitXMLDeclarationNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
 
-        // Slide past keyword token
         thisCompiler.tokenizedSourceIndex += 1
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-            case ( .terminal, _, _ ) :
-                yesNoValue = YesNoEnum.translate( thisCompiler.currentToken.value )
-                if !( yesNoValue == .yes || yesNoValue == .no ) {
-                    try? markUnknownValue( inElement: thisExprNodeType,
-                                           found: thisCompiler.currentToken.value,
-                                           insteadOf: "'yes' or 'no'",
-                                           inLine: sourceLine )
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Valid constructions
+
+            case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) :
+                optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.currentToken.value
+                if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
+                    optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line
                 }
+                optionsDict[ thisCompiler.currentToken.what ]?.count += 1
                 thisCompiler.tokenizedSourceIndex += 1
+                checkSyntax()
                 return
 
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Exit block
+
             case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
+                checkSyntax()
                 return
+
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Early end of file
 
             case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                 return
 
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Invalid constructions
+
             default :
-                try markUnexpectedSymbolError( what: thisCompiler.currentToken.what, inElement: thisExprNodeType, inLine: sourceLine )
+                try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                               mightBe: OmitXMLDeclarationNode.optionTokens,
+                                               inElement: thisExprNodeType,
+                                               inLine: thisCompiler.currentToken.line,
+                                               skip: .toNextKeyword )
                 return
 
         }
+    }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///    <omit xml declaration> ::= "omit-xml-declaration" ( “yes” | “no” )
+    /// ```
+
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType,
+                             elements elementsList: TerminalSymbolEnumSetType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+        optionsDict[ .yes ] = AllowableSyntaxEntryStruct( needsExpression: false )
+        optionsDict[ .no ] = AllowableSyntaxEntryStruct( needsExpression: false )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -105,7 +162,12 @@ class OmitXMLDeclarationNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(thisExprNodeType.xml)=\"\(yesNoValue.description)\""
+        for ( _, entry ) in optionsDict {
+            if entry.count > 0 {
+                return "\(thisExprNodeType.xml)=\"\(entry.value)\""
+            }
+        }
+        return ""
     }
 
 }

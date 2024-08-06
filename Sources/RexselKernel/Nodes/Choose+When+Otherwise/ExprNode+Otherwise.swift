@@ -102,7 +102,7 @@ class OtherwiseNode: ExprNode  {
                         rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
                     }
 
-                    markIfInvalidKeywordForThisVersion( thisCompiler )
+                    _ = markIfInvalidKeywordForThisVersion( thisCompiler )
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -147,14 +147,14 @@ class OtherwiseNode: ExprNode  {
                                                    mightBe: OtherwiseNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
-       continue
+                                                   skip: .toNextKeyword )
+                    continue
 
                 default :
                     try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     return
             }
         }
@@ -172,7 +172,8 @@ class OtherwiseNode: ExprNode  {
     ///   <otherwise> ::= "otherwise" "{" <block templates>+ "}"
     /// ```
 
-    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, 
+                             elements elementsList: TerminalSymbolEnumSetType ) {
         super.setSyntax( options: optionsList, elements: elementsList )
     }
 

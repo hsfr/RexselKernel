@@ -6,6 +6,20 @@
 
 import Foundation
 
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+extension VersionNode {
+
+    static let blockTokens: TerminalSymbolEnumSetType = []
+
+    static let optionTokens: TerminalSymbolEnumSetType = [
+        .disableOutputEscaping
+    ]
+
+}
+
 class VersionNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -14,7 +28,7 @@ class VersionNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    var versionValue: String = ""
+    var versionString: String = ""
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -27,7 +41,8 @@ class VersionNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .version
-        versionValue = ""
+        isLogging = false  // Adjust as required
+        setSyntax( options: TextNode.optionTokens, elements: TextNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -45,55 +60,99 @@ class VersionNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
+
 
         // Slide past keyword token
         thisCompiler.tokenizedSourceIndex += 1
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
+
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Valid constructions
+
             case ( .expression, _, _ )  :
-                versionValue = thisCompiler.currentToken.value
-#if REXSEL_LOGGING
-                rLogger.log( self, .debug, "Found version '\(thisExprNodeType.xml)':'\(versionValue)' in line \(sourceLine)" )
-#endif
-                // Set the xslt version for this compiler instance
-                thisCompiler.xsltVersion = versionValue
-                // Check value is within range
-                if !rexsel_versionRange.keys.contains( thisCompiler.xsltVersion ) {
-                    // Mark as error
-                    markInvalidXSLTVersion( thisCompiler.xsltVersion, at: thisCompiler.currentToken.line )
-                    // Set min valid value
-                    thisCompiler.xsltVersion = rexsel_xsltversion10
+                versionString = thisCompiler.currentToken.value
+                if self.parentNode.thisExprNodeType == .stylesheet {
+                    thisCompiler.xsltVersion = versionString
                 }
                 thisCompiler.tokenizedSourceIndex += 1
+                checkSyntax()
+                return
+
+            // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+            // Invalid constructions
+
+            case ( _, _, _ ) where thisCompiler.currentToken.what != .expression :
+                markInvalidXSLTVersion( thisCompiler.xsltVersion, at: thisCompiler.currentToken.line )
+                // Set min valid value
+                thisCompiler.xsltVersion = rexsel_xsltversion10
+                return
 
             default :
                 try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
                                                inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword )
+                                               skip: .ignore )
                 return
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///   <version> ::= “version” <quote> <version string> <quote
+    /// ```
+
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
+        // Version is an overloaded keyword so only check value is
+        // within range in top[ level.
+        if self.parentNode.thisExprNodeType == .stylesheet {
+            if !rexsel_versionRange.keys.contains( thisCompiler.xsltVersion ) {
+                // Mark as error
+                markInvalidXSLTVersion( thisCompiler.xsltVersion, at: thisCompiler.currentToken.line )
+                // Set min valid value
+                thisCompiler.xsltVersion = rexsel_xsltversion10
+            }
         }
     }
 
@@ -102,7 +161,6 @@ class VersionNode: ExprNode  {
     //
     /// Generate version attribute.
     ///
-    /// Output is of the form
     /// ```xml
     ///   version="..."
     /// ```
@@ -111,7 +169,7 @@ class VersionNode: ExprNode  {
 
         _ = super.generate()
 
-        return "\(thisExprNodeType.xml)=\"\(versionValue)\""
+        return "\(thisExprNodeType.xml)=\"\(versionString)\""
     }
 
 }

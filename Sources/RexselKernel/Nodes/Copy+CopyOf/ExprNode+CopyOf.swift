@@ -118,7 +118,7 @@ class CopyOfNode: ExprNode {
                 try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
                                                inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword )
+                                               skip: .toNextKeyword )
                 return
         }
 

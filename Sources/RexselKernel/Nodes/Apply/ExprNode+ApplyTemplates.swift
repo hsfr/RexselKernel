@@ -125,7 +125,7 @@ class ApplyTemplatesNode: ExprNode  {
                     thisCompiler.tokenizedSourceIndex += 2
                     continue
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
                                                        thisCompiler.nextToken.what != .closeCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
@@ -139,7 +139,7 @@ class ApplyTemplatesNode: ExprNode  {
                     if isLogging {
                         rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
                     }
-                    markIfInvalidKeywordForThisVersion( thisCompiler )
+                    _ = markIfInvalidKeywordForThisVersion( thisCompiler )
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -159,39 +159,30 @@ class ApplyTemplatesNode: ExprNode  {
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
-                    checkSyntax()
-                    if isInBlock {
-                        thisCompiler.tokenizedSourceIndex += 1
-                        thisCompiler.nestedLevel -= 1
-                    }
-                    return
-
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Exit block
 
                 case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
                                                        thisCompiler.nextToken.what == .closeCurlyBracket :
+                    // Null block (error picked up in checkSyntax)
                     checkSyntax()
                     thisCompiler.tokenizedSourceIndex += 2
                     return
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
-                    // Before exiting we must carry out checks
+                case ( _, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
                     checkSyntax()
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel -= 1
                     return
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && !isInBlock :
-                    // Before exiting we must carry out checks
+                case ( _, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket :
                     checkSyntax()
-                    thisCompiler.tokenizedSourceIndex += 1
+                    // Do not bump the index here (bracket belongs to higher block)
                     return
 
-                case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && !isInBlock :
-                    // Before exiting we must carry out checks
+                case ( _, _, _ ) where !isInBlock && !isInOptionTokens( thisCompiler.currentToken.what ):
                     checkSyntax()
+                    // Do not bump the index here (bracket belongs to higher block)
                     return
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -208,15 +199,18 @@ class ApplyTemplatesNode: ExprNode  {
                                                    insteadOf: "using or scope",
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
-                    continue
+                                                   skip: .toNextKeyword )
+                    return
 
                 case ( .qname, _, _ ) :
+                    // The "mightBe" is a little more extensive here to catch potential possibilities.
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   insteadOf: "using or scope",
+                                                   mightBe: TerminalSymbolEnum.blockTokens
+                                                                .union(ApplyTemplatesNode.optionTokens)
+                                                                .union(ApplyTemplatesNode.blockTokens),
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
                 case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
@@ -241,8 +235,10 @@ class ApplyTemplatesNode: ExprNode  {
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: ApplyTemplatesNode.optionTokens,
                                                    inElement: thisExprNodeType,
-                                                   inLine: thisCompiler.currentToken.line )
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextToken )
                     return
 
             }

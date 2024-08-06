@@ -117,7 +117,7 @@ class WhenNode: ExprNode  {
                         rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
                     }
 
-                    markIfInvalidKeywordForThisVersion( thisCompiler )
+                    _ = markIfInvalidKeywordForThisVersion( thisCompiler )
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -159,7 +159,7 @@ class WhenNode: ExprNode  {
                 case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
                                                        thisCompiler.nextToken.what == .closeCurlyBracket :
                     try makeCannotHaveEmptyBlockError( inLine: thisCompiler.currentToken.line,
-                                                       skip: .toNextkeyword )
+                                                       skip: .toNextKeyword )
                     return
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && testExpression.isEmpty :

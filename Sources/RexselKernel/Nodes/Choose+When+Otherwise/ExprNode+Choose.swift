@@ -107,7 +107,7 @@ class ChooseNode: ExprNode  {
                         rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
                     }
 
-                    markIfInvalidKeywordForThisVersion( thisCompiler )
+                    _ = markIfInvalidKeywordForThisVersion( thisCompiler )
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -151,7 +151,7 @@ class ChooseNode: ExprNode  {
                                                    mightBe: ChooseNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     return
             }
         }

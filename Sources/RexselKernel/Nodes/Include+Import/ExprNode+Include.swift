@@ -33,7 +33,7 @@ class IncludeNode: ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    fileprivate var uriString: String!
+    fileprivate var uriString: String = ""
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -48,7 +48,6 @@ class IncludeNode: ExprNode {
         super.init()
         thisExprNodeType = .includeSheet
         isLogging = false  // Adjust as required
-        uriString = ""
         setSyntax( options: ForeachNode.optionTokens, elements: ForeachNode.blockTokens )
     }
 
@@ -122,9 +121,7 @@ class IncludeNode: ExprNode {
             // Invalid constructions
 
             case ( .terminal, _, _ ) where uriString.isEmpty :
-                try markMissingItemError( what: .uri,
-                                          inLine: thisCompiler.currentToken.line,
-                                          found: thisCompiler.currentToken.what.description )
+                checkSyntax()
                 return
 
             default :
@@ -163,7 +160,7 @@ class IncludeNode: ExprNode {
         super.checkSyntax()
         if uriString.isEmpty {
             try? markMissingItemError( what: .uri,
-                                       inLine: thisCompiler.currentToken.line,
+                                       inLine: sourceLine,
                                        found: thisCompiler.currentToken.what.description )
         }
         // Eventual check here for a valid uri expression.
@@ -186,10 +183,8 @@ class IncludeNode: ExprNode {
 
         var attributes = ""
 
-        if let str = uriString {
-            if str.isNotEmpty {
-                attributes += " \(TerminalSymbolEnum.href.xml)=\"\(str)\""
-            }
+        if uriString.isNotEmpty {
+            attributes += " \(TerminalSymbolEnum.href.xml)=\"\(uriString)\""
         }
 
         return "\(lineComment)<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)/>\n"

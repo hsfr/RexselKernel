@@ -14,7 +14,8 @@ import Foundation
 enum SkipEnum {
     case absorbBlock
     case outOfBlock
-    case toNextkeyword
+    case toNextKeyword
+    case toNextToken
     case toNextline
     case ignore
 }
@@ -30,8 +31,10 @@ extension ExprNode {
                 try absordNextBlock()
             case .outOfBlock :
                 try skipOutOfBlock()
-            case .toNextkeyword :
+            case .toNextKeyword :
                 try skipToNextKeyword()
+            case .toNextToken :
+                try skipToNextToken()
             case .toNextline :
                 try skipToNextLine()
             case .ignore :
@@ -124,6 +127,23 @@ extension ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
+    /// Skip to Next Token.
+    ///
+    /// Equivalent to bumping the token index by 1.
+    ///
+    /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
+
+    func skipToNextToken() throws {
+        thisCompiler.tokenizedSourceIndex += 1
+        let theToken = thisCompiler.tokenizedSource[ thisCompiler.tokenizedSourceIndex ]
+        if theToken.what == .endOfFile {
+            throw RexselErrorData.init( kind: RexselErrorKind.endOfFile )
+        }
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
     /// Skip to Next Line.
     ///
     /// Moves past remainder of current line.
@@ -196,6 +216,9 @@ extension ExprNode {
             case .uri :
                 theError = .missingURI( lineNumber: inLine+1, symbol: found )
 
+            case .text :
+                theError = .missingItem(lineNumber: inLine+1, what: what.description, after: afterName )
+
             default :
                 theError = .unknownError( lineNumber: inLine+1, message: "Can't help!" )
 
@@ -259,10 +282,11 @@ extension ExprNode {
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markCannotHaveBothDefaultAndBlockError( inLine: Int,
+                                                 element: TerminalSymbolEnum,
                                                  skip: SkipEnum = .ignore ) throws {
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
-                .cannotHaveBothDefaultAndBlock( lineNumber: inLine+1 ) ) )
+                .cannotHaveBothDefaultAndBlock( lineNumber: inLine+1, inElement: element.description ) ) )
         try processSkip( skip )
     }
 
@@ -318,16 +342,18 @@ extension ExprNode {
     /// - Parameters:
     ///   - which: Which item is missing.
     ///   - where: the line in which the element was declared first.
+    ///   - after: the associated keyword
     ///   - skip: Skip to next keyword/line (defaults to _.ignore_)
     /// - throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
     func markMissingItemError( which inWhich: String,
                                where inLine: Int,
+                               after afterName: String,
                                skip: SkipEnum = .ignore ) throws {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
                 .init( kind: RexselErrorKind
-                    .missingItem( lineNumber: inLine+1, what: inWhich ) ) )
+                    .missingItem( lineNumber: inLine+1, what: inWhich, after: afterName ) ) )
         try processSkip( skip )
     }
 
@@ -642,7 +668,7 @@ extension ExprNode {
                             skip: SkipEnum = .ignore ) throws {
         thisCompiler.rexselErrorList
             .add( RexselErrorData.init( kind: RexselErrorKind
-                .invalidExpression( lineNumber: thisCompiler.currentToken.line+1,
+                .invalidExpression( lineNumber: inLine+1,
                                     found: foundSymbol,
                                     insteadOf: insteadOf,
                                     inElement: inElement.description ) ) )
@@ -700,14 +726,18 @@ extension ExprNode {
     /// Mark unknown/illegal keyword for this XSLT version.
     ///
 
-    func markInvalidKeywordForVersion( _ illegalKeyword: String, version: String, at inLine: Int ) {
+    func markInvalidKeywordForVersion( _ illegalKeyword: String,
+                                       version: String,
+                                       at inLine: Int,
+                                       skip: SkipEnum = .ignore ) throws {
         thisCompiler.rexselErrorList
             .add( RexselErrorData
                 .init( kind: RexselErrorKind.invalidKeywordForVersion( lineNumber: inLine+1,
                                                                        keyword: illegalKeyword,
                                                                        version: version ) ) )
+        try processSkip( skip )
     }
-
+    
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //

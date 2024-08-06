@@ -60,7 +60,7 @@ class ProcNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse source (with tokens).
+    /// Parse statement.
     ///
     /// - Parameters:
     ///   - compiler: the current instance of the compiler.
@@ -123,7 +123,7 @@ class ProcNode: ExprNode  {
                     continue
 
                 case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                       thisCompiler.nextToken.what != .closeCurlyBracket :
+                                                       thisCompiler.nextToken.what != .closeCurlyBracket && name.isNotEmpty :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     isInBlock = true
@@ -136,7 +136,7 @@ class ProcNode: ExprNode  {
                     if isLogging {
                         rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
                     }
-                    markIfInvalidKeywordForThisVersion( thisCompiler )
+                    _ = markIfInvalidKeywordForThisVersion( thisCompiler )
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -209,7 +209,7 @@ class ProcNode: ExprNode  {
                     // Spurious expression found istead of name
                     try markExpectedNameError( after: thisExprNodeType.description,
                                                inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword)
+                                               skip: .toNextKeyword)
                     // Exit to continue processing at a higher level
                     return
 
@@ -218,7 +218,17 @@ class ProcNode: ExprNode  {
                                                    mightBe: ProcNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
+                    continue
+
+                case ( _, _, _ ) where !isInBlock && thisCompiler.currentToken.what != .openCurlyBracket :
+                    try markMissingItemError( what: .openCurlyBracket,
+                                              inLine: thisCompiler.currentToken.line,
+                                              after: thisExprNodeType.description,
+                                              skip: .ignore )
+                    // Assume we are in block — slightly dangerous.
+                    thisCompiler.nestedLevel += 1
+                    isInBlock = true
                     continue
 
            default :
@@ -274,7 +284,7 @@ class ProcNode: ExprNode  {
                 }
                 if nonParameterFound && child.thisExprNodeType == .parameter {
                     markParameterMustBeAtStartOfBlock( name: child.name,
-                                                       within: self.thisExprNodeType.description,
+                                                       within: "\(thisExprNodeType.description):\(name)",
                                                        at: child.sourceLine )
                 }
             }
@@ -316,7 +326,7 @@ class ProcNode: ExprNode  {
 
                 switch child.thisExprNodeType {
 
-                    case .parameter, .variable :
+                    case .parameter, .variable, .key :
                         do {
                             try variablesDict.addSymbol( name: child.name,
                                                          type: child.thisExprNodeType,

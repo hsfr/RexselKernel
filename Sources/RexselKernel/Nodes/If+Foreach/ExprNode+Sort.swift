@@ -147,11 +147,12 @@ class SortNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Invalid constructions
 
-                case ( _, .terminal, _ ) where thisCompiler.currentToken.type == .qname :
+                case ( .qname, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: TerminalSymbolEnum.blockTokens.union(SortNode.optionTokens),
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
                 case ( .expression, _, _ ) : // Naked expression

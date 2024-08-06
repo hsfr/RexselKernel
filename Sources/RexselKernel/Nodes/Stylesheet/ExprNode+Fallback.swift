@@ -8,6 +8,7 @@
 import Foundation
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 extension FallbackNode {
@@ -37,8 +38,9 @@ class FallbackNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .fallback
+        isLogging = false  // Adjust as required
         isInBlock = false
-        setSyntax( options: FallbackNode.optionTokens, elements: FallbackNode.blockTokens )
+        setSyntax( options: OtherwiseNode.optionTokens, elements: OtherwiseNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -50,100 +52,105 @@ class FallbackNode: ExprNode  {
 
         defer {
             name = "\(thisExprNodeType.description)[\(thisCompiler.currentToken.line)]"
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if REXSEL_LOGGING
+        if isLogging {
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        }
 
         thisCompiler.tokenizedSourceIndex += 1
 
         while !thisCompiler.isEndOfFile {
 
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
 
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-                // Valid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Valid constructions
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                       thisCompiler.nextToken.what != .closeCurlyBracket :
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
                     isInBlock = true
                     continue
 
-                // Process block -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // Process block
 
-                case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
-#if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
-#endif
-                    markIfInvalidKeywordForThisVersion( thisCompiler )
+                    case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                        if isLogging {
+                            rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                        }
 
-                    let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
-                    if self.nodeChildren == nil {
-                        self.nodeChildren = [ExprNode]()
-                    }
-                    nodeChildren.append( node )
-                    node.parentNode = self
+                        _ = markIfInvalidKeywordForThisVersion( thisCompiler )
 
-                    // Record this node's details for later analysis.
-                    // let nodeName = node.exprNodeType.description
-                    let nodeLine = thisCompiler.currentToken.line
+                        let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
+                        if self.nodeChildren == nil {
+                            self.nodeChildren = [ExprNode]()
+                        }
+                        nodeChildren.append( node )
+                        node.parentNode = self
 
-                    childrenDict[ thisCompiler.currentToken.what ]!.count += 1
+                        // Record this node's details for later analysis.
+                        let nodeLine = thisCompiler.currentToken.line
 
-                    if childrenDict[ node.thisExprNodeType ]!.count == 0 {
-                        childrenDict[ node.thisExprNodeType ]!.defined = nodeLine
-                    }
-                    childrenDict[ node.thisExprNodeType ]!.count += 1
+                        if childrenDict[ thisCompiler.currentToken.what ]!.count == 0 {
+                            childrenDict[ thisCompiler.currentToken.what ]!.defined = nodeLine
+                        }
+                        childrenDict[ thisCompiler.currentToken.what ]!.count += 1
 
-                    try node.parseSyntaxUsingCompiler( thisCompiler )
-                    continue
+                        try node.parseSyntaxUsingCompiler( thisCompiler )
+                        continue
 
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Exit block
+                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // Exit block
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
-                    isInBlock = false
-                    thisCompiler.tokenizedSourceIndex += 1
-                    thisCompiler.nestedLevel -= 1
-                    return
+                    case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
+                        // Before exiting we must carry out checks
+                        checkSyntax()
+                        thisCompiler.tokenizedSourceIndex += 1
+                        thisCompiler.nestedLevel -= 1
+                        return
 
-                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Early end of file
+                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // Early end of file
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
-                    return
+                    case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
+                        return
 
-                // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                    // Invalid constructions
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
-                    try makeCannotHaveEmptyBlockError( inLine: thisCompiler.currentToken.line,
-                                                       skip: .toNextkeyword )
-                    return
+                    case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                        // Illegal keyword (proc, match, etc.)
+                        try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                       mightBe: OtherwiseNode.blockTokens,
+                                                       inElement: thisExprNodeType,
+                                                       inLine: thisCompiler.currentToken.line,
+                                                       skip: .toNextKeyword )
+                        continue
 
-                default :
-                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   inElement: thisExprNodeType,
-                                                   inLine: thisCompiler.currentToken.line )
-                    return
+                    default :
+                        try markUnexpectedSymbolError( what: thisCompiler.currentToken.what,
+                                                       inElement: thisExprNodeType,
+                                                       inLine: thisCompiler.currentToken.line,
+                                                       skip: .toNextKeyword )
+                        return
 
             }
         }

@@ -41,7 +41,7 @@ enum RexselErrorKind {
     case couldNotFindVariable( lineNumber: Int, name: String )
     case notSupported( lineNumber: Int, name: String, inElement: String )
 
-    case missingItem( lineNumber: Int, what: String )
+    case missingItem( lineNumber: Int, what: String, after: String )
     case missingParameterName( lineNumber: Int )
     case missingVariableValue( lineNumber: Int, name: String )
     case missingTest( lineNumber: Int )
@@ -55,7 +55,7 @@ enum RexselErrorKind {
 
     case missingSymbol( name: String )
     case requiredElement( lineNumber: Int, name: String, inElement: String )
-    case cannotHaveBothDefaultAndBlock( lineNumber: Int )
+    case cannotHaveBothDefaultAndBlock( lineNumber: Int, inElement: String )
     case defaultAndBlockMissing( lineNumber: Int )
     case parameterMustBeFirst( lineNumber: Int, name: String, within: String )
 
@@ -116,7 +116,7 @@ enum RexselErrorKind {
             case .couldNotFindVariable( _, _ ) : return 116
             case .notSupported( _, _, _ ) : return 117
             case .requiredElement( _, _, _ ) : return 118
-            case .missingItem( _, _ ) : return 119
+            case .missingItem( _, _, _ ) : return 119
             case .missingParameterName( _ ) : return 120
 
             case .missingVariableValue( _, _ ) : return 121
@@ -127,7 +127,7 @@ enum RexselErrorKind {
 
             case .missingURI( _, _ ) : return 126
             case .missingList( _, _ ) : return 127
-            case .cannotHaveBothDefaultAndBlock( _ ) : return 128
+            case .cannotHaveBothDefaultAndBlock( _, _ ) : return 128
             case .defaultAndBlockMissing( _ ) : return 129
             case .missingExpression( _, _ ) : return 130
 
@@ -236,8 +236,8 @@ enum RexselErrorKind {
             case .requiredElement( let lineNumber, let name, let inElement ) :
                 return "\"\(name)\" required in element \"\(inElement)\" in line \(lineNumber)"
 
-            case .missingItem( let lineNumber, let what ) :
-                return "Missing item \(what) in line \(lineNumber)"
+            case .missingItem( let lineNumber, let what, let after ) :
+                return "Missing item \(what) after \(after) in line \(lineNumber)"
 
             case .missingParameterName( let lineNumber ) : 
                 return "Missing parameter name in line \(lineNumber)"
@@ -257,11 +257,11 @@ enum RexselErrorKind {
             case .missingList( let lineNumber, let symbol ) :
                 return "Missing list of elements for \"\(symbol)\" in line \(lineNumber)"
 
-            case .cannotHaveBothDefaultAndBlock( let lineNumber ) : 
-                return "A variable/parameter cannot have default and enclosed templates in line \(lineNumber)"
-       
+            case .cannotHaveBothDefaultAndBlock( let lineNumber, let within ) :
+                return "\"\(within)\" cannot have simple/default value and enclosed templates in line \(lineNumber)"
+
             case .defaultAndBlockMissing( let lineNumber ) :
-                return "There must be either a simple value or enclosed templates in line \(lineNumber)"
+                return "There must be either a simple/default value or enclosed templates in line \(lineNumber)"
 
             case .parameterMustBeFirst( let lineNumber, let name, let within ) :
                 return "Parameter \"\(name)\" in \"\(within)\" in line \(lineNumber) must follow declaration."
@@ -307,10 +307,14 @@ enum RexselErrorKind {
                 }
 
             case .sortMustBeFirst( let lineNumber, let within ) :
-                return "Sort in \"\(within)\" in line \(lineNumber) must follow declaration."
+                return "Sort in \"\(within)\" in line \(lineNumber) must be at start of block."
 
             case .invalidXSLTVersion( let lineNumber, let version ) :
-                return "Illegal XSLT version \"\(version)\" in line \(lineNumber)."
+                if version.isEmpty {
+                    return "Missing XSLT version in line \(lineNumber)."
+                } else {
+                    return "Illegal XSLT version \"\(version)\" in line \(lineNumber)."
+                }
 
             case .invalidKeywordForVersion( let lineNumber, let keyword, let version ) :
                 return "Illegal keyword \"\(keyword)\" for version \"\(version)\" in line \(lineNumber)"
@@ -398,8 +402,7 @@ enum RexselErrorKind {
           
             case .duplicateVariable( _, _, _ ) : return "Remove duplicate from current block or check spelling."
           
-            case .expectedName( _, let name ) :
-                return "Syntax: \(name) <qname> \( (name == "variable" || name == "parameter" ) ? "<expression> or" : "" ) <block>."
+            case .expectedName( _, _ ) : return "Insert name."
 
             case .couldNotFindVariable( _, let name ) : return "Check \"\(name)\" is defined in current block/context."
 
@@ -407,7 +410,7 @@ enum RexselErrorKind {
           
             case .requiredElement( _, _, _ ) : return "Insert element."
             
-            case .missingItem( _, _ ) : return "Insert item."
+            case .missingItem( _, _, _ ) : return "Insert item."
 
             case .missingParameterName( _ ) : return "Insert parameter name."
             
@@ -427,9 +430,9 @@ enum RexselErrorKind {
             
             case .missingList( _, _ ) : return "Supply at least  one item."
 
-            case .cannotHaveBothDefaultAndBlock( _ ) : return "Remove either default/select or enclosed templates."
-          
-            case .defaultAndBlockMissing( _ ) : return "Supply either default/select or enclosed templates."
+            case .cannotHaveBothDefaultAndBlock( _, _ ) : return "Remove either default/simple text or enclosed templates."
+
+            case .defaultAndBlockMissing( _ ) : return "Supply either expression/text or enclosed templates."
 
             case .parameterMustBeFirst( _, _, _ ) : return "Check order."
             
@@ -461,7 +464,12 @@ enum RexselErrorKind {
             case .sortMustBeFirst( _, _ ) : return "Check order."
 
             case .invalidXSLTVersion( _, _ ) :
-                return "Check version number for tis stylesheet."
+                var msg = "Version should be "
+                for version in rexsel_versionList {
+                    msg += "\"\(version)\", "
+                }
+                msg = msg.chopSuffix( count: 2 )
+                return msg
 
             case .invalidKeywordForVersion( _, _, _ ) :
                 return "Update version number or remove keyword."
@@ -488,7 +496,7 @@ enum RexselErrorKind {
                 return "Check syntax requirements for \"\(inElement)\""
 
             case .syntaxRequiresOneOrMoreElement( _, _, let inElement ) :
-                return "Check syntax requirements for \"\(inElement)\""
+                return "Check syntax requirements for \"\(inElement)\" or insert in block"
 
             case .syntaxCannotHaveBothElements( _, _, _ ) :
                 return "Remove one of the keywords"

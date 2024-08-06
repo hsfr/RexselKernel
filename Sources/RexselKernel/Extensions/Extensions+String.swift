@@ -60,7 +60,7 @@ extension String {
         return fileURL.path
     }
 
-    // Extract tyhe path as an array of strings (folder names).
+    // Extract the path as an array of strings (folder names).
     var pathComponents: [String] {
         return fileURL.pathComponents
     }

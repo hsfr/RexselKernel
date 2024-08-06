@@ -16,7 +16,7 @@ class ExprNode: NSObject {
     //
     /// Is logging required for this node?
     ///
-    /// This is the base of a slightky crude logging system.
+    /// This is the base of a slightly crude logging system.
     /// I would prefer to use something like Hestia but the
     /// overheads were too great.
 
@@ -81,6 +81,9 @@ class ExprNode: NSObject {
     /// A dictionary of declared procs with this node's scope
     var procDict: SymbolTable
 
+    /// A dictionary of declared keys with this node's scope
+    var keyDict: SymbolTable
+
     /// This is a list of symbol tables that is added to as internal
     /// contexts are traversed (down).
     var currentVariableContextList = [SymbolTable]()
@@ -112,6 +115,7 @@ class ExprNode: NSObject {
         xmlnsDict = XmlnsSymbolTableType()
         variablesDict = SymbolTable( thisCompiler, type: .variable )
         procDict = SymbolTable( thisCompiler, type: .proc )
+        keyDict = SymbolTable( thisCompiler, type: .key )
         allowableChildrenDict = AllowableSyntaxDictType()
 
         childrenDict = [:]
@@ -554,21 +558,35 @@ extension ExprNode {
     //
     /// Mark error if current keyword not supported.
     ///
+    /// There is a special case where xsl:script is only
+    /// supported in version 1.1.
+    ///
     /// - Parameters:
     ///   - compiler: the compiler instance being used.
 
-    func markIfInvalidKeywordForThisVersion( _ thisCompiler: RexselKernel ) {
+    func markIfInvalidKeywordForThisVersion( _ thisCompiler: RexselKernel ) -> Bool {
         let tokenValue = thisCompiler.currentToken.what.rawValue
         let version = thisCompiler.xsltVersion
+        var illegalKeywordForThisVersion = false
+
+        // Special case!
+        if thisCompiler.currentToken.what == .script && version != rexsel_xsltversion11 {
+            illegalKeywordForThisVersion = true
+        }
+
         let versionRangeMin = rexsel_versionRange[ version ]!.min
         let versionRangeMax = rexsel_versionRange[ version ]!.max
         let vRange = versionRangeMin..<versionRangeMax
-        guard vRange.contains( tokenValue ) else {
-            markInvalidKeywordForVersion( thisCompiler.currentToken.value,
-                                          version: thisCompiler.xsltVersion,
-                                          at: thisCompiler.currentToken.line)
-            return
+        if !vRange.contains( tokenValue ) {
+            illegalKeywordForThisVersion = true
         }
+        if illegalKeywordForThisVersion {
+            try? markInvalidKeywordForVersion( thisCompiler.currentToken.value,
+                                               version: thisCompiler.xsltVersion,
+                                               at: thisCompiler.currentToken.line,
+                                               skip: .toNextKeyword )
+        }
+        return illegalKeywordForThisVersion
     }
 }
 

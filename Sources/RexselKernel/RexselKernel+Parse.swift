@@ -18,15 +18,17 @@ extension RexselKernel {
 
         nestedLevel = 0
 
-#if REXSEL_LOGGING
-        rLogger.log( structName,
-                     .debug,
-                     "tokenizedSourceIndex: \(tokenizedSourceIndex) [\(tokenizedSource.count)]" )
-#endif
+        if isLogging {
+            rLogger.log( structName,
+                         .debug,
+                         "tokenizedSourceIndex: \(tokenizedSourceIndex) [\(tokenizedSource.count)]" )
+        }
+
         let currentToken = tokenizedSource[ tokenizedSourceIndex ]
-#if REXSEL_LOGGING
-        rLogger.log( structName, .debug, currentTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( structName, .debug, currentTokenLog )
+        }
+
         // Check that the first token is the root (stylesheet). We mark this as a fatal error
         // as something is clearly wrong. Comment lines are removed by this point in
         // the tokenizer pass.
@@ -43,9 +45,10 @@ extension RexselKernel {
                                                          inElement: "" ) ) )
         }
 
-#if REXSEL_LOGGING
-        rLogger.log( structName, .debug, currentTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( structName, .debug, currentTokenLog )
+        }
+
         // All well so set this as the root of the parse tree.
         rootNode = StylesheetNode()
         // Important to set the current compiler into the parse tree.
@@ -54,9 +57,10 @@ extension RexselKernel {
         // Do a final check for correctly nested brackets at global level.
         // Check within contexts will be done locally (to be added later).
         if nestedLevel != 0 {
-#if REXSEL_LOGGING
-            rLogger.log( structName, .debug, "**** Unmatched brackets in line \(sourceLine)" )
-#endif
+            if isLogging {
+                rLogger.log( structName, .debug, "**** Unmatched brackets in line \(sourceLine)" )
+            }
+
             rexselErrorList.add( RexselErrorData
                 .init( kind: RexselErrorKind
                     .unmatchedBrackets( lineNumber: sourceLine + 1, level: nestedLevel ),
@@ -64,10 +68,10 @@ extension RexselKernel {
                        position: sourcePosition ) )
         }
 
-#if REXSEL_LOGGING
-        rLogger.log( structName, .debug, "nestedLevel: \(nestedLevel)" )
-#endif
-
+        if isLogging {
+            rLogger.log( structName, .debug, "nestedLevel: \(nestedLevel)" )
+        }
+        
     }
 
 

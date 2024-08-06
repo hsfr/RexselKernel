@@ -6,6 +6,24 @@
 
 import Foundation
 
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+extension XmlnsNode {
+
+    static let blockTokens: TerminalSymbolEnumSetType = []
+
+    static let optionTokens: TerminalSymbolEnumSetType = []
+
+}
+
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// MARK: -
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
 class XmlnsNode: ExprNode {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -14,7 +32,9 @@ class XmlnsNode: ExprNode {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    fileprivate var url: String = ""
+    fileprivate var uriPrefix: String = ""
+
+    fileprivate var uriString: String = ""
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -27,9 +47,8 @@ class XmlnsNode: ExprNode {
     override init() {
         super.init()
         thisExprNodeType = .xmlns
-
-        self.name = ""
-        self.url = ""
+        isLogging = false  // Adjust as required
+        setSyntax( options: TextNode.optionTokens, elements: TextNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -47,58 +66,70 @@ class XmlnsNode: ExprNode {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
 
         // Slide past keyword token
         thisCompiler.tokenizedSourceIndex += 1
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
             // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-            // Process expression
+            // Valid constructions
 
             case ( .expression, .expression, .terminal ) :
-                name = thisCompiler.currentToken.value
-                url = thisCompiler.nextToken.value
-                
+                uriPrefix = thisCompiler.currentToken.value
+                uriString = thisCompiler.nextToken.value
+
                 // Put in the namespace list for this stylesheet.
-                // Duplication checking is done elsewhere.
-                thisCompiler.namespaceList[ name ] = url
+                if !thisCompiler.namespaceList.keys.contains( uriPrefix ) {
+                    thisCompiler.namespaceList[ uriPrefix ] = ( uriString, sourceLine )
+                } else {
+                    try markDuplicateError( symbol: uriPrefix,
+                                        declaredIn: sourceLine,
+                                        preciouslDelaredIn: thisCompiler.namespaceList[ uriPrefix ]!.inLine )
+                }
 
                 // Correct so slide past the two expressions.
                 thisCompiler.tokenizedSourceIndex += 2
                 return
 
             // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-            // Process errors
+            // Invalid constructions
 
             case ( .expression, .expression, .expression ) :
                 // Error so slide past the two expressions
-                //  thisCompiler.tokenizedSourceIndex += 2
                 try markUnexpectedSymbolError( what: thisCompiler.nextNextToken.what,
                                                inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword )
+                                               skip: .toNextKeyword )
+                return
+
+            case ( .expression, _, _ ) where thisCompiler.nextToken.what != .expression :
+                try markMissingItemError( what: .expression,
+                                          inLine: sourceLine,
+                                          after: thisExprNodeType.description,
+                                          found: thisCompiler.nextToken.value,
+                                          skip: .toNextToken )
                 return
 
             case ( .expression, _, _ ) :
@@ -106,7 +137,7 @@ class XmlnsNode: ExprNode {
                                                insteadOf: "Namespace pair [prefix] [ref]",
                                                inElement: thisExprNodeType,
                                                inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword )
+                                               skip: .toNextKeyword )
                 return
 
 
@@ -118,10 +149,35 @@ class XmlnsNode: ExprNode {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Check duplicates.
+    /// Set up the syntax based on the BNF.
     ///
-    /// Check for duplicate xmlns is done in stylesheet.
+    /// ```xml
+    /// <name space def> ::= "xmlns"
+    ///                        <quote> <name> <quote>
+    ///                        <quote> <uri reference> <quote>
+    /// ```
+
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special requirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     override func buildSymbolTableAndSemanticChecks( allowedTokens tokenSet: Set<TerminalSymbolEnum> ) {}
 
@@ -144,11 +200,11 @@ class XmlnsNode: ExprNode {
 
         _ = super.generate()
 
-        guard name.isNotEmpty && url.isNotEmpty else {
+        guard uriPrefix.isNotEmpty && uriString.isNotEmpty else {
             return ""
         }
 
-        return "xmlns:\(name)=\"\(url)\""
+        return "xmlns:\(uriPrefix)=\"\(uriString)\""
     }
 
 }

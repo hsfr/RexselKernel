@@ -123,7 +123,7 @@ class WithNode: ExprNode  {
                         rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
                     }
 
-                    markIfInvalidKeywordForThisVersion( thisCompiler )
+                    _ = markIfInvalidKeywordForThisVersion( thisCompiler )
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -190,7 +190,9 @@ class WithNode: ExprNode  {
                     expressionString = thisCompiler.currentToken.value
                     isInBlock = true
                     thisCompiler.nestedLevel += 1
-                    try markCannotHaveBothDefaultAndBlockError( inLine: sourceLine, skip: .absorbBlock )
+                    try markCannotHaveBothDefaultAndBlockError( inLine: sourceLine,
+                                                                element: thisExprNodeType,
+                                                                skip: .absorbBlock )
                     thisCompiler.tokenizedSourceIndex += 1
                     return
 
@@ -209,7 +211,7 @@ class WithNode: ExprNode  {
                 case ( .expression, _, _ ) where name.isEmpty :
                     try markExpectedNameError( after: thisExprNodeType.description,
                                                inLine: thisCompiler.currentToken.line,
-                                               skip: .toNextkeyword)
+                                               skip: .toNextKeyword)
                     return
 
                 default :
@@ -266,7 +268,9 @@ class WithNode: ExprNode  {
             }
         }
         if blockElementFound && expressionString.isNotEmpty {
-            try? markCannotHaveBothDefaultAndBlockError( inLine: sourceLine, skip: .ignore )
+            try? markCannotHaveBothDefaultAndBlockError( inLine: sourceLine,
+                                                         element: thisExprNodeType,
+                                                         skip: .ignore )
         }
         if !blockElementFound && expressionString.isEmpty {
             try? markDefaultAndBlockMissingError( inLine: sourceLine, skip: .ignore )

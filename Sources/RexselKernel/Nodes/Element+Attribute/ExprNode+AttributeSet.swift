@@ -1,8 +1,8 @@
 //
-//  ExprNode+Attrib.swift
+//  ExprNode+AttributeSet.swift
 //  Rexsel
 //
-//  Created by Hugh Field-Richards on 24/01/2024.
+//  Created by Hugh Field-Richards on 12/03/2024.
 //
 
 import Foundation
@@ -11,12 +11,14 @@ import Foundation
 // -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-extension AttributeNode {
+extension AttributeSetNode {
 
-    static let blockTokens: TerminalSymbolEnumSetType = TerminalSymbolEnum.attributeBlockTokens
+    static let blockTokens: TerminalSymbolEnumSetType = [
+        .attrib
+    ]
 
     static let optionTokens: TerminalSymbolEnumSetType = [
-        .namespace
+        .namespace, .useAttributeSets
     ]
 
 }
@@ -27,7 +29,7 @@ extension AttributeNode {
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-class AttributeNode: ExprNode  {
+class AttributeSetNode: ExprNode  {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -36,10 +38,27 @@ class AttributeNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     ///  An associate namespace for this attribute.
+    fileprivate var useAttributeSetsString: String = ""
+
+    /// The associated namespace for this element if not given explitly in the name.
     fileprivate var namespaceString: String = ""
 
-    /// Simple value (no block).
-    fileprivate var valueString: String = ""
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Initialisation Methods
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Initialise Node base.
+
+    override init()
+    {
+        super.init()
+        thisExprNodeType = .attributeSet
+        isLogging = false  // Adjust as required
+        isInBlock = false
+        setSyntax( options: ElementNode.optionTokens, elements: ElementNode.blockTokens )
+    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -53,27 +72,6 @@ class AttributeNode: ExprNode  {
     ///   - compiler: the current instance of the compiler.
     /// - Throws: _RexselErrorKind.endOfFile_ if early end of file (mismatched brackets etc).
 
-    override init()
-    {
-        super.init()
-        thisExprNodeType = .attrib
-        isLogging = false  // Adjust as required
-        isInBlock = false
-        setSyntax( options: ElementNode.optionTokens, elements: ElementNode.blockTokens )
-    }
-
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    //
-    /// Parse variable statement.
-    ///
-    /// ```xml
-    ///   <attribute> ::= "attribute"
-    ///                      <attribute name>
-    ///                      ( "namespace" <name space> )?
-    ///                      ( "{" <contents> "}" | <quoted text> )
-    /// ```
-
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
@@ -86,32 +84,27 @@ class AttributeNode: ExprNode  {
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
+       
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
 
         // Slide past keyword
         thisCompiler.tokenizedSourceIndex += 1
 
         while !thisCompiler.isEndOfFile {
-
             if isLogging {
                 rLogger.log( self, .debug, thisCompiler.currentTokenLog )
                 rLogger.log( self, .debug, thisCompiler.nextTokenLog )
                 rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
             }
-            
+
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Valid constructions
-                //
-                // Note that the first construction here is translated to a
-                // block in the output XSLT. This is not a direct reflection
-                // of XSLT which only allows a block or a text content.
-                //
-                // attribute "name" "simple value"
-                // attribute "name" namespace "URI" "simple value"
-                //
-                // attribute "name" { block }
-                // attribute "name" namespace "URI" { block }
 
                 case ( .terminal, .expression, _ )  where isInOptionTokens( thisCompiler.currentToken.what ) :
                     optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.nextToken.value
@@ -122,40 +115,35 @@ class AttributeNode: ExprNode  {
                     if thisCompiler.currentToken.what == .namespace {
                         namespaceString = thisCompiler.nextToken.value
                     }
+                    if thisCompiler.currentToken.what == .useAttributeSets {
+                        useAttributeSetsString = thisCompiler.nextToken.value
+                    }
                     optionsDict[ thisCompiler.currentToken.what ]?.count += 1
                     thisCompiler.tokenizedSourceIndex += 2
                     continue
 
-                case ( .expression, _, _ ) where name.isEmpty
-                                              && valueString.isEmpty :
+                case ( .expression, _, _ ) where name.isEmpty :
                     name = thisCompiler.currentToken.value
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .expression, _, _ ) where name.isNotEmpty 
-                                              && valueString.isEmpty :
-                    valueString = thisCompiler.currentToken.value
+                case ( .terminal, .terminal, _ ) where name.isNotEmpty &&
+                                                       thisCompiler.currentToken.what == .openCurlyBracket &&
+                                                       thisCompiler.nextToken.what != .closeCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
-                    continue
-
-                // Block start found (no simple expression).
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
-                                            && name.isNotEmpty
-                                            && valueString.isEmpty :
-                    isInBlock = true
                     thisCompiler.nestedLevel += 1
-                    thisCompiler.tokenizedSourceIndex += 1
+                    isInBlock = true
                     continue
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-                // Process Block
+                // Process block
 
                 case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
                     if isLogging {
                         rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
                     }
 
-                    markIfInvalidKeywordForThisVersion( thisCompiler )
+                    _ = markIfInvalidKeywordForThisVersion( thisCompiler )
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -192,7 +180,7 @@ class AttributeNode: ExprNode  {
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && !isInBlock :
                     checkSyntax()
-                    // thisCompiler.tokenizedSourceIndex += 1
+                    thisCompiler.tokenizedSourceIndex += 1
                     return
 
                 case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && !isInBlock :
@@ -207,6 +195,17 @@ class AttributeNode: ExprNode  {
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Invalid constructions
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket && name.isEmpty :
+                    // No name
+                    try markMissingItemError( what: .name,
+                                              inLine: thisCompiler.currentToken.line,
+                                              after: thisExprNodeType.description )
+                    // Process block anyway
+                    thisCompiler.tokenizedSourceIndex += 1
+                    thisCompiler.nestedLevel += 1
+                    isInBlock = true
+                    continue
 
                 case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
                                                thisCompiler.nextToken.what != .expression :
@@ -223,33 +222,32 @@ class AttributeNode: ExprNode  {
                     try markMissingItemError( what: .expression,
                                               inLine: thisCompiler.currentToken.line,
                                               after: thisCompiler.currentToken.value,
-                                              skip: .toNextkeyword )
+                                              skip: .toNextKeyword )
                     continue
 
                 case ( _, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) && !isInBlock :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   mightBe: AttributeNode.optionTokens,
+                                                   mightBe: AttributeSetNode.optionTokens.union( AttributeSetNode.blockTokens ),
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
                 case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   mightBe: AttributeNode.blockTokens,
+                                                   mightBe: AttributeSetNode.optionTokens.union( AttributeSetNode.blockTokens ),
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     continue
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
-                                                   mightBe: AttributeNode.blockTokens,
+                                                   mightBe: AttributeSetNode.optionTokens.union( AttributeSetNode.blockTokens ),
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     return
-
             }
         }
     }
@@ -261,12 +259,11 @@ class AttributeNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
     /// ```xml
-    ///   <attribute> ::= "attribute" <quote> <qname> <quote>
-    ///                   ( "namespace" <quote> <uri-reference> <quote> )?
-    ///                   (
-    ///                      <quote> <alphanumeric string> <quote> |
-    ///                      "{" ( <attribute block template> )+ "}"
-    ///                   )
+    /// <attribute-set> ::= “attribute-set” <quote> <qname> <quote>
+    ///                     ( “use-attribute-sets” <name list> )?
+    ///                     “{”
+    ///                        ( <attribute> )+
+    ///                     “}”
     /// ```
 
     override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
@@ -282,37 +279,7 @@ class AttributeNode: ExprNode  {
 
     override func checkSyntax() {
         super.checkSyntax()
-
-        var blockElementFound = false
-        for ( _, entry ) in childrenDict {
-            if entry.count > 0 {
-                blockElementFound = true
-                break
-            }
-        }
-        if blockElementFound && valueString.isNotEmpty {
-            try? markCannotHaveBothDefaultAndBlockError( inLine: sourceLine, skip: .ignore )
-        }
-        if !blockElementFound && valueString.isEmpty {
-            try? markDefaultAndBlockMissingError( inLine: sourceLine, skip: .ignore )
-        }
-
-        if valueString.isEmpty {
-            var blockElementsPresent = false
-            // Check that there are some block elements declared.
-            for ( _, entry ) in childrenDict {
-                if entry.count > 0 {
-                    blockElementsPresent = true
-                    break
-                }
-            }
-            if !blockElementsPresent {
-                markSyntaxRequiresOneOrMoreElement( inLine: sourceLine,
-                                                    name: tokensDescription( TerminalSymbolEnum.blockTokens ),
-                                                    inElement: self.thisExprNodeType.description )
-            }
-        }
-   }
+    }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -328,42 +295,13 @@ class AttributeNode: ExprNode  {
         variablesDict.tableType = thisExprNodeType
         variablesDict.blockLine = sourceLine
 
-        super.buildSymbolTableAndSemanticChecks( allowedTokens: TerminalSymbolEnum.blockTokens )
+      super.buildSymbolTableAndSemanticChecks( allowedTokens: AttributeSetNode.blockTokens )
 
-        // Set up the symbol table entries
         if let nodes = nodeChildren {
             for child in nodes {
-
-                switch child.thisExprNodeType {
-
-                    case .parameter, .variable :
-                        do {
-                            try variablesDict.addSymbol( name: child.name,
-                                                         type: child.thisExprNodeType,
-                                                         declaredInLine: child.sourceLine,
-                                                         scope: variablesDict.title )
-                            currentVariableContextList += [variablesDict]
-                        } catch let err as SymbolTableError {
-                            // Already in list so mark duplicate error
-                            try? markDuplicateError( symbol: err.name,
-                                                     declaredIn: err.declaredLine,
-                                                     preciouslDelaredIn: err.previouslyDeclaredIn,
-                                                     skip: .ignore )
-                        } catch {
-                            thisCompiler.rexselErrorList.add(
-                                RexselErrorData.init( kind: RexselErrorKind
-                                    .unknownError(lineNumber: child.sourceLine+1,
-                                                  message: "Unknown error with adding \"\(child.name)\" to symbol table") ) )
-                        }
-
-                    default :
-                        ()
-                }
                 child.buildSymbolTableAndSemanticChecks()
             }
         }
-
-        // Special checks go here
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -386,6 +324,7 @@ class AttributeNode: ExprNode  {
     /// Generate stylesheet tag.
     ///
     /// Output is of the form
+    /// 
     /// ```xml
     ///     <xsl:attribute name="elementName" namespace="...">
     ///        contents
@@ -393,7 +332,7 @@ class AttributeNode: ExprNode  {
     /// ```
 
     override func generate() -> String {
-     
+
         let lineComment = super.generate()
 
         var attributes = ""
@@ -403,27 +342,17 @@ class AttributeNode: ExprNode  {
         if name.isNotEmpty {
             attributes += " \(TerminalSymbolEnum.name.xml)=\"\(name)\""
         }
-
         for ( key, entry ) in optionsDict {
             if entry.value.isNotEmpty {
                 attributes += " \(key.xml)=\"\(entry.value)\""
             }
         }
 
-
-        if valueString.isNotEmpty {
-            // Special case for simple value, we have to encase it in a text element.
-            let textElementName = "\(thisCompiler.xmlnsPrefix)\(TerminalSymbolEnum.text.xml)"
-            contents = "<\(textElementName)>\(valueString)</\(textElementName)>"
-        }
-        // Overwrite if there is a block
         if let children = nodeChildren {
-            contents = ""
             for child in children {
                 contents += " \(child.generate())\n"
             }
         }
-
 
         let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {

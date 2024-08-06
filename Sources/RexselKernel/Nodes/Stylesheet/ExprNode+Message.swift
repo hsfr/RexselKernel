@@ -7,47 +7,16 @@
 import Foundation
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// MARK: - Syntax properties
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-///
-/// ```xml
-///   <message> ::= "message" ( "terminate" "yes" | "no" ) ( "{" <contents> "}" )?
-/// ```
-///
-
-extension TerminalSymbolEnum {
-
-    static let messageTokens: Set<TerminalSymbolEnum> = blockTokens
-
-    static let messageAttributeTokens: Set<TerminalSymbolEnum> = [
-        .terminate
-    ]
-
-
-}
-
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+// -*-*-*-*-*-*-*-* Formal Syntax Definition -*-*-*-*-*-*-*
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 extension MessageNode {
 
-    func setSyntax() {
-        // Set up the allowed syntax. Everything can occur zero or more.
-        for keyword in TerminalSymbolEnum.messageTokens {
-            let entry = AllowableSyntaxEntryStruct( child: keyword, min: 0, max: Int.max )
-            allowableChildrenDict[ keyword.description ] = entry
-        }
-    }
+    static let blockTokens: TerminalSymbolEnumSetType = TerminalSymbolEnum.blockTokens
 
-    func isInMessageTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return TerminalSymbolEnum.messageTokens.contains(token)
-    }
-
-    func isInMessageAttributeTokens( _ token: TerminalSymbolEnum ) -> Bool {
-        return TerminalSymbolEnum.messageAttributeTokens.contains(token)
-    }
+    static let optionTokens: TerminalSymbolEnumSetType = [
+        .terminate
+    ]
 
 }
 
@@ -65,9 +34,6 @@ class MessageNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-    /// Terminate value
-    var yesNoValue: YesNoEnum!
-
     /// Simple message value (no block).
     fileprivate var messageString: String = ""
 
@@ -82,11 +48,9 @@ class MessageNode: ExprNode  {
     override init() {
         super.init()
         thisExprNodeType = .message
-
+        isLogging = false  // Adjust as required
         isInBlock = false
-        yesNoValue = .no
-        messageString = ""
-        setSyntax()
+        setSyntax( options: ProcNode.optionTokens, elements: ProcNode.blockTokens )
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -95,7 +59,7 @@ class MessageNode: ExprNode  {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// Parse message statement.
+    /// Parse statement.
     ///
     /// - Parameters:
     ///   - compiler: the current instance of the compiler.
@@ -105,71 +69,73 @@ class MessageNode: ExprNode  {
 
         defer {
             name = "message"
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
         sourceLine = thisCompiler.currentToken.line
 
-#if REXSEL_LOGGING
+        if isLogging {
             rLogger.log( self, .debug, thisCompiler.currentTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextTokenLog )
             rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        }
 
         // Slide past keyword
         thisCompiler.tokenizedSourceIndex += 1
 
         while !thisCompiler.isEndOfFile {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
 
             switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
-                // Valid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Process valid material
                 //
                 // message "simple text"
-                // message terminate yes|no "simple text"
+                // message terminate "simple text"
                 //
                 // message { block }
-                // message terminate yes|no { block }
+                // message terminate { block }
 
-                case ( .terminal, .terminal, _ ) where isInMessageAttributeTokens( thisCompiler.currentToken.what )
-                                                    && thisCompiler.nextToken.what != .openCurlyBracket :
-                    yesNoValue = YesNoEnum.translate( thisCompiler.nextToken.value )
-                    if !( yesNoValue == .yes || yesNoValue == .no ) {
-                        try? markUnknownValue( inElement: thisExprNodeType,
-                                               found: thisCompiler.currentToken.value,
-                                               insteadOf: "'yes' or 'no'",
-                                               inLine: sourceLine )
+                case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) :
+                    optionsDict[ thisCompiler.currentToken.what ]?.value = thisCompiler.nextToken.value
+                    if optionsDict[ thisCompiler.currentToken.what ]?.count == 0 {
+                        optionsDict[ thisCompiler.currentToken.what ]?.defined = thisCompiler.currentToken.line
                     }
-                    thisCompiler.tokenizedSourceIndex += 2
+                    optionsDict[ thisCompiler.currentToken.what ]?.count += 1
+                    thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .expression, _, _ ) where messageString.isEmpty  :
+                case ( .expression, _, _ ) where messageString.isEmpty :
                     messageString = thisCompiler.currentToken.value
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .terminal, _, _ ) where messageString.isEmpty && thisCompiler.currentToken.what == .openCurlyBracket  :
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket :
                     isInBlock = true
                     thisCompiler.nestedLevel += 1
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                // Process Block -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Process block
 
-                case ( .terminal, _, _ ) where isInMessageTokens( thisCompiler.currentToken.what ) && isInBlock :
-#if REXSEL_LOGGING
-                    rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
-#endif
+                case ( .terminal, _, _ ) where isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                    if isLogging {
+                        rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
+                    }
+
+                    _ = markIfInvalidKeywordForThisVersion( thisCompiler )
+
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
                         self.nodeChildren = [ExprNode]()
@@ -178,103 +144,158 @@ class MessageNode: ExprNode  {
                     node.parentNode = self
 
                     // Record this node's details for later analysis.
-                    let nodeName = node.thisExprNodeType.description
                     let nodeLine = thisCompiler.currentToken.line
 
-                    // The entry must exist as it was set up in the init using isInOutputTokens
-                    if allowableChildrenDict[ nodeName ]!.count == 0 {
-                        allowableChildrenDict[ nodeName ]!.defined = nodeLine
+                    if childrenDict[ thisCompiler.currentToken.what ]!.count == 0 {
+                        childrenDict[ thisCompiler.currentToken.what ]!.defined = nodeLine
                     }
-                    allowableChildrenDict[ nodeName ]!.count += 1
+                    childrenDict[ thisCompiler.currentToken.what ]!.count += 1
 
                     try node.parseSyntaxUsingCompiler( thisCompiler )
                     continue
 
-                // End Conditions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Exit block
 
-                // End of simple pair with following statement.
-                case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what )
-                                            && messageString.isNotEmpty
-                                            && nodeChildren == nil :
+                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
+                    checkSyntax()
+                    thisCompiler.tokenizedSourceIndex += 2
                     return
 
-                // End of simple pair with following "}".
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket
-                                            && messageString.isNotEmpty
-                                            && nodeChildren == nil :
-                    return
-
-                // End of block (whether or not it is valid since we parse block anyway)
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket
-                                            && isInBlock
-                                            && nodeChildren != nil :
-                    thisCompiler.nestedLevel -= 1
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && isInBlock :
+                    checkSyntax()
                     thisCompiler.tokenizedSourceIndex += 1
+                    thisCompiler.nestedLevel -= 1
+                    return
+
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket && !isInBlock :
+                    checkSyntax()
+                    thisCompiler.tokenizedSourceIndex += 1
+                    return
+
+                case ( .terminal, _, _ ) where isInBlockTemplateTokens( thisCompiler.currentToken.what ) && !isInBlock :
+                    checkSyntax()
                     return
 
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Early end of file
 
                 case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
-                    // Don't bother to check. End of file here is an error anyway which
-                    // will be picked up above this node. Almost certainly a brackets problem.
                     return
 
-                // Invalid constructions -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Early end of file
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .closeCurlyBracket
-                                            && isInBlock
-                                            && nodeChildren == nil :
-                    thisCompiler.nestedLevel -= 1
-                    try markDefaultAndBlockMissingError( inLine: thisCompiler.currentToken.line,
-                                                         skip: .toNextkeyword )
+                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .endOfFile :
                     return
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
-                                            && messageString.isNotEmpty :
-                    try markCannotHaveBothDefaultAndBlockError( inLine: sourceLine )
-                    thisCompiler.nestedLevel += 1
+                // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+                // Invalid constructions
+
+                case ( .terminal, _, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
+                                               thisCompiler.nextToken.what != .expression :
+                    // Missing expression after option
+                    try markMissingItemError( what: .expression,
+                                              inLine: thisCompiler.currentToken.line,
+                                              after: thisCompiler.currentToken.value )
                     thisCompiler.tokenizedSourceIndex += 1
-                    isInBlock = true
-                    // Continue to parse block anyway
+                    thisCompiler.nestedLevel += 1
                     continue
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .terminate
-                                                    && thisCompiler.nextToken.what != .openCurlyBracket :
-                    name = thisCompiler.currentToken.value
-                    try markUnexpectedSymbolError( found: thisCompiler.nextToken.value,
-                                                   insteadOf: "yes|no value",
-                                                   inElement: .attrib,
-                                                   inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
-                    return
-
-                case ( .terminal, .expression, _ ) where thisCompiler.currentToken.what == .terminate :
-                    try markUnexpectedSymbolError( found: thisCompiler.nextToken.value,
-                                                   insteadOf: "yes|no value",
-                                                   inElement: .attrib,
-                                                   inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                case ( .terminal, .terminal, _ ) where isInOptionTokens( thisCompiler.currentToken.what ) &&
+                                                       isInOptionTokens( thisCompiler.nextToken.what ):
+                    try markMissingItemError( what: .expression,
+                                              inLine: thisCompiler.currentToken.line,
+                                              after: thisCompiler.currentToken.value,
+                                              skip: .toNextKeyword )
                     continue
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket
-                                                    && thisCompiler.nextToken.what == .closeCurlyBracket :
-                    // Empty block!
-                    try makeCannotHaveEmptyBlockError()
-                    thisCompiler.tokenizedSourceIndex += 2
-                    return
+                case ( _, _, _ ) where !isInOptionTokens( thisCompiler.currentToken.what ) && !isInBlock :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: MessageNode.optionTokens,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextKeyword )
+                    continue
+
+                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) && isInBlock :
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: MessageNode.blockTokens,
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line,
+                                                   skip: .toNextKeyword )
+                    continue
 
                 default :
                     try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   mightBe: MessageNode.blockTokens,
                                                    inElement: thisExprNodeType,
                                                    inLine: thisCompiler.currentToken.line,
-                                                   skip: .toNextkeyword )
+                                                   skip: .toNextKeyword )
                     return
 
             }
         }
     }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Syntax Setting/Checking
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Set up the syntax based on the BNF.
+    ///
+    /// ```xml
+    ///   <message> ::= "message" "terminate"?
+    ///                 (
+    ///                    <simple string> |
+    ///                    (
+    ///                       "{"
+    ///                          <block templates>+
+    ///                       "}"
+    ///                    )
+    ///                 )
+    /// ```
+
+    override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
+        super.setSyntax( options: optionsList, elements: elementsList )
+        optionsDict[ .terminate ] = AllowableSyntaxEntryStruct( min: 0, max: 1, needsExpression: false )
+   }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Check the syntax that was input against that defined
+    /// in _setSyntax_. Any special reuirements are done here
+    /// such as required combinations of keywords.
+
+    override func checkSyntax() {
+        super.checkSyntax()
+        // Check that there are some block elements declared.
+        var blockElementFound = false
+        for ( _, entry ) in childrenDict {
+            if entry.count > 0 {
+                blockElementFound = true
+                break
+            }
+        }
+        switch ( messageString.isNotEmpty, blockElementFound ) {
+            case ( true, true ):
+                try? markCannotHaveBothDefaultAndBlockError( inLine: sourceLine,
+                                                             element: thisExprNodeType )
+            case ( false, false ):
+                try? markDefaultAndBlockMissingError(inLine: sourceLine )
+            default:
+                ()
+        }
+
+    }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Semantic Checking and Symbol Table Methods
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
@@ -340,7 +361,6 @@ class MessageNode: ExprNode  {
     /// stylesheet for checking within each local scope.
 
     override func checkVariableScope( _ compiler: RexselKernel ) {
-        scanVariablesInNodeValue( yesNoValue.description, inLine: sourceLine )
         if let nodes = nodeChildren {
             scanForVariablesInBlock( compiler, nodes )
         }
@@ -362,16 +382,13 @@ class MessageNode: ExprNode  {
         let lineComment = super.generate()
 
         var attributes = ""
-
-        attributes = {
-            if self.yesNoValue == .yes {
-                return "\(TerminalSymbolEnum.terminate.xml)=\"\(self.yesNoValue.description)\""
-            } else {
-                return ""
-            }
-        }()
-
         var contents = ""
+
+        if let ( entry ) = optionsDict[ .terminate ] {
+            if entry.count > 0 {
+                attributes = "\(TerminalSymbolEnum.terminate.xml)=\"\( YesNoEnum.yes.description )\""
+            }
+        }
 
         if messageString.isNotEmpty {
             // We have to encase it in a text element

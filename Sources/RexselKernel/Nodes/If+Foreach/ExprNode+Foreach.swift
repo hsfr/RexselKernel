@@ -105,7 +105,8 @@ class ForeachNode: ExprNode  {
                     thisCompiler.tokenizedSourceIndex += 1
                     continue
 
-                case ( .terminal, _, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                case ( .terminal, _, _ ) where loopExpression.isNotEmpty &&
+                                               thisCompiler.currentToken.what == .openCurlyBracket &&
                                                thisCompiler.nextToken.what != .closeCurlyBracket :
                     thisCompiler.tokenizedSourceIndex += 1
                     thisCompiler.nestedLevel += 1
@@ -120,7 +121,7 @@ class ForeachNode: ExprNode  {
                         rLogger.log( self, .debug, "Found \(thisCompiler.currentToken.value)" )
                     }
 
-                    markIfInvalidKeywordForThisVersion( thisCompiler )
+                    _ = markIfInvalidKeywordForThisVersion( thisCompiler )
 
                     let node: ExprNode = thisCompiler.currentToken.what.ExpreNodeClass
                     if self.nodeChildren == nil {
@@ -159,13 +160,41 @@ class ForeachNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Invalid constructions
 
-                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
-                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
-                    try makeCannotHaveEmptyBlockError( inLine: thisCompiler.currentToken.line,
-                                                       skip: .toNextkeyword )
-                    return
+                case ( _, _, _ ) where loopExpression.isEmpty && thisCompiler.currentToken.what != .openCurlyBracket :
+                    // No expression or start of block, assume block start to process potential block
+                    try markMissingItemError(what: .expression,
+                                             inLine: sourceLine,
+                                             after: thisExprNodeType.description )
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   insteadOf: "start of block bracket",
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line )
+                    // thisCompiler.tokenizedSourceIndex += 1
+                    thisCompiler.nestedLevel += 1
+                    isInBlock = true
+                    continue
 
-                case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
+                case ( .terminal, _, _ ) where loopExpression.isEmpty && thisCompiler.currentToken.what == .openCurlyBracket :
+                    // No expression
+                    try markMissingItemError(what: .expression,
+                                             inLine: sourceLine,
+                                             after: thisExprNodeType.description )
+                    thisCompiler.tokenizedSourceIndex += 1
+                    thisCompiler.nestedLevel += 1
+                    isInBlock = true
+                    continue
+
+                case ( _, _, _ ) where loopExpression.isNotEmpty && !isInBlock :
+                    // No open block bracket
+                    try markUnexpectedSymbolError( found: thisCompiler.currentToken.value,
+                                                   insteadOf: "start of block bracket",
+                                                   inElement: thisExprNodeType,
+                                                   inLine: thisCompiler.currentToken.line )
+                    // Assume block start to process potential block
+                    isInBlock = true
+                    continue
+
+               case ( _, _, _ ) where !isInChildrenTokens( thisCompiler.currentToken.what ) :
                     if isInBlock {
                         thisCompiler.nestedLevel += 1
                     }
@@ -222,12 +251,13 @@ class ForeachNode: ExprNode  {
                 if child.thisExprNodeType != .sort {
                     nonSortFound = true
                 }
-                if nonSortFound && child.thisExprNodeType == .parameter {
-                    markSortMustBeAtStartOfBlock( within: thisExprNodeType.description,
+                if nonSortFound && child.thisExprNodeType == .sort {
+                    markSortMustBeAtStartOfBlock( within: "\(thisExprNodeType.description):\(loopExpression)",
                                                   at: child.sourceLine )
                 }
             }
         }
+
         // Check that there are some block elements (other than parameters) declared.
         var blockElementFound = false
         for ( key, entry ) in childrenDict {
@@ -262,20 +292,6 @@ class ForeachNode: ExprNode  {
         variablesDict.blockLine = sourceLine
 
         super.buildSymbolTableAndSemanticChecks( allowedTokens: ForeachNode.blockTokens )
-
-        // Check for sort having to be first
-        if let nodes = nodeChildren {
-            var nonSortFound = false
-            for child in nodes {
-                if child.thisExprNodeType != .sort {
-                    nonSortFound = true
-                }
-                if nonSortFound && child.thisExprNodeType == .sort {
-                    markSortMustBeAtStartOfBlock( within: "\(variablesDict.title)",
-                                                  at: child.sourceLine )
-                }
-            }
-        }
 
         // Set up the symbol table entries
         if let nodes = nodeChildren {
