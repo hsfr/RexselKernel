@@ -48,7 +48,7 @@ class IfNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .ifCondition
-        isLogging = false  // Adjust as required
+        isLogging = true  // Adjust as required
         testExpression = ""
         setSyntax( options: IfNode.optionTokens, elements: IfNode.blockTokens )
     }
@@ -153,7 +153,13 @@ class IfNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Invalid constructions
 
-                case ( _, _, _ ) where testExpression.isEmpty && thisCompiler.currentToken.what != .openCurlyBracket :
+                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
+                    try makeCannotHaveEmptyBlockError( inLine: thisCompiler.currentToken.line,
+                                                       skip: .toNextKeyword )
+                    return
+
+              case ( _, _, _ ) where testExpression.isEmpty && thisCompiler.currentToken.what != .openCurlyBracket :
                     // No expression or start of block, assume block start to process potential block
                     try markMissingItemError( what: .test,
                                               inLine: sourceLine,
