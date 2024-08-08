@@ -160,6 +160,12 @@ class ForeachNode: ExprNode  {
                 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
                 // Invalid constructions
 
+                case ( .terminal, .terminal, _ ) where thisCompiler.currentToken.what == .openCurlyBracket &&
+                                                       thisCompiler.nextToken.what == .closeCurlyBracket :
+                    try makeCannotHaveEmptyBlockError( inLine: thisCompiler.currentToken.line,
+                                                       skip: .toNextKeyword )
+                    return
+
                 case ( _, _, _ ) where loopExpression.isEmpty && thisCompiler.currentToken.what != .openCurlyBracket :
                     // No expression or start of block, assume block start to process potential block
                     try markMissingItemError(what: .expression,
