@@ -48,7 +48,7 @@ class IfNode: ExprNode  {
     {
         super.init()
         thisExprNodeType = .ifCondition
-        isLogging = true  // Adjust as required
+        isLogging = false  // Adjust as required
         testExpression = ""
         setSyntax( options: IfNode.optionTokens, elements: IfNode.blockTokens )
     }
