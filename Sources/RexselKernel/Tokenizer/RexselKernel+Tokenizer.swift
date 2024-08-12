@@ -92,9 +92,9 @@ extension RexselKernel {
             // Insert newline
             sourceString += newlineCharacter
             if eof {
-#if REXSEL_LOGGING
-                rLogger.log( structName, .debug, "Finished reading source")
-#endif
+                if isLogging {
+                    rLogger.log( structName, .debug, "Finished reading source")
+                }
                 break
             }
         }
@@ -105,11 +105,9 @@ extension RexselKernel {
             return
         }
 
-#if REXSEL_LOGGING
-        // rLogger.log( structName, .debug, sourceString )
-        rLogger.log( structName, .debug, sourceString )
-#endif
-
+        if isLogging {
+            rLogger.log( structName, .debug, sourceString )
+        }
         var idx = 0
         var finished = false
 
@@ -132,11 +130,11 @@ extension RexselKernel {
                     ()
             }
 
-#if REXSEL_LOGGING
-            rLogger.log( structName,
-                         .debug,
-                         "[\(tokeniseState)] [\(currentCharacter == newlineCharacter ? "newline"  : currentCharacter )] [\(nextCharacter == newlineCharacter ? "newline"  : nextCharacter )]" )
-#endif
+            if isLogging {
+                rLogger.log( structName,
+                             .debug,
+                             "[\(tokeniseState)] [\(currentCharacter == newlineCharacter ? "newline"  : currentCharacter )] [\(nextCharacter == newlineCharacter ? "newline"  : nextCharacter )]" )
+            }
 
             switch ( tokeniseState, currentCharacter, nextCharacter ) {
 
