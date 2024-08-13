@@ -26,3 +26,20 @@ var showFullMessages: Bool = false
 /// the "-noXmlnsPrefix".
 var useDefaultXSLNamespace: Bool = false
 
+struct Preset {
+
+    static let singleQuoteCharacter = "\'"
+    static let doubleQuoteCharacter = "\""
+    static let literalCharacterPrefix = "\\"
+
+    static let spaceCharacter = " "
+    static let tabCharacter = "\t"
+    static let newlineCharacter = "\n"
+
+    static let openCurlyBracket = "{"
+    static let closeCurlyBracket = "}"
+
+    static let whiteSpace: Set <String> = [ spaceCharacter, tabCharacter ]
+    static let quoteCharacters: Set <String> = [ singleQuoteCharacter, doubleQuoteCharacter ]
+
+}
