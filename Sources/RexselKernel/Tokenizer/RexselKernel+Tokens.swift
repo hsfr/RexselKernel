@@ -701,151 +701,159 @@ enum TerminalSymbolEnum: Int {
     /// Used to translate from the input stream to form the correct token case.
 
     static func translate( _ token: String ) -> TerminalSymbolEnum {
-        switch token {
-            case "stylesheet" : return .stylesheet
-            case "extension-element-prefixes" : return .extensionElementPrefixes
-            case "version" : return .version
-            case "id" : return .id
-            case "key" : return .key
-            case "keyNodes" : return .keyNodes
-            case "exclude-result-prefixes" : return .excludeResultPrefixes
-            case "xmlns" : return .xmlns
 
-            case "parameter" : return .parameter
-            case "variable" : return .variable
-            case "constant" : return .variable
+        guard TerminalSymbolEnum.translateDict.keys.contains(token) else {
+            return .unknownToken
+        }
+        if let returnSymbol = TerminalSymbolEnum.translateDict[token] {
+            return returnSymbol
+        }
+        return .unknownToken
+    }
 
-            case "value" : return .valueOf
-            case "comment" : return .comment
-            case "disable-output-escaping" : return .disableOutputEscaping
-            case "textcontent" : return .textcontent
+    static var translateDict: [ String: TerminalSymbolEnum ] = [
+            "stylesheet": .stylesheet,
+            "extension-element-prefixes": .extensionElementPrefixes,
+            "version": .version,
+            "id": .id,
+            "key": .key,
+            "keyNodes": .keyNodes,
+            "exclude-result-prefixes": .excludeResultPrefixes,
+            "xmlns": .xmlns,
 
-            case "output" : return .output
-            case "method" : return .method
-            case "xml" : return .xmlMethod
-            case "html" : return .htmlMethod
+            "parameter": .parameter,
+            "variable": .variable,
+            "constant": .variable,
+
+            "value": .valueOf,
+            "comment": .comment,
+            "disable-output-escaping": .disableOutputEscaping,
+            "textcontent": .textcontent,
+
+            "output": .output,
+            "method": .method,
+            "xml": .xmlMethod,
+            "html": .htmlMethod,
             // This is an overloaded case which is sorted out as either
             // .text or .textMethod in the method parser. Crude but effective.
-            case "text" : return .text
-            case "encoding" : return .encoding
-            case "cdata" : return .cdataList
-            case "omit-xml-declaration" : return .omitXmlDecl
-            case "include-xml-declaration" : return .includeXmlDecl
-            case "standalone" : return .standAlone
-            case "doctype-public" : return .doctypePublic
-            case "doctype-system" : return .doctypeSystem
+            "text": .text,
+            "encoding": .encoding,
+            "cdata": .cdataList,
+            "omit-xml-declaration": .omitXmlDecl,
+            "include-xml-declaration": .includeXmlDecl,
+            "standalone": .standAlone,
+            "doctype-public": .doctypePublic,
+            "doctype-system": .doctypeSystem,
 
-            case "decimal-format" : return .decimalFormat
-            case "decimal-separator" : return .decimalSeparator
-            case "grouping-separator" : return .groupingSeparator
-            case "infinity" : return .infinity
-            case "minus-sign" : return .minusSign
-            case "NaN" : return .notNumber
-            case "percent" : return .percent
-            case "per-mille" : return .perMille
-            case "zero-digit" : return .zeroDigit
-            case "digit" : return .digit
-            case "pattern-separator" : return .patternSeparator
+            "decimal-format": .decimalFormat,
+            "decimal-separator": .decimalSeparator,
+            "grouping-separator": .groupingSeparator,
+            "infinity": .infinity,
+            "minus-sign": .minusSign,
+            "NaN": .notNumber,
+            "percent": .percent,
+            "per-mille": .perMille,
+            "zero-digit": .zeroDigit,
+            "digit": .digit,
+            "pattern-separator": .patternSeparator,
 
-            case "count" : return .count
-            case "level" : return .level
-            case "from" : return .from
-            case "format" : return .format
-            case "letter-value" : return .letterValue
-            case "grouping-size" : return .groupingSize
-            case "single" : return .singleLevel
-            case "multiple" : return .multipleLevel
-            case "any" : return .anyLevel
-            case "alphabetic" : return .alphabetic
-            case "traditional" : return .traditional
+            "count": .count,
+            "level": .level,
+            "from": .from,
+            "format": .format,
+            "letter-value": .letterValue,
+            "grouping-size": .groupingSize,
+            "single": .singleLevel,
+            "multiple": .multipleLevel,
+            "any": .anyLevel,
+            "alphabetic": .alphabetic,
+            "traditional": .traditional,
 
-            case "include" : return .includeSheet
-            case "import" : return .importSheet
+            "include": .includeSheet,
+            "import": .importSheet,
 
-            case "strip-space" : return .stripSpace
-            case "preserve-space" : return .preserveSpace
-            case "indent" : return .indent
-            case "yes" : return .yes
-            case "no" : return .no
-            case "media-type" : return .mediaType
+            "strip-space": .stripSpace,
+            "preserve-space": .preserveSpace,
+            "indent": .indent,
+            "yes": .yes,
+            "no": .no,
+            "media-type": .mediaType,
 
-            case "call" : return .call
-            case "with" : return .with
-            case "sort" : return .sort
+            "call": .call,
+            "with": .with,
+            "sort": .sort,
 
-            case "proc" : return .proc
-            case "match" : return .match
-            case "using" : return .using
-            case "scope" : return .scope
-            case "priority" : return .priority
+            "proc": .proc,
+            "match": .match,
+            "using": .using,
+            "scope": .scope,
+            "priority": .priority,
 
-            case "if" : return .ifCondition
-            case "choose" : return .choose
-            case "when" : return .when
-            case "otherwise" : return .otherwise
-            case "attribute" : return .attrib
-            case "foreach" : return .foreach
+            "if": .ifCondition,
+            "choose": .choose,
+            "when": .when,
+            "otherwise": .otherwise,
+            "attribute": .attrib,
+            "foreach": .foreach,
 
-            case "apply-imports" : return .applyImports
-            case "apply-templates" : return .applyTemplates
+            "apply-imports": .applyImports,
+            "apply-templates": .applyTemplates,
 
-            case "element" : return .element
-            case "fallback" : return .fallback
-            case "namespace" : return .namespace
+            "element": .element,
+            "fallback": .fallback,
+            "namespace": .namespace,
 
-            case "use-attribute-sets" : return .useAttributeSets
-            case "attribute-set" : return .attributeSet
+            "use-attribute-sets": .useAttributeSets,
+            "attribute-set": .attributeSet,
 
-            case "copy" : return .copy
-            case "copy-of" : return .copyOf
+            "copy": .copy,
+            "copy-of": .copyOf,
 
-            case "lang" : return .lang
-            case "order" : return .order
-            case "ascending" : return .ascending
-            case "descending" : return .descending
-            case "case-order" : return .caseOrder
-            case "upper-first" : return .upperFirst
-            case "lower-first" : return .lowerFirst
+            "lang": .lang,
+            "order": .order,
+            "ascending": .ascending,
+            "descending": .descending,
+            "case-order": .caseOrder,
+            "upper-first": .upperFirst,
+            "lower-first": .lowerFirst,
             // data-type is not parsed
-            case "text-sort" : return .textSort
-            case "number-sort" : return .numberSort
+            "text-sort": .textSort,
+            "number-sort": .numberSort,
 
-            case "(" : return .openBracket
-            case ")" : return .closeBracket
-            case "{" : return .openCurlyBracket
-            case "}" : return .closeCurlyBracket
+            "(": .openBracket,
+            ")": .closeBracket,
+            "{": .openCurlyBracket,
+            "}": .closeCurlyBracket,
 
-            case "//" : return .rcomment
+            "//": .rcomment,
 
-            case "message" : return .message
-            case "terminate" : return .terminate
-            
-            case "namespace-alias" : return .namespaceAlias
-            case "map-from" : return .mapFrom
-            case "to" : return .mapTo
+            "message": .message,
+            "terminate": .terminate,
 
-            case "processing-instruction" : return .processingInstruction
-            case "number" : return .number
+            "namespace-alias": .namespaceAlias,
+            "map-from": .mapFrom,
+            "to": .mapTo,
+
+            "processing-instruction": .processingInstruction,
+            "number": .number,
 
             // Version 1.1
 
-            case "script" : return .script
-            case "src" : return .src
-            case "prefix" : return .prefix
-            case "language" : return .language
-            case "archive" : return .archive
+            "script": .script,
+            "src": .src,
+            "prefix": .prefix,
+            "language": .language,
+            "archive": .archive,
 
             // Version 2.0
 
-            case "analyze-string" : return .analyzeString
-            case "regex" : return .regex
-            case "flags" : return .flags
-            case "matching-substring" : return .matchingSubstring
-            case "non-matching-substring" : return .nonMatchingSubstring
+            "analyze-string": .analyzeString,
+            "regex": .regex,
+            "flags": .flags,
+            "matching-substring": .matchingSubstring,
+            "non-matching-substring": .nonMatchingSubstring,
+        ]
 
-            default : return .unknownToken
-        }
-    }
 
     /// Is this string a terminal symbol
     static func isTerminalSymbol( _ token: String ) -> Bool {

@@ -43,6 +43,13 @@ extension RexselKernel {
 
     func tokenizeSource( ) {
 
+        var timeInterval: Double {
+            let now = Date().microsecondsSince1970
+            let interval = now - timeSnapshot
+            timeSnapshot = now
+            return interval
+        }
+
         enum TokenizerState {
             case newToken
             case withinToken
@@ -50,6 +57,9 @@ extension RexselKernel {
             case withinComment
             case literalCharacter
         }
+
+        var timeSnapshot = Date().timeIntervalSince1970
+        let startTime = Date().microsecondsSince1970
 
         // Convenience variables
 
@@ -85,10 +95,12 @@ extension RexselKernel {
 
         // Clear down the source string that holds the entire source
         sourceString = ""
+        //print( "Start: \(timeInterval)" )
 
         while true {
             let ( nextLine, eof ) = source.getLine()
             sourceString += nextLine.line
+            // print( "sourceString: \(timeInterval)" )
             // Insert newline
             sourceString += newlineCharacter
             if eof {
@@ -115,10 +127,7 @@ extension RexselKernel {
 
             var currentCharacter = sourceString[idx]
             let nextCharacter = ( idx + 1 < stringLength  ) ? sourceString[idx+1] : ""
-
-            if showFullMessages {
-                print( lineNumber, terminator: "\r" )
-            }
+            // print( "while start [\(currentCharacter)][\(nextCharacter)]: \(timeInterval)" )
 
             // Sort out any "smart" quotes and make them dumb.
             switch currentCharacter {
@@ -337,9 +346,15 @@ extension RexselKernel {
                                   value: "",
                                   line: lineNumber, position: 0 ) )
 
-            if showFullMessages {
-                print( "\(lineNumber) lines read" )
-            }
+        if showFullMessages {
+            print( "\(lineNumber) lines read" )
+        }
+
+        //let finishTime = Date().microsecondsSince1970
+
+        //print( "startTime: \(startTime)" )
+        //print( "finishTime: \(finishTime)" )
+        //print( "total: \(finishTime - startTime)" )
 
     }
 }
