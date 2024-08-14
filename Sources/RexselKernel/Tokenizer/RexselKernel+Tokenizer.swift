@@ -43,12 +43,12 @@ extension RexselKernel {
 
     func tokenizeSource( ) {
 
-        var timeInterval: Double {
-            let now = Date().microsecondsSince1970
-            let interval = now - timeSnapshot
-            timeSnapshot = now
-            return interval
-        }
+//        var timeInterval: Double {
+//            let now = Date().microsecondsSince1970
+//            let interval = now - timeSnapshot
+//            timeSnapshot = now
+//            return interval
+//        }
 
         enum TokenizerState {
             case newToken
@@ -58,8 +58,8 @@ extension RexselKernel {
             case literalCharacter
         }
 
-        var timeSnapshot = Date().timeIntervalSince1970
-        let startTime = Date().microsecondsSince1970
+        // var timeSnapshot = Date().timeIntervalSince1970
+        // let startTime = Date().microsecondsSince1970
 
         // Convenience variables
 
@@ -95,7 +95,7 @@ extension RexselKernel {
 
         // Clear down the source string that holds the entire source
         sourceString = ""
-        //print( "Start: \(timeInterval)" )
+        // print( "Start: \(timeInterval)" )
 
         while true {
             let ( nextLine, eof ) = source.getLine()
