@@ -47,23 +47,23 @@ extension RexselKernel {
 
         // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-        enum TokenizerState {
-            case newToken
-            case withinToken
-            case withinQuote
-            case withinComment
-            case literalCharacter
-        }
+//        enum TokenizerState {
+//            case newToken
+//            case withinToken
+//            case withinQuote
+//            case withinComment
+//            case literalCharacter
+//        }
 
         // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-        var stringLength = 0
-        var currentQuoteCharacter = " "
-        var tokeniseState: TokenizerState = .newToken
-        var argumentPosition = 0
-        var characterCount = 0
-        var thisToken = ""
-        var lineNumber = 0
+//        var stringLength = 0
+//        var currentQuoteCharacter = " "
+//        var tokeniseState: TokenizerState = .newToken
+//        var argumentPosition = 0
+//        var characterCount = 0
+//        var thisToken = ""
+//        var lineNumber = 0
 
         // Now scan the line to break into tokens
         var tokenType = TokenEnum.unknown
@@ -123,11 +123,14 @@ extension RexselKernel {
             return
         }
 
-        // For each bundle we fire off a compiler. UUpon completion of each
-        // task there is a set of XSLT lines, including inline comments.
+        // For each bundle we fire off a compiler. Upon completion of each
+        // task there is a set of XSLT lines stored as tokens.
 
 
     }
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     func tokenizeSource1( ) {
 
