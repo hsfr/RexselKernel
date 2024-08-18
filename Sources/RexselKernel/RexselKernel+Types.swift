@@ -12,7 +12,7 @@ typealias TokenizedSourceLineType = ( index: Int, line: String, tokens: TokensAr
 
 typealias TokenType = ( type: TokenEnum, what: TerminalSymbolEnum, value: String, line: Int, position: Int )
 
-typealias TokenizedFileType = [TokenType]
+typealias TokenizedSourceListType = [TokenType]
 
 typealias AllowableSyntaxDictType = [ String: AllowableSyntaxEntryStruct ]
 

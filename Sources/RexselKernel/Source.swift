@@ -91,6 +91,45 @@ public class Source: NSObject {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
+    /// Get nextline from the existing source.
+    ///
+    /// Useful when testing.
+    ///
+    /// - Returns: ( ( index of line, source line ), _true_ if end of file )
+
+    func getLineFromSource() -> ( sourceLine: SourceLineType, endOfFile: Bool ) {
+        if isLogging {
+            rLogger.log( self, .debug,"Getting line \(lineIndex) ")
+        }
+
+        guard !isEndOfFile else {
+            lineIndex = 0
+            return ( ( 0, "" ), true )
+        }
+
+        var sourceLine = sourceLines[ lineIndex ]
+
+        if isLogging {
+            rLogger.log( self, .debug,"  fetched line at \(lineIndex): \(sourceLine.line)")
+        }
+
+        if lineIsNotEmpty( sourceLine.line ) && lineIndex <= sourceLines.count {
+            sourceLine = sourceLines[ lineIndex ]
+        } else {
+            if isLogging {
+                rLogger.log( self, .debug,"  Empty line at \(lineIndex)")
+            }
+            sourceLine = ( lineIndex, "" )
+        }
+
+        lineIndex += 1
+        return ( sourceLine, isEndOfFile )
+    }
+
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
     /// Prime compiler from file
     ///
     /// - Parameters:

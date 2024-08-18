@@ -77,7 +77,7 @@ public class RexselKernel {
     }
 
     /// The source as an array of tokens
-    var tokenizedSource: TokenizedFileType!
+    var tokenizedSource: TokenizedSourceListType!
 
     /// The master index of the tokens
     var tokenizedSourceIndex = 0
@@ -178,9 +178,6 @@ public class RexselKernel {
     // Tracks the current bracket nested. Souold be zero at the end.
     var nestedLevel: Int = 0
 
-    /// Holds the full source (convenient for tokenizer.
-    var sourceString: String = ""
-
     /// Root of the compile tree
     var rootNode: ExprNode!
 
@@ -264,9 +261,9 @@ public class RexselKernel {
                      lineNumbers: Bool = false,
                      defaultNameSpace: Bool = false,
                      verbose: Bool = false,
-                     debugOn: Bool = false ) -> ( codeListing: String,
-                                                  errorListing: String,
-                                                  symbolTable: String )
+                     debugOn: Bool = false ) async -> ( codeListing: String,
+                                                         errorListing: String,
+                                                         symbolTable: String )
     {
         if isLogging {
             rLogger.loggingLevelRequired = .debug
@@ -286,10 +283,11 @@ public class RexselKernel {
         namespaceList = [:]
 
         rexselErrorList = RexselErrorList()
-        tokenizeSource()
-        if showFullMessages {
+        await tokenizeSource()
+
+//        if showFullMessages {
             print( "Tokenizer finished" )
-        }
+//        }
 
         if isLogging {
             for ( type, what, numberValue, line, position ) in tokenizedSource {
@@ -300,8 +298,8 @@ public class RexselKernel {
         }
 
         do {
-        RexselErrorList.undefinedErrorsFlag = false
-        try parse()
+            RexselErrorList.undefinedErrorsFlag = false
+            try parse()
             if showFullMessages {
                 print( "Parse complete" )
             }

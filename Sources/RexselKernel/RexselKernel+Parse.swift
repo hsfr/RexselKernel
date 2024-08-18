@@ -10,6 +10,7 @@ extension RexselKernel {
 
     func parse() throws {
 
+        print( "Parsing" )
         // Get the first line
         tokenizedSourceIndex = 0
         guard tokenizedSource.count > 0 && !isEndOfFile else {
