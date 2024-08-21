@@ -246,11 +246,14 @@ extension RexselKernel {
 
         var numberOfFinished: Int {
             var total = 0
-            for ( _, entry ) in taskCompletedDict {
+            print( "Checking number finished" )
+            for ( key, entry ) in taskCompletedDict {
+                print( "entry \(key): \(entry)" )
                 if entry == .finished {
                     total += 1
                 }
             }
+            print( "Number finished: \(total)" )
             return total
         }
 

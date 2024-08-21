@@ -98,7 +98,7 @@ stylesheet {
 
             while true {
                 let ( nextLine, eof ) = source.getLineFromSource()
-                print( "Loop start \(eof)" )
+                // print( "Loop start \(eof)" )
                 // let ( nextLine, eof ) = source.getLineFromSourcePanel()
                 var sourceLine = nextLine.line
                 let sourceStringLineNumber = nextLine.index + 1
@@ -149,16 +149,17 @@ stylesheet {
                 await taskCompletedActor.setTaskStatus( .invalid, for: key )
             }
 
+            print( "====================" )
             // Go through each bundle and run on the task list
             for ( nextSlot, entry ) in await bundleDict.data {
                 // Can we add this bundle to the task list?
-                while await taskCompletedActor.numberOfFinished >= maxParallelBundlesRunning {
+                print( "\(await taskCompletedActor.numberOfFinished) >= \(maxParallelBundlesRunning)" )
+               while await taskCompletedActor.numberOfFinished >= maxParallelBundlesRunning {
                     // Wait here until slot free
-                    try? await Task.sleep(nanoseconds: 1000)
+                    print( "Waiting for slot" )
+                    try? await Task.sleep(nanoseconds: 1_000_000)
                 }
 
-                // Find the next slot
-                // let nextSlot = await taskCompletedActor.nextFreeSlot
                 // Mark this task as waiting (only temporary, could be left out?)
                 Task {
                     await taskCompletedActor.setTaskStatus( .waiting, for: nextSlot )
