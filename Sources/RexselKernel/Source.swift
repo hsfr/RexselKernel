@@ -30,7 +30,7 @@ public class Source: NSObject {
     /// Index of next line to read
     var lineIndex = 0
 
-    /// The error for this line
+    /// End of file (last line) reached.
     var isEndOfFile: Bool {
         return ( lineIndex >= sourceLines.count )
     }
