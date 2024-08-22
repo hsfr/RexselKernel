@@ -236,6 +236,9 @@ public class RexselKernel {
 
     let rexselLogger = RexselLogger()
 
+    /// Used by the Tokenizer to support parallel analysis (a _Sendable_ object)
+    var nextSlot = 0
+
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Initialisation

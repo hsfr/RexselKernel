@@ -151,36 +151,46 @@ stylesheet {
 
             print( "====================" )
             // Go through each bundle and run on the task list
-            for ( nextSlot, entry ) in await bundleDict.data {
+            // for ( _, entry ) in await bundleDict.data {
+            while true {
                 // Can we add this bundle to the task list?
-                print( "\(await taskCompletedActor.numberOfFinished) >= \(maxParallelBundlesRunning)" )
-               while await taskCompletedActor.numberOfFinished >= maxParallelBundlesRunning {
+                // The critea for this is
+                //   1. Have we reached the maximum number of running tasks?
+                //   2. Is there free slot?
+                let numberRunning = await taskCompletedActor.numberRunning
+                let numberFinished = await taskCompletedActor.numberFinished
+                let allTasksFinished = await taskCompletedActor.allFinished
+                print( "Number running: \(numberRunning) < \(maxParallelBundlesRunning)" )
+                print( "Number finished: \(numberFinished)" )
+                print( "All tasks finished: \(allTasksFinished)" )
+                if allTasksFinished { break }
+
+                if numberRunning < maxParallelBundlesRunning {
+                    // OK to add so find next invalid slot
+                    nextSlot = await taskCompletedActor.nextInvalidSlot
+                    if nextSlot > 0 {
+                        // There is a free slot
+                        let entry = await bundleDict.getBundleAt( nextSlot )
+                        print( "Adding next slot: \(nextSlot)" )
+                        Task {
+                            // Mark this task as waiting (only temporary, could be left out?)
+                            await taskCompletedActor.setTaskStatus( .waiting, for: nextSlot )
+                            await tokenizeLinesTaskTest( id: nextSlot,
+                                                         with: entry!,
+                                                         list: taskCompletedActor )
+                        }
+                    }
+                } else {
                     // Wait here until slot free
                     print( "Waiting for slot" )
                     try? await Task.sleep(nanoseconds: 1_000_000)
                 }
-
-                // Mark this task as waiting (only temporary, could be left out?)
-                Task {
-                    await taskCompletedActor.setTaskStatus( .waiting, for: nextSlot )
-                    await tokenizeLinesTaskTest( id: nextSlot,
-                                                 with: entry,
-                                                 list: taskCompletedActor )
-                }
             }
 
-            while await !taskCompletedActor.allFinished { }
 
             print( "Finished Tokenizer" )
             return true
         } // end of tokenizeTask closure
-
-        // Wait here for Task to finish
-        var finished = false
-        while !finished {
-            let result = await tokenizeTask.result
-            finished = ((try? result.get()) != nil)
-        }
 
     }
 
@@ -191,7 +201,7 @@ stylesheet {
                                 with bundle: LineFragmentsBundleStruct,
                                 list taskCompletedList: TaskCompletedActor ) async {
         await taskCompletedList.setTaskStatus( .running, for: key )
-        try? await Task.sleep(nanoseconds: 10000000)
+        try? await Task.sleep(nanoseconds: 1_00_000_000)
         await taskCompletedList.setTaskStatus( .finished, for: key )
 
     }
@@ -320,11 +330,11 @@ stylesheet {
                     ()
             }
 
-//            if isLogging {
-//                rLogger.log( structName,
-//                             .debug,
-//                             "[\(tokeniseState)] [\(currentCharacter == Preset.newlineCharacter ? "newline"  : currentCharacter )] [\(nextCharacter == Preset.newlineCharacter ? "newline"  : nextCharacter )]" )
-//            }
+            //            if isLogging {
+            //                rLogger.log( structName,
+            //                             .debug,
+            //                             "[\(tokeniseState)] [\(currentCharacter == Preset.newlineCharacter ? "newline"  : currentCharacter )] [\(nextCharacter == Preset.newlineCharacter ? "newline"  : nextCharacter )]" )
+            //            }
 
             switch ( tokeniseState, currentCharacter, nextCharacter ) {
 
@@ -396,7 +406,7 @@ stylesheet {
                     thisToken.append( currentCharacter )
                     lineNumber += 1
 
-                // Comments
+                    // Comments
 
                 case ( .withinComment, _, _ ) :
                     ()
@@ -439,11 +449,11 @@ stylesheet {
                     ( .withinQuote, Preset.singleQuoteCharacter, _ ) where currentCharacter == currentQuoteCharacter :
                     // End of quotation (expression etc) so store it away
                     //if thisToken.isNotEmpty {
-                        // Existing token
-                        tokenType = TokenEnum.expression
-                        tokenizedSource.append( ( type: tokenType, what: .expression,
-                                                  value: thisToken,
-                                                  line: lineNumber, position: argumentPosition ) )
+                    // Existing token
+                    tokenType = TokenEnum.expression
+                    tokenizedSource.append( ( type: tokenType, what: .expression,
+                                              value: thisToken,
+                                              line: lineNumber, position: argumentPosition ) )
                     //}
                     // Rest everything for new token
                     tokenType = TokenEnum.unknown

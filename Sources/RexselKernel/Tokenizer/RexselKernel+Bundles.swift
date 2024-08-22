@@ -235,7 +235,7 @@ extension RexselKernel {
             }
         }
 
-        var nextFreeSlot: Int {
+        var nextInvalidSlot: Int {
             for ( key, entry ) in taskCompletedDict {
                 if entry == .invalid {
                     return key
@@ -244,26 +244,35 @@ extension RexselKernel {
             return 0
         }
 
-        var numberOfFinished: Int {
+        var numberRunning: Int {
             var total = 0
-            print( "Checking number finished" )
+            //print( "Checking number running" )
             for ( key, entry ) in taskCompletedDict {
-                print( "entry \(key): \(entry)" )
+                //print( "entry \(key): \(entry)" )
+                if entry == .running || entry == .waiting {
+                    total += 1
+                }
+            }
+            // print( "Number running: \(total)" )
+            return total
+        }
+
+        var numberFinished: Int {
+            var total = 0
+            //print( "Checking number finished" )
+            for ( key, entry ) in taskCompletedDict {
+                //print( "entry \(key): \(entry)" )
                 if entry == .finished {
                     total += 1
                 }
             }
-            print( "Number finished: \(total)" )
+            //print( "Number finished: \(total)" )
             return total
         }
-
+        
         var allFinished: Bool {
-            for ( _, entry ) in taskCompletedDict {
-                if entry != .finished {
-                    return false
-                }
-            }
-            return true
+            print( "Number finished: \(numberFinished):\(taskCompletedDict.count)" )
+            return numberFinished == taskCompletedDict.count
         }
 
         var description: String {
