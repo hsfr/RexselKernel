@@ -76,6 +76,9 @@ public class RexselKernel {
         return "nextNextToken = [\(nextNextToken.line):\(nextNextToken.position)][\(nextNextToken.type)][\(nextNextToken.what)][\(nextNextToken.value)]"
     }
 
+    // Used to assemble the bundles of tokenizxed lones
+    var tokenizedBundlesListActor: TokenizedBundlesListActor!
+
     /// The source as an array of tokens
     var tokenizedSource: TokenizedSourceListType!
 

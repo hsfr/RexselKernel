@@ -6,14 +6,6 @@
 
 import Foundation
 
-typealias TokensArrayType = Array<(value: String, position: Int)>
-
-typealias TokenizedSourceLineType = ( index: Int, line: String, tokens: TokensArrayType )
-
-typealias TokenType = ( type: TokenEnum, what: TerminalSymbolEnum, value: String, line: Int, position: Int )
-
-typealias TokenizedSourceListType = [TokenType]
-
 typealias AllowableSyntaxDictType = [ String: AllowableSyntaxEntryStruct ]
 
 typealias XmlnsSymbolTableType = [ String: Int ]

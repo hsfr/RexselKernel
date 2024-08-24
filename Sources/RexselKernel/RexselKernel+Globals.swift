@@ -6,6 +6,14 @@
 
 import Foundation
 
+typealias TokensArrayType = Array<(value: String, position: Int)>
+
+typealias TokenizedSourceLineType = ( index: Int, line: String, tokens: TokensArrayType )
+
+typealias TokenType = ( type: TokenEnum, what: TerminalSymbolEnum, value: String, line: Int, position: Int )
+
+typealias TokenizedSourceListType = [TokenType]
+
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 /// Show the line number on the output. These must be
 /// visible to external packages/apps.

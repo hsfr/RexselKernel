@@ -9,7 +9,6 @@ import Foundation
 
 extension RexselKernel {
 
-
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
@@ -79,88 +78,62 @@ extension RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// A set of lines as tokens that are indexed by the first line.
+    /// A bundle of tokenized lines keyed by the lowest
+    /// line in the bundle.
     ///
     /// ```
-    /// TokenizedFragmentStruct.data -> [( type: TokenEnum,
-    ///                                    what: TerminalSymbolEnum,
-    ///                                    value: String,
-    ///                                    line: Int,
-    ///                                    position: Int )]
+    /// TokenizedFragmentsBundleStruct.data -> [Int: TokenizedSourceListType]
     /// ```
 
-    struct TokenizedFragmentStruct {
+    struct TokenizedSourceBundleStruct {
 
-        var data: TokenizedSourceListType
-
-        var isEmpty: Bool {
-            return data.isEmpty
-        }
-
-        /// The id is the lowest of the line numbers
-        var firstLineId: Int {
-            guard !self.isEmpty else {
-                return 0
-            }
-            var firstLine = Int.max
-            for ( _, _, _, line, _ ) in data {
-                if line < firstLine {
-                    firstLine = line
-                }
-            }
-            return firstLine
-        }
+        var id = 0
+        
+        var data = TokenizedSourceListType()
 
         var description: String {
-            var msg = ""
+            var msg = "[\(id)]"
             for ( type, what, numberValue, line, position ) in data {
-                msg += "[\(line):\(position)][\(type)][\(what)][\(numberValue)]"
+                msg += "    [\(line):\(position)][\(type)][\(what)][\(numberValue)]"
             }
             return msg
         }
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-** Tokenized Bundles List Actor *-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     //
-    /// A bundle of tokenized lines keyed by the lowest
-    /// line in the bundle.
-    ///
-    /// ```
-    /// TokenizedFragmentsBundleStruct.data -> [Int: TokenizedFragmentStruct]
-    /// ```
+    /// A set of token bundles where bundle is indexed by the
+    /// line number of the first line in the bundle.
 
-    struct TokenizedFragmentsBundleStruct {
+    actor TokenizedBundlesListActor {
 
-        var data: [Int: TokenizedFragmentStruct] = [:]
+        var data: [Int: TokenizedSourceBundleStruct] = [:]
 
-        func existsId( _ key: Int ) -> Bool {
-            return data[key] != nil
+        var isEmpty: Bool {
+            return data.isEmpty
         }
 
-        mutating func setFragmentAt( _ key: Int, fragment fragmentData: TokenizedFragmentStruct ) {
-            data[key] = fragmentData
-        }
-
-        func getFragmentAt( _ key: Int ) -> TokenizedFragmentStruct? {
-            guard existsId( key ) else {
-                return nil
+        var sortedData: [Int: TokenizedSourceBundleStruct] {
+            let sortedBundleKeys = Array( data.keys ).sorted()
+            var newData = [Int: TokenizedSourceBundleStruct]()
+            for lineNumber in sortedBundleKeys {
+                if let entry = data[ lineNumber ] {
+                    newData[lineNumber] = entry
+                }
             }
-            return data[key]
+            return newData
         }
 
-        /// The id is the lowest of the line numbers
-        var firstLineId: Int {
-            if let first = Array(data.keys).min() {
-                return first
-            }
-            return 0
+        func setBundleAt( _ key: Int, bundle bundleData: TokenizedSourceBundleStruct ) {
+            data[key] = bundleData
         }
 
         var description: String {
             var msg = ""
-            for ( key, fragment ) in data {
-                msg += "[\(key):\(fragment.description)]"
+            for ( key, entry ) in data {
+                msg += "[\(key):\(entry.description)]"
             }
             return msg
         }
@@ -220,61 +193,52 @@ extension RexselKernel {
     }
 
     actor TaskCompletedActor {
+
+        /// The dictionary of which task is completed
+        /// keyed by first line number in buundle.
         var taskCompletedDict = TaskCompletedDictType()
 
-        func setTaskStatus( _ status: TaskStatusEnum, for key: Int ) {
-            print( "Set task \(key) status to \(status) " )
-            taskCompletedDict[key] = status
-        }
-
-        func getTaskStatus( for key: Int ) -> TaskStatusEnum {
-            if let status = taskCompletedDict[key] {
-                return status
-            } else {
-                return .invalid
-            }
-        }
-
+        /// Returns line number key of next free slot or
+        /// zero if no free ones.
         var nextInvalidSlot: Int {
             for ( key, entry ) in taskCompletedDict {
                 if entry == .invalid {
+                    setTaskStatusTo( .waiting, for: key )
                     return key
                 }
             }
             return 0
         }
 
+        /// Returns number of running or waiting (not finished) tasks.
         var numberRunning: Int {
             var total = 0
-            //print( "Checking number running" )
-            for ( key, entry ) in taskCompletedDict {
-                //print( "entry \(key): \(entry)" )
+            for ( _, entry ) in taskCompletedDict {
                 if entry == .running || entry == .waiting {
                     total += 1
                 }
             }
-            // print( "Number running: \(total)" )
             return total
         }
 
+        /// Returns number of finished tasks.
         var numberFinished: Int {
             var total = 0
-            //print( "Checking number finished" )
-            for ( key, entry ) in taskCompletedDict {
-                //print( "entry \(key): \(entry)" )
+            for ( _, entry ) in taskCompletedDict {
                 if entry == .finished {
                     total += 1
                 }
             }
-            //print( "Number finished: \(total)" )
             return total
         }
         
+        /// Have all the tasks finished.
         var allFinished: Bool {
-            print( "Number finished: \(numberFinished):\(taskCompletedDict.count)" )
+            // print( "Number finished: \(numberFinished):\(taskCompletedDict.count)" )
             return numberFinished == taskCompletedDict.count
         }
 
+        /// Description for debugging.
         var description: String {
             var msg = ""
             for ( key, status ) in taskCompletedDict {
@@ -282,7 +246,23 @@ extension RexselKernel {
             }
             return msg
         }
+        
+        // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
+        func setTaskStatusTo( _ status: TaskStatusEnum, for key: Int ) {
+            print( "Set task \(key) status to \(status) " )
+            taskCompletedDict[key] = status
+        }
+
+        // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+        func getTaskStatusFor( _ key: Int ) -> TaskStatusEnum {
+            if let status = taskCompletedDict[key] {
+                return status
+            } else {
+                return .invalid
+            }
+        }
     }
 
 }

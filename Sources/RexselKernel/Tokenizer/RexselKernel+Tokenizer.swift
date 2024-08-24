@@ -56,7 +56,7 @@ extension RexselKernel {
 
             tokenizedSource = TokenizedSourceListType()
 
-            let testSource = """
+            var testSource = """
 stylesheet {
     version "1.0"
 
@@ -90,6 +90,13 @@ stylesheet {
 }
 """
 
+            testSource = """
+stylesheet {
+    version "1.0"
+
+}
+"""
+
             source.readIntoCompilerString( testSource )
 
             guard !source.sourceLines.isEmpty else {
@@ -98,7 +105,7 @@ stylesheet {
 
             while true {
                 let ( nextLine, eof ) = source.getLineFromSource()
-                // print( "Loop start \(eof)" )
+                //print( "Loop start \(eof)" )
                 // let ( nextLine, eof ) = source.getLineFromSourcePanel()
                 var sourceLine = nextLine.line
                 let sourceStringLineNumber = nextLine.index + 1
@@ -146,7 +153,7 @@ stylesheet {
 
             // Prime the task completed list
             for ( key, _ ) in await bundleDict.data {
-                await taskCompletedActor.setTaskStatus( .invalid, for: key )
+                await taskCompletedActor.setTaskStatusTo( .invalid, for: key )
             }
 
             print( "====================" )
@@ -160,24 +167,27 @@ stylesheet {
                 let numberRunning = await taskCompletedActor.numberRunning
                 let numberFinished = await taskCompletedActor.numberFinished
                 let allTasksFinished = await taskCompletedActor.allFinished
-                print( "Number running: \(numberRunning) < \(maxParallelBundlesRunning)" )
+                print( "----------------------" )
+                print( "Number waiting/running: \(numberRunning) < \(maxParallelBundlesRunning)" )
                 print( "Number finished: \(numberFinished)" )
                 print( "All tasks finished: \(allTasksFinished)" )
                 if allTasksFinished { break }
 
                 if numberRunning < maxParallelBundlesRunning {
-                    // OK to add so find next invalid slot
-                    nextSlot = await taskCompletedActor.nextInvalidSlot
-                    if nextSlot > 0 {
-                        // There is a free slot
-                        let entry = await bundleDict.getBundleAt( nextSlot )
-                        print( "Adding next slot: \(nextSlot)" )
-                        Task {
-                            // Mark this task as waiting (only temporary, could be left out?)
-                            await taskCompletedActor.setTaskStatus( .waiting, for: nextSlot )
-                            await tokenizeLinesTaskTest( id: nextSlot,
-                                                         with: entry!,
-                                                         list: taskCompletedActor )
+                    print( "We can add task" )
+
+                    Task {
+                        // OK to add so find next invalid slot and mark as ".waiting"
+                        nextSlot = await taskCompletedActor.nextInvalidSlot
+                        print( "Found next slot: \(nextSlot)" )
+                        if nextSlot > 0 {
+                            let entry = await bundleDict.getBundleAt( nextSlot )
+                            print( "Get bundle at slot: \(nextSlot)" )
+                            let tokenizedSourceBundle = await tokenizeLinesTask( id: nextSlot,
+                                                                                 with: entry!,
+                                                                                 list: taskCompletedActor )
+                            // Add this to the list
+                            // await tokenizedBundlesListActor.setBundleAt( nextLine, bundle: tokenizedSourceBundle )
                         }
                     }
                 } else {
@@ -187,10 +197,15 @@ stylesheet {
                 }
             }
 
+            //print( await tokenizedBundlesListActor.description )
 
             print( "Finished Tokenizer" )
             return true
         } // end of tokenizeTask closure
+
+        // At this point we should have a list of
+        // bundles that have been constructed.
+
 
     }
 
@@ -199,11 +214,12 @@ stylesheet {
 
     func tokenizeLinesTaskTest( id key: Int,
                                 with bundle: LineFragmentsBundleStruct,
-                                list taskCompletedList: TaskCompletedActor ) async {
-        await taskCompletedList.setTaskStatus( .running, for: key )
+                                list taskCompletedList: TaskCompletedActor ) async -> TokenizedSourceBundleStruct {
+        await taskCompletedList.setTaskStatusTo( .running, for: key )
         try? await Task.sleep(nanoseconds: 1_00_000_000)
-        await taskCompletedList.setTaskStatus( .finished, for: key )
-
+        await taskCompletedList.setTaskStatusTo( .finished, for: key )
+        let tokenizedSourceBundle = TokenizedSourceBundleStruct()
+        return tokenizedSourceBundle
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -214,16 +230,16 @@ stylesheet {
     /// The bundle is a dictionary of lines held as a tuple
     ///
     /// ```
-    ///    LineFragmentStruct.data -> ( lineNunber: Int, line: String )
+    /// LineFragmentStruct.data -> ( lineNunber: Int, line: String )
     /// ```
     ///
     /// and the bundle is
     ///
     /// ```
-    ///     LineFragmentsBundleStruct.data -> [Int: LineFragmentStruct]
+    /// LineFragmentsBundleStruct.data -> [Int: LineFragmentStruct]
     /// ```
-    /// After running the task the source should be split into a series
-    /// of tokens in a bundle. For example if the source is
+    /// After running the task the bundle is translated to a set
+    /// of tokenized lines. For example if the source is
     ///
     /// ```
     /// stylesheet {
@@ -231,7 +247,7 @@ stylesheet {
     ///         element html {
     /// etc.
     /// ```
-    /// then `tokenedFile` will contain
+    /// then the return will contain
     /// ```
     /// [0:0][terminal][xslt][xslt]
     /// [0:5][terminal][openCurlyBracket][{]
@@ -252,10 +268,11 @@ stylesheet {
     ///   - id: the bundle id (normally the lowest line number)
     ///   - with: the bundle to be processed.
     ///   - list: reference to the completion list.
+    /// - Returns: a bundle of tokenized lines (_TokenizedFragmentsBundleStruct_)
 
     func tokenizeLinesTask( id key: Int,
                             with bundle: LineFragmentsBundleStruct,
-                            list taskCompletedList: TaskCompletedActor ) async {
+                            list taskCompletedList: TaskCompletedActor ) async -> TokenizedSourceBundleStruct {
 
         enum TokenizerState {
             case newToken
@@ -273,21 +290,22 @@ stylesheet {
         var lineNumber = 0
         var tokenType = TokenEnum.unknown
 
-        isLogging = true
+        /// The bundle fragment as an array of tokens
+        var tokenizedSourceList = TokenizedSourceListType()
 
-        await taskCompletedList.setTaskStatus( .running, for: key )
+        // isLogging = true
 
-        // Clear down the source string that holds the string to analyse
+        await taskCompletedList.setTaskStatusTo( .running, for: key )
+
+        // Clear down the source string that holds the string to analyse.
         var sourceString = ""
-        //print( "Start: \(timeInterval)" )
 
         // Get the lines from the bundle, but first sort into consecutive lines.
+        // This is probably not necessary as the line in a bundle should be consecutive.
+        let sortedLineKeys = Array( bundle.data.keys ).sorted()
+        print( sortedLineKeys.description )
 
-        let sortedLines = Array( bundle.data.keys ).sorted()
-
-        print( sortedLines.description )
-
-        for lineNumber in sortedLines {
+        for lineNumber in sortedLineKeys {
             if let entry = bundle.data[ lineNumber ] {
                 let thisLine = entry.data.line
                 sourceString += thisLine
@@ -299,13 +317,14 @@ stylesheet {
         if isLogging {
             rLogger.log( structName, .debug, "Finished reading source from bundle")
         }
-        if let firstLine = sortedLines.first {
+
+        if let firstLine = sortedLineKeys.first {
             print( "sourceString starting at line \(firstLine): \n\(sourceString)" )
         }
 
         let stringLength = sourceString.count
         guard sourceString.isNotEmpty else {
-            return
+            return TokenizedSourceBundleStruct()
         }
 
         if isLogging {
@@ -330,15 +349,11 @@ stylesheet {
                     ()
             }
 
-            //            if isLogging {
-            //                rLogger.log( structName,
-            //                             .debug,
-            //                             "[\(tokeniseState)] [\(currentCharacter == Preset.newlineCharacter ? "newline"  : currentCharacter )] [\(nextCharacter == Preset.newlineCharacter ? "newline"  : nextCharacter )]" )
-            //            }
+            print( "[\(tokeniseState)][\(currentCharacter)][\(nextCharacter)]" )
 
             switch ( tokeniseState, currentCharacter, nextCharacter ) {
 
-                    // Newlines and spaces
+                // Newlines and spaces
 
                 case ( .newToken, _, _ ) where Preset.whiteSpace.contains( currentCharacter ) :
                     // Ignore leading spaces
@@ -353,9 +368,9 @@ stylesheet {
                             tokenType = TokenEnum.qname
                         }
                         let symbol = TerminalSymbolEnum.translate( thisToken )
-                        tokenizedSource.append( ( type: tokenType, what: symbol,
-                                                  value: thisToken,
-                                                  line: lineNumber, position: argumentPosition ) )
+                        tokenizedSourceList.append( ( type: tokenType, what: symbol,
+                                                      value: thisToken,
+                                                      line: lineNumber, position: argumentPosition ) )
                     }
                     tokenType = TokenEnum.unknown
                     thisToken = ""
@@ -370,7 +385,7 @@ stylesheet {
                             tokenType = TokenEnum.qname
                         }
                         let symbol = TerminalSymbolEnum.translate( thisToken )
-                        tokenizedSource.append( ( type: tokenType,
+                        tokenizedSourceList.append( ( type: tokenType,
                                                   what: symbol,
                                                   value: thisToken,
                                                   line: lineNumber, position: argumentPosition ) )
@@ -392,7 +407,7 @@ stylesheet {
                             tokenType = TokenEnum.qname
                         }
                         let symbol = TerminalSymbolEnum.translate( thisToken )
-                        tokenizedSource.append( ( type: tokenType, what: symbol,
+                        tokenizedSourceList.append( ( type: tokenType, what: symbol,
                                                   value: thisToken,
                                                   line: lineNumber, position: argumentPosition ) )
                     }
@@ -420,7 +435,7 @@ stylesheet {
                             tokenType = TokenEnum.terminal
                         }
                         let symbol = TerminalSymbolEnum.translate( thisToken )
-                        tokenizedSource.append( ( type: tokenType, what: symbol,
+                        tokenizedSourceList.append( ( type: tokenType, what: symbol,
                                                   value: thisToken,
                                                   line: lineNumber, position: argumentPosition ) )
                         tokenType = TokenEnum.unknown
@@ -451,7 +466,7 @@ stylesheet {
                     //if thisToken.isNotEmpty {
                     // Existing token
                     tokenType = TokenEnum.expression
-                    tokenizedSource.append( ( type: tokenType, what: .expression,
+                    tokenizedSourceList.append( ( type: tokenType, what: .expression,
                                               value: thisToken,
                                               line: lineNumber, position: argumentPosition ) )
                     //}
@@ -498,7 +513,7 @@ stylesheet {
                             tokenType = TokenEnum.qname
                         }
                         let symbol = TerminalSymbolEnum.translate( thisToken )
-                        tokenizedSource.append( ( type: tokenType, what: symbol,
+                        tokenizedSourceList.append( ( type: tokenType, what: symbol,
                                                   value: thisToken,
                                                   line: lineNumber, position: argumentPosition ) )
                     }
@@ -526,26 +541,50 @@ stylesheet {
                 tokenType = TokenEnum.qname
             }
             let symbol = TerminalSymbolEnum.translate( thisToken )
-            tokenizedSource.append( ( type: tokenType, what: symbol,
-                                      value: thisToken,
-                                      line: lineNumber, position: argumentPosition ) )
+            tokenizedSourceList.append( ( type: tokenType, what: symbol,
+                                            value: thisToken,
+                                            line: lineNumber, position: argumentPosition ) )
             tokenType = TokenEnum.unknown
         }
 
         // Mark of the end of the file as a token
-        tokenizedSource.append( ( type: .terminal, what: .endOfFile,
-                                  value: "",
-                                  line: lineNumber, position: 0 ) )
+        tokenizedSourceList.append( ( type: .terminal, what: .endOfFile,
+                                        value: "",
+                                        line: lineNumber, position: 0 ) )
 
         if showFullMessages {
             print( "\(lineNumber) lines read" )
         }
 
-        // tokenizedSource must be put in a bundle
 
         // All finished
-        await taskCompletedList.setTaskStatus(.finished, for: key)
+        await taskCompletedList.setTaskStatusTo(.finished, for: key)
 
+        // At this point we have a load of tokens which must be entered into the bundle.
+        // tokenizedFragmentList is an array of TokenTypes
+        // ( type: TokenEnum, what: TerminalSymbolEnum, value: String, line: Int, position: Int )
+        //
+        // We need to return a single bundle that consists of a set of TokenTypes.
+
+        print( "\(lineNumber) lines read" )
+        print( "\(tokenizedSourceList.count) tokens" )
+        for ( type, what, value, line, position ) in tokenizedSourceList {
+            print( "[\(line):\(position)][\(type)][\(what)][\(value)]" )
+        }
+
+        var tokenizedSourceBundle = TokenizedSourceBundleStruct()
+        var bundleKey = Int.max
+        for ( _, _, _, line, _ ) in tokenizedSourceList {
+            let minLine = line
+            if line < bundleKey {
+                bundleKey = minLine
+            }
+        }
+
+        tokenizedSourceBundle.id = bundleKey
+        tokenizedSourceBundle.data = tokenizedSourceList
+
+        return tokenizedSourceBundle
     }
 
 }
