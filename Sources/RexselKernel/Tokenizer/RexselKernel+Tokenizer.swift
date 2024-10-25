@@ -53,6 +53,8 @@ extension RexselKernel {
 
         // Convenience variables
 
+        isLogging = false
+        
         var stringLength = 0
 
         let singleQuoteCharacter = "\'"
@@ -67,7 +69,7 @@ extension RexselKernel {
         let openCurlyBracket = "{"
         let closeCurlyBracket = "}"
 
-        var tokeniseState: TokenizerState = .newToken
+        var tokenizerState: TokenizerState = .newToken
         var argumentPosition = 0
         var characterCount = 0
 
@@ -92,9 +94,9 @@ extension RexselKernel {
             // Insert newline
             sourceString += newlineCharacter
             if eof {
-#if REXSEL_LOGGING
-                rLogger.log( structName, .debug, "Finished reading source")
-#endif
+                if isLogging {
+                    rLogger.log( structName, .debug, "Finished reading source")
+                }
                 break
             }
         }
@@ -105,10 +107,9 @@ extension RexselKernel {
             return
         }
 
-#if REXSEL_LOGGING
-        // rLogger.log( structName, .debug, sourceString )
-        rLogger.log( structName, .debug, sourceString )
-#endif
+        if isLogging {
+            rLogger.log( structName, .debug, sourceString )
+        }
 
         var idx = 0
         var finished = false
@@ -132,15 +133,15 @@ extension RexselKernel {
                     ()
             }
 
-#if REXSEL_LOGGING
-            rLogger.log( structName,
-                         .debug,
-                         "[\(tokeniseState)] [\(currentCharacter == newlineCharacter ? "newline"  : currentCharacter )] [\(nextCharacter == newlineCharacter ? "newline"  : nextCharacter )]" )
-#endif
+            if isLogging {
+                rLogger.log( structName,
+                             .debug,
+                             "[\(tokenizerState)] [\(currentCharacter == newlineCharacter ? "newline"  : currentCharacter )] [\(nextCharacter == newlineCharacter ? "newline"  : nextCharacter )]" )
+            }
 
-            switch ( tokeniseState, currentCharacter, nextCharacter ) {
+            switch ( tokenizerState, currentCharacter, nextCharacter ) {
 
-                    // Newlines and spaces
+                // Newlines and spaces
 
                 case ( .newToken, _, _ ) where whiteSpace.contains( currentCharacter ) :
                     // Ignore leading spaces
@@ -161,7 +162,7 @@ extension RexselKernel {
                     }
                     tokenType = TokenEnum.unknown
                     thisToken = ""
-                    tokeniseState = .newToken
+                    tokenizerState = .newToken
 
                 case ( .withinToken, _, _ ) where quoteCharacters.contains( currentCharacter ) :
                     // Found quote at end of token. Remove quote from value
@@ -180,10 +181,10 @@ extension RexselKernel {
                     // Now go and get next character (which should be quote).
                     tokenType = TokenEnum.unknown
                     thisToken = ""
-                    tokeniseState = .newToken
+                    tokenizerState = .newToken
                     continue
 
-                case ( _, newlineCharacter, _ ) where tokeniseState != .withinQuote :
+                case ( _, newlineCharacter, _ ) where tokenizerState != .withinQuote :
                     // End of a line, if we were processing a terminal/qname symbol
                     // end it and store.
                     if thisToken.isNotEmpty {
@@ -200,10 +201,10 @@ extension RexselKernel {
                     }
                     tokenType = TokenEnum.unknown
                     thisToken = ""
-                    tokeniseState = .newToken
+                    tokenizerState = .newToken
                     lineNumber += 1
 
-                case ( _, newlineCharacter, _ ) where tokeniseState == .withinQuote :
+                case ( _, newlineCharacter, _ ) where tokenizerState == .withinQuote :
                     // When within quote we add the newline to the token being assembled
                     thisToken.append( currentCharacter )
                     lineNumber += 1
@@ -214,7 +215,7 @@ extension RexselKernel {
                     ()
 
                 case ( .newToken, "/", "/" ) where thisToken.isNotEmpty,
-                    ( .withinToken, "/", "/" ) where thisToken.isNotEmpty :
+                     ( .withinToken, "/", "/" ) where thisToken.isNotEmpty :
                     // A comment so ignore rest of line unless we are processing symbol/quotes
                     // in which case we close the symbol and store.
                     if thisToken.isNotEmpty {
@@ -227,49 +228,46 @@ extension RexselKernel {
                                                   line: lineNumber, position: argumentPosition ) )
                         tokenType = TokenEnum.unknown
                     }
-                    tokeniseState = .withinComment
+                    tokenizerState = .withinComment
 
                 case ( .newToken, "/", "/" ) where thisToken.isEmpty,
                     ( .withinToken, "/", "/" ) where thisToken.isEmpty :
                     // Just mark off as comment
-                    tokeniseState = .withinComment
+                    tokenizerState = .withinComment
 
                     // Tokens
 
                 case ( .withinToken, _, _ ) :
                     // When within a token just append character
                     thisToken.append( currentCharacter )
-                    tokeniseState = .withinToken
+                    tokenizerState = .withinToken
 
                     // Quotation strings/expressions
 
                 case ( .literalCharacter, _, _ ) :
                     thisToken.append( currentCharacter )
-                    tokeniseState = .withinQuote
+                    tokenizerState = .withinQuote
 
                 case ( .withinQuote, doubleQuoteCharacter, _ ) where currentCharacter == currentQuoteCharacter,
                     ( .withinQuote, singleQuoteCharacter, _ ) where currentCharacter == currentQuoteCharacter :
                     // End of quotation (expression etc) so store it away
-                    //if thisToken.isNotEmpty {
-                        // Existing token
-                        tokenType = TokenEnum.expression
-                        tokenizedSource.append( ( type: tokenType, what: .expression,
-                                                  value: thisToken,
-                                                  line: lineNumber, position: argumentPosition ) )
-                    //}
-                    // Rest everything for new token
+                    // Existing token
+                    tokenType = TokenEnum.expression
+                    tokenizedSource.append( ( type: tokenType, what: .expression,
+                                              value: thisToken,
+                                              line: lineNumber, position: argumentPosition ) )                    // Rest everything for new token
                     tokenType = TokenEnum.unknown
                     thisToken = ""
-                    tokeniseState = .newToken
+                    tokenizerState = .newToken
 
                 case ( .withinQuote, literalCharacterPrefix, _ ):
-                    tokeniseState = .literalCharacter
+                    tokenizerState = .literalCharacter
 
                 case ( .withinQuote, _, _ ):
                     thisToken.append( currentCharacter )
-                    tokeniseState = .withinQuote
+                    tokenizerState = .withinQuote
 
-                    // Tokens
+                // Tokens
 
                 case ( .newToken, tabCharacter, _ ), ( .newToken, spaceCharacter, _ ) :
                     // Ignore leading spaces
@@ -281,7 +279,7 @@ extension RexselKernel {
                     currentQuoteCharacter = currentCharacter
                     tokenType = TokenEnum.expression
                     thisToken = ""
-                    tokeniseState = .withinQuote
+                    tokenizerState = .withinQuote
 
                 case ( .newToken, _, _ ) :
                     // Otherwise found beginning of new token, bracket etc.
@@ -289,7 +287,7 @@ extension RexselKernel {
                     thisToken.append( currentCharacter )
                     // Assume that it is a terminal symbol rather than a qname at this point
                     tokenType = TokenEnum.terminal
-                    tokeniseState = .withinToken
+                    tokenizerState = .withinToken
 
                 case ( .withinToken, openCurlyBracket, _ ), ( .withinToken, closeCurlyBracket, _ ) :
                     // Found end of token.
@@ -306,7 +304,7 @@ extension RexselKernel {
                     }
                     tokenType = TokenEnum.unknown
                     thisToken = ""
-                    tokeniseState = .newToken
+                    tokenizerState = .newToken
                     if currentCharacter == closeCurlyBracket {
                         continue
                     }

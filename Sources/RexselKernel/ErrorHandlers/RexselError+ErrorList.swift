@@ -24,6 +24,20 @@ public class RexselErrorList: NSObject {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Logging Properties
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Is logging required?
+    ///
+    /// This is the base of a slightly crude logging system.
+    /// I would prefer to use something like Hestia but the
+    /// overheads were too great.
+
+    var isLogging = false
+
+   // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Instance properties
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -53,7 +67,8 @@ public class RexselErrorList: NSObject {
 
     override init() {
         super.init()
-    }
+        isLogging = false  // Adjust as required
+   }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -72,9 +87,9 @@ public class RexselErrorList: NSObject {
         guard !isMessageInList( inError.kind.description ) else {
             return
         }
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, inError.kind.description )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, inError.kind.description )
+        }
         errorList.append( inError )
     }
 
