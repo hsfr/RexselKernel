@@ -1,11 +1,19 @@
 # Rexsel Compiler #
 
-*Rexsel* is a simplified (compact) version of XSLT. It does not use
-XML to write the code, rather a simplified, easy to read language.
-It has been successfully used on the [Paloose site](https://www.paloose.org)
-and [Rexsel](https://www.rexsel.com/) sites generating all the necessary XSLT transform files.
+*Rexsel* Rexsel is a simplified (compact, non-XML), easy to read version of XSLT,
+similar to the relationship between [Relax-NG](https://relaxng.org/) and
+its [compact form](https://relaxng.org/compact-20021121.html).
 
-It was conceived after many years of writing XSLT templates for translating XML into various forms: XML, XHTML, Swift code, and even LaTeX. While the underlying structure is virtually identical to XSLT, it is hoped that the result will help users produce more concise, readable stylesheets independent of XML.
+It has been successfully used on the [Paloose site](https://www.paloose.org)
+and [Rexsel](https://www.rexsel.com/) sites as well as the [Rexsel site](https://www.rexsel.org), 
+generating all the necessary XSLT transform files.
+The actual generation of the XSLT is done when the site is built and uploaded to the server,
+rather than being performed on each browser request.
+
+It was conceived after many years of writing XSLT templates for translating XML 
+into various forms: XML, XHTML, Swift code, and even LaTeX. While the underlying 
+structure is virtually identical to XSLT, it is hoped that the result will help 
+users produce more concise, readable stylesheets independent of XML.
 
 ```
 stylesheet {
@@ -21,7 +29,13 @@ stylesheet {
 
 ```
 
-Rexsel was developed on a Mac using Xcode and Swift as the underlying language, however the actual compiler kernel is "OS neutral". The compiler (RexselKernel) is written as a Swift Package, currently here, and there is a command line application (CRexsel) currently here which is also also a Swift Package, that uses the RexselKernel package. Both can be built on any system that supports Swift. Currently it has been rxtensively tested on a MacOS system and a Parallels based Ubuntu and Fedora Linux, both running on MacOS 14.4.1 Sonora on a M2 Mac Mini.
+Rexsel was developed on a Mac using Xcode and Swift as the underlying language, however
+the actual compiler kernel is "OS neutral". The compiler (RexselKernel) is written as a
+Swift Package, currently here, and there is a command line application (CRexsel) 
+currently here which is also also a Swift Package, that uses the RexselKernel package. 
+Both can be built on any system that supports Swift. Currently it has been extensively
+tested on a MacOS system and a Parallels based Ubuntu and Fedora Linux, both
+  running on MacOS 14.4.1 Sonora on a M2 Mac Mini.
 
 
 Although there is no Apache Ant build system this could be
@@ -30,14 +44,17 @@ The compiler kernel is currently surrounded by
 a command line application and a simple editor app. The former
 could also be directly ported to a Linux system. 
 
-The CRexsel application also provides an "uncompiler" function that takes existing XSLT files and translates them to a basic Rexsel format (ignoring XML comments). This should make migrating XSLT stylesheets into Rexsel much easier.
+The CRexsel application also provides an "uncompiler" function that takes existing XSLT
+files and translates them to a basic Rexsel format (ignoring XML comments). This should
+make migrating XSLT stylesheets into Rexsel much easier.
 
-There is a MacOS only application, using the same RexselKernel package, that provides an editor and real-time compile function.
+There is a MacOS only application (RexselEditor) that is under development. It uses 
+the same RexselKernel package, that provides an editor and real-time compile function.
 
 ### Caveats ###
 
 The current version has a Tokenizer that is a little less than optimal and so
-could be slower on large files (>800 lines). This will be investugated and
+could be slower on large files (>800 lines). This will be investigated and
 an updated version will be produced when I have the time.
 
 ### What is this repository for? ###

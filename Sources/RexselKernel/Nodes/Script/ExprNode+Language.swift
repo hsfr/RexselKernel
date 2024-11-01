@@ -39,31 +39,32 @@ class LanguageNode: ExprNode  {
     override func parseSyntaxUsingCompiler( _ compiler: RexselKernel ) throws {
 
         defer {
-#if REXSEL_LOGGING
-            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+            if isLogging {
+                rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+                rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+            }
         }
 
         thisCompiler = compiler
 
         // When we arrive here the element terminal symbol is current
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
 
         // Slide past keyword token
         thisCompiler.tokenizedSourceIndex += 1
 
-#if REXSEL_LOGGING
-        rLogger.log( self, .debug, thisCompiler.currentTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextTokenLog )
-        rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
-#endif
+        if isLogging {
+            
+            rLogger.log( self, .debug, thisCompiler.currentTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextTokenLog )
+            rLogger.log( self, .debug, thisCompiler.nextNextTokenLog )
+        }
 
         switch ( thisCompiler.currentToken.type, thisCompiler.nextToken.type, thisCompiler.nextNextToken.type ) {
 
