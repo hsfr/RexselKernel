@@ -8,7 +8,7 @@
 
 import Foundation
 
-    var rLogger = RexselLogger()
+var rLogger = RexselLogger()
 
 class RexselLogger: NSObject {
 

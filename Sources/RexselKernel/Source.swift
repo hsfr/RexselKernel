@@ -12,6 +12,20 @@ public class Source: NSObject {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // MARK: - Logging Properties
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    //
+    /// Is logging required?
+    ///
+    /// This is the base of a slightly crude logging system.
+    /// I would prefer to use something like Hestia but the
+    /// overheads were too great.
+
+    var isLogging = false
+
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // MARK: - Instance properties
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -64,6 +78,7 @@ public class Source: NSObject {
 
     public override init() {
         super.init()
+        isLogging = false // Change as required
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -106,7 +121,7 @@ public class Source: NSObject {
             let lines = source.components( separatedBy: "\n" )
             clearSource()
             for i in 0..<lines.count {
-               sourceLines.append( ( i, lines[i] ) )
+                sourceLines.append( ( i, lines[i] ) )
             }
             lineIndex = 0
         }  catch {
@@ -121,53 +136,53 @@ public class Source: NSObject {
     ///
     /// - Returns: ( ( index of line, source line ), _true_ if end of file )
 
-   func getLine() -> ( sourceLine: SourceLineType, endOfFile: Bool ) {
-#if REXSEL_LOGGING
-       rLogger.log( self, .debug,"Getting line \(lineIndex) ")
-#endif
+    func getLine() -> ( sourceLine: SourceLineType, endOfFile: Bool ) {
+        if isLogging {
+            rLogger.log( self, .debug,"Getting line \(lineIndex) ")
+        }
         guard !isEndOfFile else {
             lineIndex = 0
             return ( ( 0, "" ), true )
         }
 
         var sourceLine = sourceLines[ lineIndex ]
-#if REXSEL_LOGGING
-      rLogger.log( self, .debug,"  fetched line at \(lineIndex): \(sourceLine.line)")
-#endif
+        if isLogging {
+            rLogger.log( self, .debug,"  fetched line at \(lineIndex): \(sourceLine.line)")
+        }
 
         if lineIsNotEmpty( sourceLine.line ) && lineIndex <= sourceLines.count {
             sourceLine = sourceLines[ lineIndex ]
         } else {
-#if REXSEL_LOGGING
-          rLogger.log( self, .debug,"  Empty line at \(lineIndex)")
-#endif
-          sourceLine = ( lineIndex, "" )
+            if isLogging {
+                rLogger.log( self, .debug,"  Empty line at \(lineIndex)")
+            }
+            sourceLine = ( lineIndex, "" )
         }
-       
+
         lineIndex += 1
         return ( sourceLine, isEndOfFile )
     }
-    
+
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    
+
     fileprivate func lineIsEmpty( _ line: String ) -> Bool {
         return line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
-    
+
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    
+
     fileprivate func lineIsNotEmpty( _ line: String ) -> Bool {
         return line.trimmingCharacters(in: .whitespacesAndNewlines).isNotEmpty
     }
-    
+
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    
+
     func clearSource() {
         fileString = ""
         sourceLines = [SourceLineType]()
     }
-    
+
 }

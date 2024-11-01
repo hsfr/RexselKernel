@@ -128,7 +128,7 @@ class VersionNode: ExprNode  {
     /// Set up the syntax based on the BNF.
     ///
     /// ```xml
-    ///   <version> ::= “version” <quote> <version string> <quote
+    ///   <version> ::= “version” <quote> <version string> <quote>
     /// ```
 
     override func setSyntax( options optionsList: TerminalSymbolEnumSetType, elements elementsList: TerminalSymbolEnumSetType ) {
@@ -145,7 +145,7 @@ class VersionNode: ExprNode  {
     override func checkSyntax() {
         super.checkSyntax()
         // Version is an overloaded keyword so only check value is
-        // within range in top[ level.
+        // within range in top level.
         if self.parentNode.thisExprNodeType == .stylesheet {
             if !rexsel_versionRange.keys.contains( thisCompiler.xsltVersion ) {
                 // Mark as error
