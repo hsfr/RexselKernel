@@ -38,7 +38,7 @@ public class RexselKernel {
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
     // Make sure that this uses the Package scheme for tagged repository.
-    public var version = "1.1.4"
+    public var version = "1.1.9"
 
     /// The XSLT version being used (set to initial minimum)
     public var xsltVersion = "1.0"
@@ -196,7 +196,7 @@ public class RexselKernel {
     /// within scope of template.
     var procNameTable = [String: Int]()
 
-    /// Conveniece variable for _xmlnsPrefix_
+    /// Convenience variable for _xmlnsPrefix_
     ///
     ///  Not generally changed but could be in extremis in future versions.
     var _xmlnsPrefix = "xsl"
@@ -214,18 +214,23 @@ public class RexselKernel {
             _xmlnsPrefix = prefix
         }
     }
-
-    /// Conveniece variable for _xsltNamespace_
+    
+    /// Convenience variable for _xsltNamespace_
     ///
     ///  Not generally changed but could be in extremis in future versions.
     var _xsltNamespace = "http://www.w3.org/1999/XSL/Transform"
-
+    
     /// Convenience namespace constant for inserting in output.
     public var xsltNamespace: String {
-        if !useDefaultXSLNamespace {
-            return "xmlns:\(_xmlnsPrefix)=\"\(_xsltNamespace)\""
-        } else {
-            return "xmlns=\"\(_xsltNamespace)\""
+        get {
+            if !useDefaultXSLNamespace {
+                return "xmlns:\(_xmlnsPrefix)=\"\(_xsltNamespace)\""
+            } else {
+                return "xmlns=\"\(_xsltNamespace)\""
+            }
+        }
+        set (ns) {
+            _xsltNamespace = ns
         }
     }
 
@@ -258,8 +263,14 @@ public class RexselKernel {
     ///
     /// This is where we invoke the compiler.
     ///
-    /// - Returns: Tuple ( codeListing, errorListing, symbolTable ) all `String`
-
+    /// - Parameters:
+    ///    - showUndefined: Show undefined symbols.
+    ///    - lineNumbers: Insert line numbers.
+    ///    - defaultNameSpace: Use default XML namespace.
+    ///    - verbose: Verbose messages (usually only when debugging).
+    ///    - debug: Internal checking when developing.
+   /// - Returns: Tuple ( codeListing, errorListing, symbolTable ) all _String_
+ 
     public func run( showUndefined: Bool = false,
                      lineNumbers: Bool = false,
                      defaultNameSpace: Bool = false,
@@ -286,6 +297,8 @@ public class RexselKernel {
         namespaceList = [:]
 
         rexselErrorList = RexselErrorList()
+        // This is the slowest part of the compiler and may be
+        // improved when I have the time.
         tokenizeSource()
         if showFullMessages {
             print( "Tokenizer finished" )
@@ -300,8 +313,8 @@ public class RexselKernel {
         }
 
         do {
-        RexselErrorList.undefinedErrorsFlag = false
-        try parse()
+            RexselErrorList.undefinedErrorsFlag = false
+            try parse()
             if showFullMessages {
                 print( "Parse complete" )
             }
@@ -324,14 +337,12 @@ public class RexselKernel {
             print( "Variable scope checks finished" )
         }
 
-        let symbolTable = rootNode.symbolListing()
-
         // Finally generate the actual code
         compiledXSL = rootNode.generate()
 
         // The code is returned so that the command line and app can deal with
         // the errors and symbol table differently.
-        return( compiledXSL, rexselErrorList.description, symbolTable )
+        return( compiledXSL, rexselErrorList.description, rootNode.symbolListing() )
     }
 
 }

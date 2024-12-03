@@ -255,7 +255,8 @@ extension RexselKernel {
                     tokenType = TokenEnum.expression
                     tokenizedSource.append( ( type: tokenType, what: .expression,
                                               value: thisToken,
-                                              line: lineNumber, position: argumentPosition ) )                    // Rest everything for new token
+                                              line: lineNumber, position: argumentPosition ) )
+                    // Reset everything for new token
                     tokenType = TokenEnum.unknown
                     thisToken = ""
                     tokenizerState = .newToken

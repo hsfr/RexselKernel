@@ -402,7 +402,7 @@ enum RexselErrorKind {
           
             case .duplicateVariable( _, _, _ ) : return "Remove duplicate from current block or check spelling."
           
-            case .expectedName( _, _ ) : return "Insert name."
+            case .expectedName( _, _ ) : return "Insert name or check illegal reserved word."
 
             case .couldNotFindVariable( _, let name ) : return "Check \"\(name)\" is defined in current block/context."
 

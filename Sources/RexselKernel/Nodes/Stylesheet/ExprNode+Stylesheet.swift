@@ -413,10 +413,11 @@ class StylesheetNode: ExprNode {
             }
         }
 
+        let thisElementName = "\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)"
         if contents.isEmpty {
-            return "<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)/>\n"
+            return "<\(thisElementName) \(attributes)/>\n"
         } else {
-            return "<\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml) \(attributes)>\n\(contents)\n</\(thisCompiler.xmlnsPrefix)\(thisExprNodeType.xml)>"
+            return "<\(thisElementName) \(attributes)>\n\(contents)\n</\(thisElementName)>"
         }
     }
 
