@@ -1,11 +1,12 @@
 # Rexsel Compiler #
 
-*Rexsel* Rexsel is a simplified (compact, non-XML), easy to read version of XSLT,
+*Rexsel* is a simplified (compact, non-XML), easy to read version of XSLT,
 similar to the relationship between [Relax-NG](https://relaxng.org/) and
 its [compact form](https://relaxng.org/compact-20021121.html).
 
 It has been successfully used on the [Paloose site](https://www.paloose.org)
-and [Rexsel](https://www.rexsel.com/) sites as well as the [Rexsel site](https://www.rexsel.org), 
+and [Hop Vine Music](https://www.hopvine-music.com/) sites as well as
+the [Rexsel site](https://www.rexsel.org), 
 generating all the necessary XSLT transform files.
 The actual generation of the XSLT is done when the site is built and uploaded to the server,
 rather than being performed on each browser request.
